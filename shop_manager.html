@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop Manager</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
+.screen{display:none}
+.screen.active{display:block}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:16px;padding:32px 24px;width:100%;max-width:360px;border:0.5px solid #e0ddd5}
+.login-logo{font-size:22px;font-weight:600;margin-bottom:6px;color:#1a1a1a}
+.login-sub{font-size:13px;color:#888;margin-bottom:24px}
+.login-roles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.role-btn{padding:10px 6px;border:0.5px solid #ddd;border-radius:10px;background:#fff;font-size:12px;cursor:pointer;text-align:center;color:#555;transition:all 0.15s}
+.role-btn.selected{border-color:#4a4a9a;background:#f0f0fb;color:#4a4a9a;font-weight:500}
+.role-btn .icon{font-size:20px;display:block;margin-bottom:4px}
+.inp{width:100%;padding:10px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:12px;background:#fafaf8;color:#1a1a1a}
+.inp:focus{outline:none;border-color:#4a4a9a}
+.login-btn{width:100%;padding:12px;background:#4a4a9a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer}
+.login-btn:hover{background:#3a3a8a}
+.err{color:#c0392b;font-size:12px;margin-bottom:10px;display:none}
+
+/* APP */
+.app-wrap{max-width:480px;margin:0 auto;padding:0 0 80px}
+.topbar{background:#fff;border-bottom:0.5px solid #e0ddd5;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:16px;font-weight:600}
+.topbar-sub{font-size:11px;color:#888;margin-top:1px}
+.logout-btn{font-size:12px;color:#888;background:none;border:0.5px solid #ddd;border-radius:8px;padding:5px 10px;cursor:pointer}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid #e0ddd5;display:flex;max-width:480px;margin:0 auto;z-index:10}
+.nav-btn{flex:1;padding:10px 4px 8px;background:none;border:none;cursor:pointer;font-size:10px;color:#888;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav-btn .ni{font-size:20px}
+.nav-btn.active{color:#4a4a9a}
+
+/* CONTENT */
+.content{padding:14px 14px}
+.page{display:none}
+.page.active{display:block}
+
+/* SHOP TABS */
+.shop-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.shop-tab{flex:1;min-width:70px;padding:7px 4px;font-size:11px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#666;cursor:pointer;text-align:center}
+.shop-tab.active{background:#f0f0fb;color:#4a4a9a;font-weight:600;border-color:#4a4a9a}
+
+/* CARDS */
+.card{background:#fff;border:0.5px solid #e0ddd5;border-radius:14px;padding:14px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:#555;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.metric{background:#f5f4f0;border-radius:10px;padding:10px 12px}
+.metric-label{font-size:11px;color:#888;margin-bottom:3px}
+.metric-value{font-size:17px;font-weight:600;color:#1a1a1a}
+.metric-value.green{color:#1a7a4a}
+.metric-value.red{color:#c0392b}
+.metric-value.blue{color:#2563eb}
+
+/* FORM */
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;color:#666;margin-bottom:4px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;font-size:14px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8;color:#1a1a1a}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#4a4a9a}
+.save-btn{width:100%;padding:11px;font-size:14px;font-weight:600;border:none;border-radius:10px;background:#4a4a9a;color:#fff;cursor:pointer;margin-top:4px}
+.save-btn:active{transform:scale(0.98)}
+.save-btn.secondary{background:#f0f0fb;color:#4a4a9a;border:0.5px solid #c8c8ee}
+
+/* ENTRIES */
+.entry-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:0.5px solid #f0ede6;gap:8px}
+.entry-main{font-size:13px;color:#1a1a1a;font-weight:500}
+.entry-sub{font-size:11px;color:#999;margin-top:2px}
+.entry-date{font-size:11px;color:#bbb;white-space:nowrap}
+.del-btn{background:none;border:none;color:#ccc;cursor:pointer;font-size:18px;padding:0 2px;line-height:1}
+.del-btn:hover{color:#c0392b}
+.empty{text-align:center;padding:20px;color:#bbb;font-size:13px}
+
+/* STAFF */
+.staff-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-top:0.5px solid #f0ede6;gap:8px}
+.staff-name{font-size:14px;font-weight:600}
+.staff-meta{font-size:11px;color:#999;margin-top:2px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;margin-right:4px;font-weight:500}
+.badge.warn{background:#fff8e1;color:#b45309}
+.badge.danger{background:#fef2f2;color:#c0392b}
+.badge.info{background:#eff6ff;color:#2563eb}
+.badge.success{background:#f0fdf4;color:#1a7a4a}
+
+/* SUMMARY */
+.shop-summary-block{background:#fff;border:0.5px solid #e0ddd5;border-radius:14px;padding:14px;margin-bottom:10px}
+.shop-summary-name{font-size:14px;font-weight:700;margin-bottom:10px;color:#4a4a9a;display:flex;align-items:center;gap:6px}
+.srow{display:flex;justify-content:space-between;font-size:13px;color:#666;padding:3px 0}
+.srow span:last-child{font-weight:600;color:#1a1a1a}
+.srow.total{border-top:0.5px solid #eee;margin-top:4px;padding-top:6px}
+.srow.total span{font-weight:700;color:#4a4a9a}
+.divider{border:none;border-top:0.5px solid #eee;margin:8px 0}
+.section-label{font-size:11px;font-weight:700;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;margin:8px 0 4px}
+
+/* TRANSFER */
+.transfer-badge{background:#e8f4fd;color:#1a6aaa;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:500}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 20px;border-radius:10px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* MONTH FILTER */
+.month-bar{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.month-bar select{flex:1;font-size:13px;padding:7px 10px;border:0.5px solid #ddd;border-radius:9px;background:#fff;color:#1a1a1a}
+.month-bar label{font-size:12px;color:#888;white-space:nowrap}
+
+/* TRANSFER TAG */
+.from-tag{background:#fef9ec;color:#b45309;border-radius:6px;padding:1px 7px;font-size:11px}
+.to-tag{background:#f0fdf4;color:#1a7a4a;border-radius:6px;padding:1px 7px;font-size:11px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="screen active">
+<div class="login-wrap">
+<div class="login-box">
+  <div class="login-logo">🏪 Shop Manager</div>
+  <div class="login-sub">Select your role to continue</div>
+  <div class="login-roles" id="roleButtons">
+    <button class="role-btn" onclick="selectRole('owner')" id="role_owner"><span class="icon">👑</span>Owner</button>
+    <button class="role-btn" onclick="selectRole('manager')" id="role_manager"><span class="icon">🧑‍💼</span>Manager</button>
+    <button class="role-btn" onclick="selectRole('staff')" id="role_staff"><span class="icon">🧑‍🏭</span>Staff</button>
+  </div>
+  <div id="loginFields"></div>
+  <div class="err" id="loginErr">Incorrect password. Try again.</div>
+  <button class="login-btn" onclick="doLogin()">Login</button>
+</div>
+</div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="appScreen" class="screen">
+<div class="app-wrap">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbarTitle">Shop Manager</div>
+      <div class="topbar-sub" id="topbarSub"></div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
+  </div>
+
+  <div class="content">
+    <!-- ENTRIES PAGE -->
+    <div class="page active" id="page_entries">
+      <div class="shop-tabs" id="entryShopTabs"></div>
+      <div id="entryContent"></div>
+    </div>
+
+    <!-- STAFF PAGE -->
+    <div class="page" id="page_staff">
+      <div class="shop-tabs" id="staffShopTabs"></div>
+      <div id="staffContent"></div>
+    </div>
+
+    <!-- TRANSFER PAGE -->
+    <div class="page" id="page_transfer">
+      <div id="transferContent"></div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page" id="page_dashboard">
+      <div id="dashContent"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" id="bottomNav"></nav>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──
+const SHOPS = [
+  {name:'POOJARA',   manager:'NIKUNJ',  pass:'poojara123'},
+  {name:'RAMDEV',    manager:'PUNIT',   pass:'ramdev123'},
+  {name:'SHIVAM (KOSAD)',    manager:'KISHAN',  pass:'shivam1123'},
+  {name:'SHIVAM (KHODIYAR NAGAR)', manager:'RAJVEER', pass:'shivam2123'},
+];
+const OWNER_PASS = 'owner@123';
+const STAFF_PASS = 'staff123'; // same for all shop staff, shop is selected on login
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// ── STATE ──
+let session = null; // {role:'owner'|'manager'|'staff', shopIdx:0..3 or null}
+let activePage = 'entries';
+let activeEntryShop = 0;
+let activeStaffShop = 0;
+let activeStaffSub = 'list';
+let data = {shops:[{},{},{},{}], staff:[[],[],[],[]], transfers:[]};
+
+// ── STORAGE ──
+const SK = 'shopapp_pro_v1';
+function saveData(){ localStorage.setItem(SK, JSON.stringify(data)); }
+function loadData(){ try{ const d=localStorage.getItem(SK); if(d) data=JSON.parse(d); }catch(e){} }
+
+// ── UTILS ──
+function fmt(n){ return n?Number(n).toLocaleString('en-IN'):'0'; }
+function today(){ return new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}); }
+function curYM(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function ymLabel(ym){ if(!ym)return''; const [y,m]=ym.split('-'); return `${MONTHS[parseInt(m)-1]} ${y}`; }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function monthOptions(selVal){
+  let s=''; const now=new Date();
+  for(let i=0;i<13;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const ym=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    s+=`<option value="${ym}"${ym===selVal?' selected':''}>${ymLabel(ym)}</option>`;
+  }
+  return s;
+}
+
+// ── LOGIN ──
+let selectedRole = null;
+function selectRole(r){
+  selectedRole=r;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('role_'+r).classList.add('selected');
+  const f=document.getElementById('loginFields');
+  if(r==='owner'){
+    f.innerHTML=`<input class="inp" type="password" id="li_pass" placeholder="Owner password">`;
+  } else if(r==='manager'){
+    f.innerHTML=`<select class="inp" id="li_shop"><option value="">Select your branch</option>${SHOPS.map((s,i)=>`<option value="${i}">${s.name} — ${s.manager}</option>`).join('')}</select><input class="inp" type="password" id="li_pass" placeholder="Manager password">`;
+  } else {
+    f.innerHTML=`<select class="inp" id="li_shop"><option value="">Select your shop</option>${SHOPS.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('')}</select><input class="inp" type="password" id="li_pass" placeholder="Staff password">`;
+  }
+  document.getElementById('loginErr').style.display='none';
+  setTimeout(()=>{ const p=document.getElementById('li_pass'); if(p) p.focus(); },100);
+}
+function doLogin(){
+  if(!selectedRole){ toast('Select a role'); return; }
+  const pass=document.getElementById('li_pass')?.value||'';
+  const shopEl=document.getElementById('li_shop');
+  const shopIdx=shopEl?parseInt(shopEl.value):null;
+  let ok=false; let shopAccess=null;
+  if(selectedRole==='owner'){ ok=(pass===OWNER_PASS); shopAccess=null; }
+  else if(selectedRole==='manager'){
+    if(isNaN(shopIdx)||shopIdx===null||shopEl?.value===''){ toast('Select your branch'); return; }
+    ok=(pass===SHOPS[shopIdx].pass); shopAccess=shopIdx;
+  } else {
+    if(isNaN(shopIdx)||shopIdx===null||shopEl?.value===''){ toast('Select your shop'); return; }
+    ok=(pass===STAFF_PASS); shopAccess=shopIdx;
+  }
+  if(!ok){ document.getElementById('loginErr').style.display='block'; return; }
+  session={role:selectedRole, shopIdx:shopAccess};
+  startApp();
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+function doLogout(){
+  session=null; selectedRole=null;
+  document.getElementById('loginFields').innerHTML='';
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('loginErr').style.display='none';
+  showScreen('loginScreen');
+}
+
+// ── APP START ──
+function startApp(){
+  showScreen('appScreen');
+  const rLabel={owner:'Owner',manager:'Manager',staff:'Staff'}[session.role];
+  document.getElementById('topbarTitle').textContent='🏪 Shop Manager';
+  document.getElementById('topbarSub').textContent=
+    session.role==='owner'?'All Branches — Owner Access':
+    session.role==='manager'?`${SHOPS[session.shopIdx].name} — ${SHOPS[session.shopIdx].manager} (Manager)`:
+    `${SHOPS[session.shopIdx].name} — Staff`;
+  buildNav();
+  if(session.role==='staff'){ activeEntryShop=session.shopIdx; activeStaffShop=session.shopIdx; switchPage('entries'); }
+  else switchPage('dashboard');
+}
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+// ── NAV ──
+function buildNav(){
+  const isStaff=session.role==='staff';
+  const isOwner=session.role==='owner';
+  let nav='';
+  nav+=`<button class="nav-btn" onclick="switchPage('entries')"><span class="ni">📋</span>Entries</button>`;
+  nav+=`<button class="nav-btn" onclick="switchPage('staff')"><span class="ni">👥</span>Staff</button>`;
+  nav+=`<button class="nav-btn" onclick="switchPage('transfer')"><span class="ni">🔄</span>Transfer</button>`;
+  if(!isStaff) nav+=`<button class="nav-btn" onclick="switchPage('dashboard')"><span class="ni">📊</span>Dashboard</button>`;
+  document.getElementById('bottomNav').innerHTML=nav;
+}
+function switchPage(p){
+  activePage=p;
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page_'+p).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
+    b.classList.toggle('active', b.getAttribute('onclick')===`switchPage('${p}')`);
+  });
+  renderPage(p);
+}
+
+// ── ACCESSIBLE SHOPS ──
+function accessibleShops(){
+  if(session.role==='owner') return SHOPS.map((_,i)=>i);
+  return [session.shopIdx];
+}
+
+// ── RENDER PAGE ──
+function renderPage(p){
+  if(p==='entries') renderEntries();
+  else if(p==='staff') renderStaffPage();
+  else if(p==='transfer') renderTransfer();
+  else if(p==='dashboard') renderDashboard();
+}
+
+// ── ENTRIES ──
+function renderEntries(){
+  const shops=accessibleShops();
+  if(shops.length>1){
+    document.getElementById('entryShopTabs').innerHTML=shops.map(i=>`<button class="shop-tab${activeEntryShop===i?' active':''}" onclick="switchEntryShop(${i})">${SHOPS[i].name}</button>`).join('');
+  } else {
+    document.getElementById('entryShopTabs').innerHTML='';
+  }
+  const si=activeEntryShop;
+  if(!shops.includes(si)){ activeEntryShop=shops[0]; }
+  const entries=data.shops[activeEntryShop].entries||[];
+  const hist=entries.length===0?`<div class="empty">No entries yet</div>`:
+    entries.slice(0,30).map((e,i)=>`<div class="entry-row">
+      <div>
+        <div class="entry-main">${e.pieces?`${fmt(e.pieces)} pcs · `:''}<span style="color:#1a7a4a">₹${fmt(e.amount)}</span>${e.expense?` · Exp ₹${fmt(e.expense)}`:''}</div>
+        <div class="entry-sub">${[e.advance?`Adv ₹${fmt(e.advance)}`:'', e.bank?`Bank ₹${fmt(e.bank)}`:'', e.cash?`Cash ₹${fmt(e.cash)}`:''].filter(Boolean).join(' · ')}</div>
+        ${e.note?`<div class="entry-sub" style="color:#bbb">${e.note}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${e.date}</span><button class="del-btn" onclick="delEntry(${activeEntryShop},${i})">×</button></div>
+    </div>`).join('');
+
+  document.getElementById('entryContent').innerHTML=`
+    <div class="card">
+      <div class="card-title">➕ Add Entry — ${SHOPS[activeEntryShop].name}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field"><label>Advance (₹)</label><input type="number" id="f_advance" placeholder="0"></div>
+        <div class="field"><label>Bank Deposit (₹)</label><input type="number" id="f_bank" placeholder="0"></div>
+        <div class="field"><label>Cash (₹)</label><input type="number" id="f_cash" placeholder="0"></div>
+        <div class="field"><label>Pieces Sold</label><input type="number" id="f_pieces" placeholder="0"></div>
+        <div class="field"><label>Sale Amount (₹)</label><input type="number" id="f_amount" placeholder="0"></div>
+        <div class="field"><label>Expense (₹)</label><input type="number" id="f_expense" placeholder="0"></div>
+        <div class="field"><label>Extra Stock</label><input type="number" id="f_stock" placeholder="0"></div>
+      </div>
+      <div class="field"><label>Note (optional)</label><input type="text" id="f_note" placeholder="e.g. Wholesale order"></div>
+      <button class="save-btn" onclick="addEntry()">💾 Save Entry</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🕐 Recent Entries</div>
+      <div style="max-height:260px;overflow-y:auto">${hist}</div>
+    </div>`;
+}
+window.switchEntryShop=function(i){ activeEntryShop=i; renderEntries(); }
+window.addEntry=async function(){
+  const g=id=>document.getElementById(id)?.value?.trim()||'';
+  const e={date:today(),advance:g('f_advance'),bank:g('f_bank'),cash:g('f_cash'),pieces:g('f_pieces'),amount:g('f_amount'),expense:g('f_expense'),stock:g('f_stock'),note:g('f_note')};
+  if(!e.advance&&!e.bank&&!e.cash&&!e.pieces&&!e.amount&&!e.expense&&!e.stock){ toast('Fill at least one field'); return; }
+  if(!data.shops[activeEntryShop].entries) data.shops[activeEntryShop].entries=[];
+  data.shops[activeEntryShop].entries.unshift(e); saveData(); toast('Entry saved! ✓'); renderEntries();
+}
+window.delEntry=function(si,i){ if(confirm('Delete this entry?')){ data.shops[si].entries.splice(i,1); saveData(); renderEntries(); } }
+
+// ── STAFF ──
+function renderStaffPage(){
+  const shops=accessibleShops();
+  if(shops.length>1){
+    document.getElementById('staffShopTabs').innerHTML=shops.map(i=>`<button class="shop-tab${activeStaffShop===i?' active':''}" onclick="switchStaffShop(${i})">${SHOPS[i].name}</button>`).join('');
+  } else { document.getElementById('staffShopTabs').innerHTML=''; }
+  if(!shops.includes(activeStaffShop)) activeStaffShop=shops[0];
+
+  const subBtns=`<div style="display:flex;gap:6px;margin-bottom:12px">
+    ${['list','leave','advance'].map(s=>`<button onclick="swStaffSub('${s}')" style="flex:1;padding:7px 4px;font-size:12px;border:0.5px solid ${activeStaffSub===s?'#4a4a9a':'#ddd'};border-radius:8px;background:${activeStaffSub===s?'#f0f0fb':'#fff'};color:${activeStaffSub===s?'#4a4a9a':'#666'};font-weight:${activeStaffSub===s?'600':'400'};cursor:pointer">${s==='list'?'👤 Staff':s==='leave'?'📅 Leaves':'💵 Advance'}</button>`).join('')}
+  </div>`;
+
+  let inner='';
+  if(activeStaffSub==='list') inner=renderStaffList();
+  else if(activeStaffSub==='leave') inner=renderLeave();
+  else inner=renderAdvance();
+  document.getElementById('staffContent').innerHTML=subBtns+inner;
+}
+window.switchStaffShop=function(i){ activeStaffShop=i; renderStaffPage(); }
+window.swStaffSub=function(s){ activeStaffSub=s; renderStaffPage(); }
+
+function renderStaffList(){
+  const si=activeStaffShop; const staff=data.staff[si]||[]; const cm=curYM();
+  const rows=staff.length===0?`<div class="empty">No staff added yet</div>`:
+    staff.map((st,i)=>{
+      const lv=(st.leaves||[]).filter(l=>l.month===cm).reduce((a,l)=>a+Number(l.days||0),0);
+      const adv=(st.advances||[]).reduce((a,l)=>a+Number(l.amount||0),0);
+      return `<div class="staff-row">
+        <div><div class="staff-name">${st.name}</div><div class="staff-meta">${st.role||'Staff'} ${st.joined?'· Joined '+st.joined:''}</div>
+        <div style="margin-top:5px">${lv>0?`<span class="badge warn">${lv}d leave</span>`:''} ${adv>0?`<span class="badge danger">Adv ₹${fmt(adv)}</span>`:''}</div></div>
+        <button class="del-btn" onclick="delStaff(${si},${i})">×</button>
+      </div>`;
+    }).join('');
+  return `<div class="card">
+    <div class="card-title">➕ Add Staff Member</div>
+    <div class="field"><label>Full Name</label><input type="text" id="st_name" placeholder="Name"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>Role</label><input type="text" id="st_role" placeholder="Manager / Sales"></div>
+      <div class="field"><label>Joined</label><input type="text" id="st_joined" placeholder="Jan 2024"></div>
+    </div>
+    <button class="save-btn" onclick="addStaff(${si})">➕ Add Staff</button>
+  </div>
+  <div class="card"><div class="card-title">👥 ${SHOPS[si].name} Staff</div>${rows}</div>`;
+}
+window.addStaff=function(si){
+  const name=document.getElementById('st_name')?.value?.trim();
+  if(!name){ toast('Enter staff name'); return; }
+  if(!data.staff[si]) data.staff[si]=[];
+  data.staff[si].push({name,role:document.getElementById('st_role')?.value?.trim()||'',joined:document.getElementById('st_joined')?.value?.trim()||'',leaves:[],advances:[]});
+  saveData(); toast(`${name} added! ✓`); renderStaffPage();
+}
+window.delStaff=function(si,i){ if(confirm('Remove this staff member?')){ data.staff[si].splice(i,1); saveData(); renderStaffPage(); } }
+
+function renderLeave(){
+  const si=activeStaffShop; const staff=data.staff[si]||[];
+  if(staff.length===0) return `<div class="card"><div class="empty">Add staff first</div></div>`;
+  const opts=staff.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+  const allL=[]; staff.forEach((st,i)=>{ (st.leaves||[]).forEach((l,li)=>allL.push({...l,stName:st.name,si,i,li})); });
+  allL.sort((a,b)=>b.month.localeCompare(a.month));
+  const hist=allL.length===0?`<div class="empty">No leave records</div>`:
+    allL.slice(0,20).map(l=>`<div class="entry-row">
+      <div><div class="entry-main">${l.stName}</div><div class="entry-sub">${l.days} day${l.days>1?'s':''} leave</div></div>
+      <div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${ymLabel(l.month)}</span><button class="del-btn" onclick="delLeave(${l.si},${l.i},${l.li})">×</button></div>
+    </div>`).join('');
+  return `<div class="card">
+    <div class="card-title">📅 Add Leave</div>
+    <div class="field"><label>Staff</label><select id="lv_staff">${opts}</select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>Month</label><input type="month" id="lv_month" value="${curYM()}"></div>
+      <div class="field"><label>Days</label><input type="number" id="lv_days" placeholder="e.g. 2" min="0.5" step="0.5"></div>
+    </div>
+    <button class="save-btn" onclick="addLeave(${si})">💾 Save Leave</button>
+  </div>
+  <div class="card"><div class="card-title">🕐 Leave History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
+}
+window.addLeave=function(si){
+  const idx=parseInt(document.getElementById('lv_staff')?.value);
+  const month=document.getElementById('lv_month')?.value;
+  const days=parseFloat(document.getElementById('lv_days')?.value);
+  if(!days||isNaN(days)||days<=0){ toast('Enter valid days'); return; }
+  if(!data.staff[si][idx].leaves) data.staff[si][idx].leaves=[];
+  data.staff[si][idx].leaves.push({month,days}); saveData(); toast('Leave saved! ✓'); renderStaffPage();
+}
+window.delLeave=function(si,stIdx,lIdx){ data.staff[si][stIdx].leaves.splice(lIdx,1); saveData(); renderStaffPage(); }
+
+function renderAdvance(){
+  const si=activeStaffShop; const staff=data.staff[si]||[];
+  if(staff.length===0) return `<div class="card"><div class="empty">Add staff first</div></div>`;
+  const opts=staff.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+  const allA=[]; staff.forEach((st,i)=>{ (st.advances||[]).forEach((a,ai)=>allA.push({...a,stName:st.name,si,i,ai})); });
+  allA.sort((a,b)=>b.month.localeCompare(a.month));
+  const totals=staff.map(st=>({name:st.name,total:(st.advances||[]).reduce((a,l)=>a+Number(l.amount||0),0)})).filter(x=>x.total>0);
+  const hist=allA.length===0?`<div class="empty">No advance records</div>`:
+    allA.slice(0,20).map(a=>`<div class="entry-row">
+      <div><div class="entry-main">${a.stName}</div><div class="entry-sub">₹${fmt(a.amount)}</div></div>
+      <div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${ymLabel(a.month)}</span><button class="del-btn" onclick="delAdvance(${a.si},${a.i},${a.ai})">×</button></div>
+    </div>`).join('');
+  const outst=totals.length===0?'':totals.map(t=>`<div class="staff-row" style="padding:6px 0"><div class="staff-name">${t.name}</div><span class="badge danger">₹${fmt(t.total)} total</span></div>`).join('');
+  return `<div class="card">
+    <div class="card-title">💵 Add Advance</div>
+    <div class="field"><label>Staff</label><select id="adv_staff">${opts}</select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>Month</label><input type="month" id="adv_month" value="${curYM()}"></div>
+      <div class="field"><label>Amount (₹)</label><input type="number" id="adv_amount" placeholder="0"></div>
+    </div>
+    <button class="save-btn" onclick="addAdvance(${si})">💾 Save Advance</button>
+  </div>
+  ${totals.length>0?`<div class="card"><div class="card-title">⚠️ Outstanding Advances</div>${outst}</div>`:''}
+  <div class="card"><div class="card-title">🕐 Advance History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
+}
+window.addAdvance=function(si){
+  const idx=parseInt(document.getElementById('adv_staff')?.value);
+  const month=document.getElementById('adv_month')?.value;
+  const amount=parseFloat(document.getElementById('adv_amount')?.value);
+  if(!amount||isNaN(amount)||amount<=0){ toast('Enter valid amount'); return; }
+  if(!data.staff[si][idx].advances) data.staff[si][idx].advances=[];
+  data.staff[si][idx].advances.push({month,amount}); saveData(); toast('Advance saved! ✓'); renderStaffPage();
+}
+window.delAdvance=function(si,stIdx,aIdx){ data.staff[si][stIdx].advances.splice(aIdx,1); saveData(); renderStaffPage(); }
+
+// ── INTER-TRANSFER ──
+function renderTransfer(){
+  const shopOpts=SHOPS.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+  const transfers=data.transfers||[];
+  const hist=transfers.length===0?`<div class="empty">No transfers recorded</div>`:
+    transfers.slice(0,30).map((t,i)=>`<div class="entry-row">
+      <div>
+        <div class="entry-main"><span class="from-tag">FROM: ${SHOPS[t.from].name}</span> → <span class="to-tag">TO: ${SHOPS[t.to].name}</span></div>
+        <div class="entry-sub">₹${fmt(t.amount)} · ${t.goods||'Goods'} ${t.qty?`· Qty: ${t.qty}`:''}</div>
+        ${t.note?`<div class="entry-sub" style="color:#bbb">${t.note}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${t.date}</span><button class="del-btn" onclick="delTransfer(${i})">×</button></div>
+    </div>`).join('');
+
+  document.getElementById('transferContent').innerHTML=`
+    <div class="card">
+      <div class="card-title">🔄 Record Inter-Branch Transfer</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field"><label>From Shop</label><select id="tr_from">${shopOpts}</select></div>
+        <div class="field"><label>To Shop</label><select id="tr_to">${SHOPS.map((s,i)=>`<option value="${i}"${i===1?' selected':''}>${s.name}</option>`).join('')}</select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field"><label>Amount (₹)</label><input type="number" id="tr_amount" placeholder="0"></div>
+        <div class="field"><label>Quantity</label><input type="number" id="tr_qty" placeholder="e.g. 50 pcs"></div>
+      </div>
+      <div class="field"><label>Goods Description</label><input type="text" id="tr_goods" placeholder="e.g. Cotton shirts"></div>
+      <div class="field"><label>Note (optional)</label><input type="text" id="tr_note" placeholder="Any extra info"></div>
+      <button class="save-btn" onclick="addTransfer()">💾 Save Transfer</button>
+    </div>
+    <div class="card"><div class="card-title">🕐 Transfer History</div><div style="max-height:320px;overflow-y:auto">${hist}</div></div>`;
+}
+window.addTransfer=function(){
+  const from=parseInt(document.getElementById('tr_from')?.value);
+  const to=parseInt(document.getElementById('tr_to')?.value);
+  if(from===to){ toast('From and To cannot be same shop'); return; }
+  const amount=document.getElementById('tr_amount')?.value?.trim();
+  if(!amount){ toast('Enter amount'); return; }
+  if(!data.transfers) data.transfers=[];
+  data.transfers.unshift({from,to,amount,qty:document.getElementById('tr_qty')?.value?.trim(),goods:document.getElementById('tr_goods')?.value?.trim(),note:document.getElementById('tr_note')?.value?.trim(),date:today()});
+  saveData(); toast('Transfer recorded! ✓'); renderTransfer();
+}
+window.delTransfer=function(i){ if(confirm('Delete transfer record?')){ data.transfers.splice(i,1); saveData(); renderTransfer(); } }
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const shops=accessibleShops();
+  const now=new Date();
+  const cm=curYM();
+  const selYM=document.getElementById('dash_month')?.value||cm;
+
+  const grandTotals={amount:0,cash:0,bank:0,advance:0,expense:0,pieces:0};
+  const shopCards=shops.map(si=>{
+    const entries=(data.shops[si].entries||[]);
+    const mEntries=entries.filter(e=>{
+      if(!e.date) return false;
+      // match by month label vs selYM
+      const d=new Date(); // approximate — use all if can't parse
+      return true; // show all-time totals per card, month filter below
+    });
+    // all-time totals
+    let amount=0,cash=0,bank=0,advance=0,expense=0,pieces=0,stock=0;
+    for(const e of entries){ amount+=Number(e.amount||0); cash+=Number(e.cash||0); bank+=Number(e.bank||0); advance+=Number(e.advance||0); expense+=Number(e.expense||0); pieces+=Number(e.pieces||0); stock+=Number(e.stock||0); }
+    grandTotals.amount+=amount; grandTotals.cash+=cash; grandTotals.bank+=bank; grandTotals.advance+=advance; grandTotals.expense+=expense; grandTotals.pieces+=pieces;
+
+    // Staff this month
+    const staffSum=(data.staff[si]||[]).map(st=>{
+      const lv=(st.leaves||[]).filter(l=>l.month===selYM).reduce((a,l)=>a+Number(l.days||0),0);
+      const adv=(st.advances||[]).filter(a=>a.month===selYM).reduce((a,l)=>a+Number(l.amount||0),0);
+      const totalAdv=(st.advances||[]).reduce((a,l)=>a+Number(l.amount||0),0);
+      return {...st,lv,adv,totalAdv};
+    });
+    const staffRows=staffSum.length===0?`<div style="font-size:12px;color:#bbb;padding:4px 0">No staff added</div>`:
+      staffSum.map(st=>`<div class="srow"><span>${st.name}</span><span>${st.lv>0?`${st.lv}d leave · `:''}${st.adv>0?`Adv ₹${fmt(st.adv)}`:'—'} ${st.totalAdv>0?`<span class="badge danger" style="font-size:10px">Total ₹${fmt(st.totalAdv)}</span>`:''}</span></div>`).join('');
+
+    // Transfers
+    const tOut=(data.transfers||[]).filter(t=>t.from===si);
+    const tIn=(data.transfers||[]).filter(t=>t.to===si);
+    const tOutAmt=tOut.reduce((a,t)=>a+Number(t.amount||0),0);
+    const tInAmt=tIn.reduce((a,t)=>a+Number(t.amount||0),0);
+
+    return `<div class="shop-summary-block">
+      <div class="shop-summary-name">🏪 ${SHOPS[si].name}</div>
+      <div class="srow"><span>Sale Amount</span><span class="green">₹${fmt(amount)}</span></div>
+      <div class="srow"><span>Pieces Sold</span><span>${fmt(pieces)}</span></div>
+      <div class="srow"><span>Cash</span><span>₹${fmt(cash)}</span></div>
+      <div class="srow"><span>Bank Deposit</span><span>₹${fmt(bank)}</span></div>
+      <div class="srow"><span>Advance</span><span>₹${fmt(advance)}</span></div>
+      <div class="srow"><span>Expense</span><span class="red">₹${fmt(expense)}</span></div>
+      <div class="srow"><span>Extra Stock</span><span>${fmt(stock)}</span></div>
+      <div class="srow"><span>Net (Sales−Expense)</span><span style="font-weight:700;color:${amount-expense>=0?'#1a7a4a':'#c0392b'}">₹${fmt(amount-expense)}</span></div>
+      <hr class="divider">
+      <div class="section-label">Staff — ${ymLabel(selYM)}</div>
+      ${staffRows}
+      ${tOutAmt>0||tInAmt>0?`<hr class="divider"><div class="section-label">Transfers</div>
+        ${tOutAmt>0?`<div class="srow"><span>Sent Out</span><span class="from-tag">₹${fmt(tOutAmt)}</span></div>`:''}
+        ${tInAmt>0?`<div class="srow"><span>Received</span><span class="to-tag">₹${fmt(tInAmt)}</span></div>`:''}`:''}</div>`;
+  }).join('');
+
+  const grandBlock=shops.length>1?`<div class="metric-grid">
+    <div class="metric"><div class="metric-label">All Shops Sales</div><div class="metric-value green">₹${fmt(grandTotals.amount)}</div></div>
+    <div class="metric"><div class="metric-label">Total Pieces</div><div class="metric-value">${fmt(grandTotals.pieces)}</div></div>
+    <div class="metric"><div class="metric-label">Total Cash</div><div class="metric-value">₹${fmt(grandTotals.cash)}</div></div>
+    <div class="metric"><div class="metric-label">Total Bank</div><div class="metric-value">₹${fmt(grandTotals.bank)}</div></div>
+    <div class="metric"><div class="metric-label">Total Expense</div><div class="metric-value red">₹${fmt(grandTotals.expense)}</div></div>
+    <div class="metric"><div class="metric-label">Net Profit</div><div class="metric-value ${grandTotals.amount-grandTotals.expense>=0?'green':'red'}">₹${fmt(grandTotals.amount-grandTotals.expense)}</div></div>
+  </div>`:'';
+
+  document.getElementById('dashContent').innerHTML=`
+    <div class="month-bar">
+      <label>Staff month:</label>
+      <select id="dash_month" onchange="renderDashboard()">${monthOptions(selYM)}</select>
+    </div>
+    ${grandBlock}
+    ${shopCards}`;
+}
+
+// ── INIT ──
+loadData();
+</script>
+</body>
+</html>
