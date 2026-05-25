@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_1.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shop Manager</title>
 <style>
@@ -91,6 +91,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tag-pill .tx{color:#aaa;cursor:pointer;font-size:15px;line-height:1}
 .owe-we{background:#fef2f2;color:#c0392b;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:600}
 .owe-they{background:#f0fdf4;color:#1a7a4a;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:600}
+.dealer-card{background:#fff;border:0.5px solid #e0ddd5;border-radius:12px;padding:12px;margin-bottom:10px}
+.dealer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.dealer-name{font-size:15px;font-weight:700;color:#1a1a1a}
+.dealer-due{font-size:18px;font-weight:700}
+.ledger-cr{color:#1a7a4a}
+.ledger-dr{color:#c0392b}
+.txn-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:0.5px solid #f5f4f0;gap:6px}
+.txn-type-dr{display:inline-block;background:#fef2f2;color:#c0392b;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700}
+.txn-type-cr{display:inline-block;background:#f0fdf4;color:#1a7a4a;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700}
 </style>
 </head>
 <body>
@@ -100,9 +109,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="login-logo">🏪 Shop Manager</div>
   <div class="login-biz">Shivam Group of Smartphones</div>
   <div class="login-roles">
-    <button class="role-btn" onclick="selectRole('owner')" id="role_owner"><span class="icon">👑</span>Owner</button>
-    <button class="role-btn" onclick="selectRole('manager')" id="role_manager"><span class="icon">🧑‍💼</span>Manager</button>
-    <button class="role-btn" onclick="selectRole('staff')" id="role_staff"><span class="icon">🧑‍🏭</span>Staff</button>
+    <button class="role-btn" onclick="selectRole(&#39;owner&#39;)" id="role_owner"><span class="icon">👑</span>Owner</button>
+    <button class="role-btn" onclick="selectRole(&#39;manager&#39;)" id="role_manager"><span class="icon">🧑‍💼</span>Manager</button>
+    <button class="role-btn" onclick="selectRole(&#39;staff&#39;)" id="role_staff"><span class="icon">🧑‍🏭</span>Staff</button>
   </div>
   <div id="loginFields"></div>
   <div class="err" id="loginErr">Incorrect password. Try again.</div>
@@ -119,18 +128,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="content">
     <div class="page active" id="page_entries"><div class="shop-tabs" id="entryShopTabs"></div><div id="entryContent"></div></div>
     <div class="page" id="page_expense"><div class="shop-tabs" id="expShopTabs"></div><div id="expContent"></div></div>
-    <div class="page" id="page_gpay"><div class="shop-tabs" id="gpayShopTabs"></div><div id="gpayContent"></div></div>
+    <div class="page" id="page_balance"><div class="shop-tabs" id="balShopTabs"></div><div id="balContent"></div></div>
     <div class="page" id="page_accessories"><div class="shop-tabs" id="accShopTabs"></div><div id="accContent"></div></div>
     <div class="page" id="page_staff"><div class="shop-tabs" id="staffShopTabs"></div><div id="staffContent"></div></div>
-    <div class="page" id="page_borrowings"><div id="borrowContent"></div></div>
+    <div class="page" id="page_borrowings"><div class="shop-tabs" id="borrowShopTabs"></div><div id="borrowContent"></div></div>
+    <div class="page" id="page_ledger"><div class="shop-tabs" id="ledgerShopTabs"></div><div id="ledgerContent"></div></div>
     <div class="page" id="page_transfer"><div id="transferContent"></div></div>
-    <div class="page" id="page_dashboard"><div id="dashContent"></div></div>
+    <div class="page" id="page_dashboard"><div class="shop-tabs" id="dashShopTabs"></div><div id="dashContent"></div></div>
   </div>
   <nav class="bottom-nav" id="bottomNav"></nav>
 </div>
 </div>
 <div class="toast" id="toast"></div>
-
 <script>
 const SHOPS=[
   {name:'POOJARA',  manager:'NIKUNJ', pass:'poojara123'},
@@ -141,35 +150,45 @@ const SHOPS=[
 const OWNER_PASS='owner@123', STAFF_PASS='staff123';
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 let session=null, activePage='entries';
-let activeShops={entries:0,expense:0,gpay:0,accessories:0,staff:0};
+let activeShops={entries:0,expense:0,balance:0,accessories:0,staff:0,borrowings:0,ledger:0,dashboard:0};
 let activeStaffSub='list';
-let activeEntrySub='sales'; // sales|brands|recharge|udhari|bakijama
+let activeEntrySub='sales';
+let activeBalanceSub='cash';
+let activeLedgerShop=0;
+let activeLedgerDealer='';
+
 let data={
   shops:[{},{},{},{}],
   staff:[[],[],[],[]],
   transfers:[],
   expTags:[[],[],[],[]],
   brandTags:[[],[],[],[]],
-  borrowings:[]
+  borrowings:[],
+  dealerAccounts:[[],[],[],[]],
+  ledgerTxns:[[],[],[],[]]
 };
 
-const SK='shopapp_v6';
+const SK='shopapp_v7';
 function save(){localStorage.setItem(SK,JSON.stringify(data));}
 function load(){
   try{
     const d=localStorage.getItem(SK);
-    if(d){
-      data=JSON.parse(d);
-      if(!data.borrowings)data.borrowings=[];
-      if(!data.brandTags)data.brandTags=[[],[],[],[]];
-      for(let i=0;i<4;i++){
-        if(!data.shops[i].recharge)data.shops[i].recharge=[];
-        if(!data.shops[i].udhari)data.shops[i].udhari=[];
-        if(!data.shops[i].bakijama)data.shops[i].bakijama=[];
-        if(!data.shops[i].brandSales)data.shops[i].brandSales=[];
-      }
+    if(d){data=JSON.parse(d);}
+    else{const old=localStorage.getItem('shopapp_v6');if(old){const od=JSON.parse(old);Object.assign(data,od);}}
+    if(!data.borrowings)data.borrowings=[];
+    if(!data.brandTags)data.brandTags=[[],[],[],[]];
+    if(!data.dealerAccounts)data.dealerAccounts=[[],[],[],[]];
+    if(!data.ledgerTxns)data.ledgerTxns=[[],[],[],[]];
+    for(let i=0;i<4;i++){
+      if(!data.shops[i].recharge)data.shops[i].recharge=[];
+      if(!data.shops[i].udhari)data.shops[i].udhari=[];
+      if(!data.shops[i].bakijama)data.shops[i].bakijama=[];
+      if(!data.shops[i].brandSales)data.shops[i].brandSales=[];
+      if(!data.shops[i].balanceAccounts)data.shops[i].balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
+      if(!data.dealerAccounts[i])data.dealerAccounts[i]=[];
+      if(!data.ledgerTxns[i])data.ledgerTxns[i]=[];
     }
-  }catch(e){}
+  }catch(e){console.error(e);}
 }
 function fmt(n){return n?Number(n).toLocaleString('en-IN'):'0';}
 function todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -180,6 +199,7 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 function monthOptions(sel){let s='';const now=new Date();for(let i=0;i<13;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const ym=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;s+=`<option value="${ym}"${ym===sel?' selected':''}>${ymLabel(ym)}</option>`;}return s;}
 function accessibleShops(){return session.role==='owner'?SHOPS.map((_,i)=>i):[session.shopIdx];}
 function isOwner(){return session&&session.role==='owner';}
+function canManageLedger(){return session&&(session.role==='owner'||session.role==='manager');}
 function dateField(id,val){
   const v=val||todayISO();
   if(isOwner())return `<div class="field"><label>Date *</label><input type="date" id="${id}" value="${v}" max="${todayISO()}"></div>`;
@@ -187,7 +207,6 @@ function dateField(id,val){
 }
 function getDate(id){return document.getElementById(id)?.value||todayISO();}
 function tagPillsHTML(tags,deleteFn){return tags.map((t,i)=>`<span class="tag-pill">🏷️ ${t} <span class="tx" onclick="${deleteFn}(${i})">×</span></span>`).join('')||'<span style="font-size:12px;color:#bbb">No tags yet</span>';}
-
 // ── LOGIN ──
 let selectedRole=null;
 function selectRole(r){
@@ -226,13 +245,13 @@ function buildNav(){
   const pages=[
     {id:'entries',icon:'📱',label:'Phones'},
     {id:'expense',icon:'💸',label:'Expense'},
-    {id:'gpay',icon:'📲',label:'GPay'},
+    {id:'balance',icon:'💳',label:'Balance'},
     {id:'accessories',icon:'🎧',label:'Acc/Rep'},
     {id:'staff',icon:'👥',label:'Staff'},
     {id:'transfer',icon:'🔄',label:'Transfer'},
   ];
-  if(isOwner()||session.role==='manager')pages.push({id:'dashboard',icon:'📊',label:'Dashboard'});
-  if(isOwner())pages.push({id:'borrowings',icon:'💰',label:'Borrows'});
+  if(isOwner()||session.role==='manager'){pages.push({id:'dashboard',icon:'📊',label:'Dashboard'});pages.push({id:'ledger',icon:'📒',label:'Ledger'});}
+  if(isOwner())pages.push({id:'borrowings',icon:'🧾',label:'Dealers'});
   document.getElementById('bottomNav').innerHTML=pages.map(p=>`<button class="nav-btn" id="nav_${p.id}" onclick="switchPage('${p.id}')"><span class="ni">${p.icon}</span>${p.label}</button>`).join('');
 }
 function switchPage(p){
@@ -249,11 +268,10 @@ function renderShopTabs(cid,key){
 }
 window.switchShop=function(key,i){activeShops[key]=i;renderPage(key==='staff'?'staff':key);};
 function renderPage(p){
-  const map={entries:renderEntries,expense:renderExpense,gpay:renderGpay,accessories:renderAccessories,staff:renderStaffPage,transfer:renderTransfer,dashboard:renderDashboard,borrowings:renderBorrowings};
+  const map={entries:renderEntries,expense:renderExpense,balance:renderBalance,accessories:renderAccessories,staff:renderStaffPage,transfer:renderTransfer,dashboard:renderDashboard,borrowings:renderBorrowings,ledger:renderLedger};
   if(map[p])map[p]();
 }
-
-// ── ENTRIES PAGE (sub-tabs: Sales, Brands, Recharge, Udhari, Baki Jama) ──
+// ── ENTRIES ──
 function renderEntries(){
   renderShopTabs('entryShopTabs','entries');
   const si=activeShops.entries;
@@ -269,14 +287,14 @@ function renderEntries(){
 }
 window.swEntrySub=function(s){activeEntrySub=s;renderEntries();};
 
-// SALES
+// SALES — Advance & Bank Deposit removed; Exchange & Udhari added
 function renderSales(si){
   const entries=data.shops[si].entries||[];
   const hist=entries.length===0?`<div class="empty">No entries yet</div>`:entries.slice(0,30).map((e,i)=>`<div class="entry-row">
     <div>
       <div class="entry-main">${e.pieces?fmt(e.pieces)+' pcs · ':''}<span class="g">₹${fmt(e.amount)}</span></div>
-      <div class="entry-sub">${[e.advance?'Adv ₹'+fmt(e.advance):'',e.bank?'Bank ₹'+fmt(e.bank):'',e.cash?'Cash ₹'+fmt(e.cash):'',e.gpay?'GPay ₹'+fmt(e.gpay):'',e.card?'Card ₹'+fmt(e.card):''].filter(Boolean).join(' · ')}</div>
-      ${e.adjustment?`<div class="entry-sub v">Adjustment: ₹${fmt(e.adjustment)}</div>`:''}
+      <div class="entry-sub">${[e.cash?'Cash ₹'+fmt(e.cash):'',e.gpay?'GPay ₹'+fmt(e.gpay):'',e.card?'Card ₹'+fmt(e.card):'',e.exchange?'Exchange ₹'+fmt(e.exchange):'',e.udhari?'Udhari ₹'+fmt(e.udhari):''].filter(Boolean).join(' · ')}</div>
+      ${e.adjustment?`<div class="entry-sub v">⚖️ Adjustment: ₹${fmt(e.adjustment)}</div>`:''}
       ${e.note?`<div class="entry-sub" style="color:#bbb">${e.note}</div>`:''}
     </div>
     <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -287,14 +305,14 @@ function renderSales(si){
   return `<div class="card"><div class="card-title">📱 Phone Sales — ${SHOPS[si].name}</div>
     ${dateField('f_date')}
     <div class="two-col">
-      <div class="field"><label>Advance (₹)</label><input type="number" id="f_advance" placeholder="0"></div>
-      <div class="field"><label>Bank Deposit (₹)</label><input type="number" id="f_bank" placeholder="0"></div>
       <div class="field"><label>Cash (₹)</label><input type="number" id="f_cash" placeholder="0"></div>
       <div class="field"><label>GPay (₹)</label><input type="number" id="f_gpay" placeholder="0"></div>
       <div class="field"><label>Card (₹)</label><input type="number" id="f_card" placeholder="0"></div>
+      <div class="field"><label>Exchange (₹)</label><input type="number" id="f_exchange" placeholder="0"></div>
+      <div class="field"><label>Udhari (₹) <span style="font-weight:400;font-size:10px;color:#b45309">→ auto-linked</span></label><input type="number" id="f_udhari" placeholder="0"></div>
+      <div class="field"><label>Udhari Person Name</label><input type="text" id="f_udhari_person" placeholder="Customer name"></div>
       <div class="field"><label>Pieces Sold</label><input type="number" id="f_pieces" placeholder="0"></div>
       <div class="field"><label>Sale Amount (₹)</label><input type="number" id="f_amount" placeholder="0"></div>
-      <div class="field"><label>Extra Stock</label><input type="number" id="f_stock" placeholder="0"></div>
     </div>
     <div class="field"><label>⚖️ Adjustment (₹) <span style="font-weight:400;color:#7c3aed">missing/short</span></label><input type="number" id="f_adjustment" placeholder="0"></div>
     <div class="field"><label>Note</label><input type="text" id="f_note" placeholder="Optional"></div>
@@ -304,9 +322,16 @@ function renderSales(si){
 window.addEntry=function(si){
   const g=id=>document.getElementById(id)?.value?.trim()||'';
   const date=getDate('f_date');if(!date){toast('Date required');return;}
-  const e={date,advance:g('f_advance'),bank:g('f_bank'),cash:g('f_cash'),gpay:g('f_gpay'),card:g('f_card'),pieces:g('f_pieces'),amount:g('f_amount'),stock:g('f_stock'),adjustment:g('f_adjustment'),note:g('f_note')};
+  const udhariAmt=Number(g('f_udhari'));
+  const udhariPerson=g('f_udhari_person');
+  const e={date,cash:g('f_cash'),gpay:g('f_gpay'),card:g('f_card'),exchange:g('f_exchange'),udhari:g('f_udhari'),pieces:g('f_pieces'),amount:g('f_amount'),adjustment:g('f_adjustment'),note:g('f_note')};
   if(!data.shops[si].entries)data.shops[si].entries=[];
-  data.shops[si].entries.unshift(e);save();toast('Saved! ✓');renderEntries();
+  data.shops[si].entries.unshift(e);
+  if(udhariAmt>0&&udhariPerson){
+    if(!data.shops[si].udhari)data.shops[si].udhari=[];
+    data.shops[si].udhari.unshift({date,person:udhariPerson,direction:'they_owe',amount:udhariAmt,repaid:0,note:'Auto from Phone Sale'});
+  }
+  save();toast('Saved! ✓');renderEntries();
 };
 window.delEntry=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].entries.splice(i,1);save();renderEntries();}};
 
@@ -323,26 +348,20 @@ function renderBrands(si){
       <div class="entry-sub">${b.pieces?b.pieces+' pcs':''} ${b.model?'· '+b.model:''} ${b.mode?'· '+b.mode:''}</div>
       ${b.note?`<div class="entry-sub" style="color:#bbb">${b.note}</div>`:''}
     </div>
-    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-      <span class="entry-date">${fmtDate(b.date)}</span>
-      ${isOwner()?`<button class="del-btn" onclick="delBrandSale(${si},${i})">×</button>`:''}
-    </div>
+    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(b.date)}</span>${isOwner()?`<button class="del-btn" onclick="delBrandSale(${si},${i})">×</button>`:''}</div>
   </div>`).join('');
   const summaryRows=Object.entries(brandTotals).map(([br,amt])=>`<div class="srow"><span>🏷️ ${br}</span><span class="g">₹${fmt(amt)}</span></div>`).join('');
   return `<div class="card"><div class="card-title">🏷️ Brand Tags — ${SHOPS[si].name}</div>
     <div class="tag-row">${tagPillsHTML(tags,`delBrandTag_${si}`)}</div>
-    <div style="display:flex;gap:8px">
-      <input type="text" id="new_brand" placeholder="e.g. Samsung, Apple, Vivo" style="flex:1;font-size:13px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8">
-      <button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="addBrandTag(${si})">+ Add</button>
-    </div></div>
+    <div style="display:flex;gap:8px"><input type="text" id="new_brand" placeholder="e.g. Samsung, Apple" style="flex:1;font-size:13px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="addBrandTag(${si})">+ Add</button></div></div>
   ${tags.length>0?`<div class="card"><div class="card-title">➕ Add Brand Sale</div>
     ${dateField('br_date')}
     <div class="two-col">
       <div class="field"><label>Brand</label><select id="br_brand"><option value="">-- Select --</option>${tags.map(t=>`<option>${t}</option>`).join('')}</select></div>
-      <div class="field"><label>Model (optional)</label><input type="text" id="br_model" placeholder="e.g. S24, iPhone 15"></div>
+      <div class="field"><label>Model</label><input type="text" id="br_model" placeholder="e.g. S24"></div>
     </div>
     <div class="two-col">
-      <div class="field"><label>Sale Amount (₹)</label><input type="number" id="br_amount" placeholder="0"></div>
+      <div class="field"><label>Amount (₹)</label><input type="number" id="br_amount" placeholder="0"></div>
       <div class="field"><label>Pieces</label><input type="number" id="br_pieces" placeholder="1"></div>
     </div>
     <div class="two-col">
@@ -350,181 +369,73 @@ function renderBrands(si){
       <div class="field"><label>Note</label><input type="text" id="br_note" placeholder="Optional"></div>
     </div>
     <button class="save-btn" onclick="addBrandSale(${si})">💾 Save Brand Sale</button></div>`:''}
-  ${Object.keys(brandTotals).length>0?`<div class="card"><div class="card-title">📊 Brand-wise Sales</div>${summaryRows}</div>`:''}
+  ${Object.keys(brandTotals).length>0?`<div class="card"><div class="card-title">📊 Brand-wise</div>${summaryRows}</div>`:''}
   <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
 }
 window.addBrandTag=function(si){const v=document.getElementById('new_brand')?.value?.trim();if(!v){toast('Enter brand name');return;}if(!data.brandTags[si])data.brandTags[si]=[];if(data.brandTags[si].includes(v)){toast('Already exists');return;}data.brandTags[si].push(v);save();toast(`${v} added!`);renderEntries();};
-// dynamic delete function name
 for(let i=0;i<4;i++){window[`delBrandTag_${i}`]=function(idx){if(confirm('Remove brand?')){data.brandTags[i].splice(idx,1);save();renderEntries();}};}
-window.addBrandSale=function(si){
-  const date=getDate('br_date');
-  const brand=document.getElementById('br_brand')?.value;if(!brand){toast('Select brand');return;}
-  const amount=Number(document.getElementById('br_amount')?.value||0);if(!amount){toast('Enter amount');return;}
-  if(!data.shops[si].brandSales)data.shops[si].brandSales=[];
-  data.shops[si].brandSales.unshift({date,brand,model:document.getElementById('br_model')?.value?.trim()||'',amount,pieces:Number(document.getElementById('br_pieces')?.value||1),mode:document.getElementById('br_mode')?.value||'Cash',note:document.getElementById('br_note')?.value?.trim()||''});
-  save();toast('Saved! ✓');renderEntries();
-};
+window.addBrandSale=function(si){const date=getDate('br_date');const brand=document.getElementById('br_brand')?.value;if(!brand){toast('Select brand');return;}const amount=Number(document.getElementById('br_amount')?.value||0);if(!amount){toast('Enter amount');return;}if(!data.shops[si].brandSales)data.shops[si].brandSales=[];data.shops[si].brandSales.unshift({date,brand,model:document.getElementById('br_model')?.value?.trim()||'',amount,pieces:Number(document.getElementById('br_pieces')?.value||1),mode:document.getElementById('br_mode')?.value||'Cash',note:document.getElementById('br_note')?.value?.trim()||''});save();toast('Saved! ✓');renderEntries();};
 window.delBrandSale=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].brandSales.splice(i,1);save();renderEntries();}};
-
 // RECHARGE
 function renderRecharge(si){
   const recharges=data.shops[si].recharge||[];
   const totalAmt=recharges.reduce((s,r)=>s+Number(r.amount||0),0);
-  const hist=recharges.length===0?`<div class="empty">No recharge entries</div>`:recharges.slice(0,30).map((r,i)=>`<div class="entry-row">
-    <div>
-      <div class="entry-main">${r.customer||'Customer'} — <span class="g">₹${fmt(r.amount)}</span></div>
-      <div class="entry-sub">${r.mobile?'📞 '+r.mobile+' · ':''}<span class="badge info">${r.mode||'Cash'}</span>${r.operator?' · '+r.operator:''}</div>
-      ${r.note?`<div class="entry-sub" style="color:#bbb">${r.note}</div>`:''}
-    </div>
-    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-      <span class="entry-date">${fmtDate(r.date)}</span>
-      ${isOwner()?`<button class="del-btn" onclick="delRecharge(${si},${i})">×</button>`:''}
-    </div>
-  </div>`).join('');
-  return `<div class="metric-grid">
-    <div class="metric"><div class="metric-label">Total Recharges</div><div class="metric-value g">₹${fmt(totalAmt)}</div></div>
-    <div class="metric"><div class="metric-label">Count</div><div class="metric-value">${recharges.length}</div></div>
-  </div>
+  const hist=recharges.length===0?`<div class="empty">No recharge entries</div>`:recharges.slice(0,30).map((r,i)=>`<div class="entry-row"><div><div class="entry-main">${r.customer||'Customer'} — <span class="g">₹${fmt(r.amount)}</span></div><div class="entry-sub">${r.mobile?'📞 '+r.mobile+' · ':''}<span class="badge info">${r.mode||'Cash'}</span>${r.operator?' · '+r.operator:''}</div>${r.note?`<div class="entry-sub" style="color:#bbb">${r.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(r.date)}</span>${isOwner()?`<button class="del-btn" onclick="delRecharge(${si},${i})">×</button>`:''}</div></div>`).join('');
+  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Total Recharges</div><div class="metric-value g">₹${fmt(totalAmt)}</div></div><div class="metric"><div class="metric-label">Count</div><div class="metric-value">${recharges.length}</div></div></div>
   <div class="card"><div class="card-title">🔄 Add Recharge — ${SHOPS[si].name}</div>
     ${dateField('rc_date')}
-    <div class="two-col">
-      <div class="field"><label>Customer Name</label><input type="text" id="rc_customer" placeholder="Name"></div>
-      <div class="field"><label>Mobile Number</label><input type="tel" id="rc_mobile" placeholder="10-digit"></div>
-    </div>
-    <div class="two-col">
-      <div class="field"><label>Recharge Amount (₹)</label><input type="number" id="rc_amount" placeholder="0"></div>
-      <div class="field"><label>Paid Via</label><select id="rc_mode"><option value="Cash">Cash</option><option value="GPay">GPay</option><option value="Card">Card</option></select></div>
-    </div>
-    <div class="two-col">
-      <div class="field"><label>Operator</label><input type="text" id="rc_operator" placeholder="Jio, Airtel, Vi..."></div>
-      <div class="field"><label>Note</label><input type="text" id="rc_note" placeholder="Optional"></div>
-    </div>
+    <div class="two-col"><div class="field"><label>Customer</label><input type="text" id="rc_customer" placeholder="Name"></div><div class="field"><label>Mobile</label><input type="tel" id="rc_mobile" placeholder="10-digit"></div></div>
+    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="rc_amount" placeholder="0"></div><div class="field"><label>Paid Via</label><select id="rc_mode"><option value="Cash">Cash</option><option value="GPay">GPay</option><option value="Card">Card</option></select></div></div>
+    <div class="two-col"><div class="field"><label>Operator</label><input type="text" id="rc_operator" placeholder="Jio, Airtel..."></div><div class="field"><label>Note</label><input type="text" id="rc_note" placeholder="Optional"></div></div>
     <button class="save-btn" onclick="addRecharge(${si})">💾 Save Recharge</button></div>
   <div class="card"><div class="card-title">🕐 History</div><div style="max-height:260px;overflow-y:auto">${hist}</div></div>`;
 }
-window.addRecharge=function(si){
-  const date=getDate('rc_date');
-  const amount=Number(document.getElementById('rc_amount')?.value||0);if(!amount){toast('Enter amount');return;}
-  if(!data.shops[si].recharge)data.shops[si].recharge=[];
-  data.shops[si].recharge.unshift({date,customer:document.getElementById('rc_customer')?.value?.trim()||'',mobile:document.getElementById('rc_mobile')?.value?.trim()||'',amount,mode:document.getElementById('rc_mode')?.value||'Cash',operator:document.getElementById('rc_operator')?.value?.trim()||'',note:document.getElementById('rc_note')?.value?.trim()||''});
-  save();toast('Recharge saved! ✓');renderEntries();
-};
+window.addRecharge=function(si){const date=getDate('rc_date');const amount=Number(document.getElementById('rc_amount')?.value||0);if(!amount){toast('Enter amount');return;}if(!data.shops[si].recharge)data.shops[si].recharge=[];data.shops[si].recharge.unshift({date,customer:document.getElementById('rc_customer')?.value?.trim()||'',mobile:document.getElementById('rc_mobile')?.value?.trim()||'',amount,mode:document.getElementById('rc_mode')?.value||'Cash',operator:document.getElementById('rc_operator')?.value?.trim()||'',note:document.getElementById('rc_note')?.value?.trim()||''});save();toast('Recharge saved! ✓');renderEntries();};
 window.delRecharge=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].recharge.splice(i,1);save();renderEntries();}};
 
 // UDHARI
 function renderUdhari(si){
   const udhari=data.shops[si].udhari||[];
-  // group by person
   const personMap={};
-  udhari.forEach((u,i)=>{
-    const key=u.person.toLowerCase().trim();
-    if(!personMap[key])personMap[key]={name:u.person,records:[]};
-    personMap[key].records.push({...u,i});
-  });
+  udhari.forEach((u,i)=>{const key=u.person.toLowerCase().trim();if(!personMap[key])personMap[key]={name:u.person,records:[]};personMap[key].records.push({...u,i});});
   const weAreOwed=udhari.filter(u=>u.direction==='they_owe').reduce((s,u)=>s+Number(u.amount||0)-Number(u.repaid||0),0);
   const weOwe=udhari.filter(u=>u.direction==='we_owe').reduce((s,u)=>s+Number(u.amount||0)-Number(u.repaid||0),0);
   const personCards=Object.values(personMap).map(p=>{
     const totalOwed=p.records.filter(r=>r.direction==='they_owe').reduce((s,r)=>s+Number(r.amount||0)-Number(r.repaid||0),0);
     const totalWeOwe=p.records.filter(r=>r.direction==='we_owe').reduce((s,r)=>s+Number(r.amount||0)-Number(r.repaid||0),0);
-    const rows=p.records.map(r=>`<div class="entry-row">
-      <div>
-        <div class="entry-main">${r.direction==='they_owe'?`<span class="owe-they">They Owe</span>`:`<span class="owe-we">We Owe</span>`} ₹${fmt(r.amount)}</div>
-        <div class="entry-sub">${r.repaid>0?`Repaid ₹${fmt(r.repaid)} · `:''}${r.note||''}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-        <span class="entry-date">${fmtDate(r.date)}</span>
-        ${isOwner()?`<button class="del-btn" onclick="delUdhari(${si},${r.i})">×</button>`:''}
-      </div>
-    </div>`).join('');
-    return `<div class="person-card">
-      <div class="person-card-head">
-        <div><div class="staff-name">${p.name}</div></div>
-        <div style="text-align:right">
-          ${totalOwed>0?`<div style="font-size:11px;color:#aaa">They owe</div><div class="g" style="font-size:15px;font-weight:700">₹${fmt(totalOwed)}</div>`:''}
-          ${totalWeOwe>0?`<div style="font-size:11px;color:#aaa">We owe</div><div class="r" style="font-size:15px;font-weight:700">₹${fmt(totalWeOwe)}</div>`:''}
-        </div>
-      </div>
-      <div style="max-height:130px;overflow-y:auto">${rows}</div>
-    </div>`;
+    const rows=p.records.map(r=>`<div class="entry-row"><div><div class="entry-main">${r.direction==='they_owe'?`<span class="owe-they">They Owe</span>`:`<span class="owe-we">We Owe</span>`} ₹${fmt(r.amount)}</div><div class="entry-sub">${r.repaid>0?`Repaid ₹${fmt(r.repaid)} · `:''}${r.note||''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(r.date)}</span>${isOwner()?`<button class="del-btn" onclick="delUdhari(${si},${r.i})">×</button>`:''}</div></div>`).join('');
+    return `<div class="person-card"><div class="person-card-head"><div><div class="staff-name">${p.name}</div></div><div style="text-align:right">${totalOwed>0?`<div style="font-size:11px;color:#aaa">They owe</div><div class="g" style="font-size:15px;font-weight:700">₹${fmt(totalOwed)}</div>`:''} ${totalWeOwe>0?`<div style="font-size:11px;color:#aaa">We owe</div><div class="r" style="font-size:15px;font-weight:700">₹${fmt(totalWeOwe)}</div>`:''}</div></div><div style="max-height:130px;overflow-y:auto">${rows}</div></div>`;
   }).join('');
-  return `<div class="metric-grid">
-    <div class="metric"><div class="metric-label">They Owe Us</div><div class="metric-value g">₹${fmt(weAreOwed)}</div></div>
-    <div class="metric"><div class="metric-label">We Owe Them</div><div class="metric-value r">₹${fmt(weOwe)}</div></div>
-  </div>
+  return `<div class="metric-grid"><div class="metric"><div class="metric-label">They Owe Us</div><div class="metric-value g">₹${fmt(weAreOwed)}</div></div><div class="metric"><div class="metric-label">We Owe Them</div><div class="metric-value r">₹${fmt(weOwe)}</div></div></div>
   <div class="card"><div class="card-title">📒 Add Udhari — ${SHOPS[si].name}</div>
     ${dateField('ud_date')}
-    <div class="two-col">
-      <div class="field"><label>Person Name</label><input type="text" id="ud_person" placeholder="Customer name"></div>
-      <div class="field"><label>Direction</label><select id="ud_dir"><option value="they_owe">They owe us (we gave credit)</option><option value="we_owe">We owe them</option></select></div>
-    </div>
-    <div class="two-col">
-      <div class="field"><label>Amount (₹)</label><input type="number" id="ud_amount" placeholder="0"></div>
-      <div class="field"><label>Already Repaid (₹)</label><input type="number" id="ud_repaid" placeholder="0"></div>
-    </div>
+    <div class="two-col"><div class="field"><label>Person Name</label><input type="text" id="ud_person" placeholder="Customer name"></div><div class="field"><label>Direction</label><select id="ud_dir"><option value="they_owe">They owe us</option><option value="we_owe">We owe them</option></select></div></div>
+    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="ud_amount" placeholder="0"></div><div class="field"><label>Already Repaid (₹)</label><input type="number" id="ud_repaid" placeholder="0"></div></div>
     <div class="field"><label>Note</label><input type="text" id="ud_note" placeholder="Item / reason"></div>
     <button class="save-btn" onclick="addUdhari(${si})">💾 Save Udhari</button></div>
   ${Object.keys(personMap).length>0?personCards:'<div class="card"><div class="empty">No udhari records</div></div>'}`;
 }
-window.addUdhari=function(si){
-  const date=getDate('ud_date');
-  const person=document.getElementById('ud_person')?.value?.trim();if(!person){toast('Enter name');return;}
-  const amount=Number(document.getElementById('ud_amount')?.value||0);if(!amount){toast('Enter amount');return;}
-  const repaid=Number(document.getElementById('ud_repaid')?.value||0);
-  const direction=document.getElementById('ud_dir')?.value||'they_owe';
-  if(!data.shops[si].udhari)data.shops[si].udhari=[];
-  data.shops[si].udhari.unshift({date,person,direction,amount,repaid,note:document.getElementById('ud_note')?.value?.trim()||''});
-  save();toast('Udhari saved! ✓');renderEntries();
-};
+window.addUdhari=function(si){const date=getDate('ud_date');const person=document.getElementById('ud_person')?.value?.trim();if(!person){toast('Enter name');return;}const amount=Number(document.getElementById('ud_amount')?.value||0);if(!amount){toast('Enter amount');return;}const repaid=Number(document.getElementById('ud_repaid')?.value||0);const direction=document.getElementById('ud_dir')?.value||'they_owe';if(!data.shops[si].udhari)data.shops[si].udhari=[];data.shops[si].udhari.unshift({date,person,direction,amount,repaid,note:document.getElementById('ud_note')?.value?.trim()||''});save();toast('Udhari saved! ✓');renderEntries();};
 window.delUdhari=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].udhari.splice(i,1);save();renderEntries();}};
 
 // BAKI JAMA
 function renderBakiJama(si){
-  const bj=data.shops[si].bakijama||[];
-  const udhari=data.shops[si].udhari||[];
+  const bj=data.shops[si].bakijama||[];const udhari=data.shops[si].udhari||[];
   const udhariRecovery=bj.filter(b=>b.type==='recovery').reduce((s,b)=>s+Number(b.amount||0),0);
   const deposits=bj.filter(b=>b.type==='deposit').reduce((s,b)=>s+Number(b.amount||0),0);
   const totalUdhariOwed=udhari.filter(u=>u.direction==='they_owe').reduce((s,u)=>s+Number(u.amount||0)-Number(u.repaid||0),0);
-  const hist=bj.length===0?`<div class="empty">No Baki Jama entries</div>`:bj.slice(0,30).map((b,i)=>`<div class="entry-row">
-    <div>
-      <div class="entry-main">${b.person||'Customer'} — <span class="g">₹${fmt(b.amount)}</span></div>
-      <div class="entry-sub"><span class="badge ${b.type==='recovery'?'success':'info'}">${b.type==='recovery'?'Udhari Recovery':'Customer Deposit'}</span> ${b.mode?'· '+b.mode:''}</div>
-      ${b.note?`<div class="entry-sub" style="color:#bbb">${b.note}</div>`:''}
-    </div>
-    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-      <span class="entry-date">${fmtDate(b.date)}</span>
-      ${isOwner()?`<button class="del-btn" onclick="delBakiJama(${si},${i})">×</button>`:''}
-    </div>
-  </div>`).join('');
-  return `<div class="metric-grid">
-    <div class="metric"><div class="metric-label">Udhari Recovered</div><div class="metric-value g">₹${fmt(udhariRecovery)}</div></div>
-    <div class="metric"><div class="metric-label">Deposits Received</div><div class="metric-value b">₹${fmt(deposits)}</div></div>
-    <div class="metric"><div class="metric-label">Still Outstanding</div><div class="metric-value r">₹${fmt(Math.max(0,totalUdhariOwed-udhariRecovery))}</div></div>
-    <div class="metric"><div class="metric-label">Total Jama</div><div class="metric-value p">₹${fmt(udhariRecovery+deposits)}</div></div>
-  </div>
+  const hist=bj.length===0?`<div class="empty">No Baki Jama entries</div>`:bj.slice(0,30).map((b,i)=>`<div class="entry-row"><div><div class="entry-main">${b.person||'Customer'} — <span class="g">₹${fmt(b.amount)}</span></div><div class="entry-sub"><span class="badge ${b.type==='recovery'?'success':'info'}">${b.type==='recovery'?'Udhari Recovery':'Deposit'}</span> ${b.mode?'· '+b.mode:''}</div>${b.note?`<div class="entry-sub" style="color:#bbb">${b.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(b.date)}</span>${isOwner()?`<button class="del-btn" onclick="delBakiJama(${si},${i})">×</button>`:''}</div></div>`).join('');
+  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Udhari Recovered</div><div class="metric-value g">₹${fmt(udhariRecovery)}</div></div><div class="metric"><div class="metric-label">Deposits</div><div class="metric-value b">₹${fmt(deposits)}</div></div><div class="metric"><div class="metric-label">Still Outstanding</div><div class="metric-value r">₹${fmt(Math.max(0,totalUdhariOwed-udhariRecovery))}</div></div><div class="metric"><div class="metric-label">Total Jama</div><div class="metric-value p">₹${fmt(udhariRecovery+deposits)}</div></div></div>
   <div class="card"><div class="card-title">💰 Add Baki Jama — ${SHOPS[si].name}</div>
     ${dateField('bj_date')}
-    <div class="two-col">
-      <div class="field"><label>Person Name</label><input type="text" id="bj_person" placeholder="Customer name"></div>
-      <div class="field"><label>Type</label><select id="bj_type"><option value="recovery">Udhari Recovery (cash received)</option><option value="deposit">Customer Deposit / Advance</option></select></div>
-    </div>
-    <div class="two-col">
-      <div class="field"><label>Amount (₹)</label><input type="number" id="bj_amount" placeholder="0"></div>
-      <div class="field"><label>Received Via</label><select id="bj_mode"><option value="Cash">Cash</option><option value="GPay">GPay</option><option value="Card">Card</option></select></div>
-    </div>
+    <div class="two-col"><div class="field"><label>Person Name</label><input type="text" id="bj_person" placeholder="Customer name"></div><div class="field"><label>Type</label><select id="bj_type"><option value="recovery">Udhari Recovery</option><option value="deposit">Customer Deposit</option></select></div></div>
+    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="bj_amount" placeholder="0"></div><div class="field"><label>Received Via</label><select id="bj_mode"><option value="Cash">Cash</option><option value="GPay">GPay</option><option value="Card">Card</option></select></div></div>
     <div class="field"><label>Note</label><input type="text" id="bj_note" placeholder="Optional"></div>
     <button class="save-btn" onclick="addBakiJama(${si})">💾 Save Baki Jama</button></div>
   <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
 }
-window.addBakiJama=function(si){
-  const date=getDate('bj_date');
-  const amount=Number(document.getElementById('bj_amount')?.value||0);if(!amount){toast('Enter amount');return;}
-  const person=document.getElementById('bj_person')?.value?.trim()||'';
-  if(!data.shops[si].bakijama)data.shops[si].bakijama=[];
-  data.shops[si].bakijama.unshift({date,person,type:document.getElementById('bj_type')?.value||'recovery',amount,mode:document.getElementById('bj_mode')?.value||'Cash',note:document.getElementById('bj_note')?.value?.trim()||''});
-  save();toast('Baki Jama saved! ✓');renderEntries();
-};
+window.addBakiJama=function(si){const date=getDate('bj_date');const amount=Number(document.getElementById('bj_amount')?.value||0);if(!amount){toast('Enter amount');return;}const person=document.getElementById('bj_person')?.value?.trim()||'';if(!data.shops[si].bakijama)data.shops[si].bakijama=[];data.shops[si].bakijama.unshift({date,person,type:document.getElementById('bj_type')?.value||'recovery',amount,mode:document.getElementById('bj_mode')?.value||'Cash',note:document.getElementById('bj_note')?.value?.trim()||''});save();toast('Baki Jama saved! ✓');renderEntries();};
 window.delBakiJama=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].bakijama.splice(i,1);save();renderEntries();}};
-
 // ── EXPENSE ──
 function renderExpense(){
   renderShopTabs('expShopTabs','expense');
@@ -536,358 +447,482 @@ function renderExpense(){
   expenses.forEach(e=>{tagTotals[e.tag]=(tagTotals[e.tag]||0)+Number(e.amount||0);cashTot[e.tag]=(cashTot[e.tag]||0)+Number(e.modeCash||0);gpayTot[e.tag]=(gpayTot[e.tag]||0)+Number(e.modeGpay||0);});
   const totalExpCash=Object.values(cashTot).reduce((a,b)=>a+b,0);
   const totalExpGpay=Object.values(gpayTot).reduce((a,b)=>a+b,0);
-  const summaryRows=Object.entries(tagTotals).map(([t,a])=>`<div class="srow"><span>🏷️ ${t}</span><span class="r">₹${fmt(a)}</span></div>${cashTot[t]?`<div class="srow" style="padding-left:14px;font-size:12px"><span style="color:#aaa">↳ Cash</span><span>₹${fmt(cashTot[t])}</span></div>`:''}${gpayTot[t]?`<div class="srow" style="padding-left:14px;font-size:12px"><span style="color:#aaa">↳ GPay</span><span>₹${fmt(gpayTot[t])}</span></div>`:''}`).join('');
-  const hist=expenses.length===0?`<div class="empty">No expenses</div>`:expenses.slice(0,30).map((e,i)=>`<div class="entry-row">
-    <div>
-      <div class="entry-main"><span class="badge warn">${e.tag}</span><span class="r">₹${fmt(e.amount)}</span></div>
-      <div class="entry-sub">${e.mode}${e.mode==='Both'?` (Cash ₹${fmt(e.modeCash)} + GPay ₹${fmt(e.modeGpay)})`:''}${e.note?' · '+e.note:''}</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-      <span class="entry-date">${fmtDate(e.date)}</span>
-      ${isOwner()?`<button class="del-btn" onclick="delExpense(${si},${i})">×</button>`:''}
-    </div>
-  </div>`).join('');
+  const summaryRows=Object.entries(tagTotals).map(([t,a])=>`<div class="srow"><span>🏷️ ${t}</span><span class="r">₹${fmt(a)}</span></div>${cashTot[t]?`<div class="srow" style="padding-left:14px;font-size:12px"><span style="color:#aaa">↳ Cash</span><span>₹${fmt(cashTot[t])}</span></div>`:''}${gpayTot[t]?`<div class="srow" style="padding-left:14px;font-size:12px"><span style="color:#aaa">↳ UPI/GPay</span><span>₹${fmt(gpayTot[t])}</span></div>`:''}`).join('');
+  const hist=expenses.length===0?`<div class="empty">No expenses</div>`:expenses.slice(0,30).map((e,i)=>`<div class="entry-row"><div><div class="entry-main"><span class="badge warn">${e.tag}</span><span class="r">₹${fmt(e.amount)}</span>${e.dealerAccount?`<span class="badge purple" style="margin-left:4px">→ ${e.dealerAccount}</span>`:''}</div><div class="entry-sub">${e.mode}${e.paidFrom?' · via '+e.paidFrom:''}${e.note?' · '+e.note:''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(e.date)}</span>${isOwner()?`<button class="del-btn" onclick="delExpense(${si},${i})">×</button>`:''}</div></div>`).join('');
+  const dealers=data.dealerAccounts[si]||[];
+  const dealerOpts=`<option value="">None (general)</option>`+dealers.map(d=>`<option value="${d.name}">${d.name}</option>`).join('');
+  const balAccs=data.shops[si].balanceAccounts||{cash:{},upi:[],bank:[]};
+  const upiOpts=(balAccs.upi||[]).map(a=>`<option value="UPI:${a.name}">${a.name} (UPI)</option>`).join('');
+  const bankOpts=(balAccs.bank||[]).map(a=>`<option value="Bank:${a.name}">${a.name} (Bank)</option>`).join('');
   document.getElementById('expContent').innerHTML=`
     <div class="card"><div class="card-title">🏷️ Tags — ${SHOPS[si].name}</div>
       <div class="tag-row">${tagPillsHTML(tags,`delExpTag_${si}`)}</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="new_tag" placeholder="e.g. Transport, Rent, Porter" style="flex:1;font-size:13px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8">
-        <button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="addExpTag(${si})">+ Add</button>
-      </div></div>
+      <div style="display:flex;gap:8px"><input type="text" id="new_tag" placeholder="e.g. Transport, Rent" style="flex:1;font-size:13px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="addExpTag(${si})">+ Add</button></div></div>
     ${tags.length>0?`<div class="card"><div class="card-title">💸 Add Expense</div>
       ${dateField('exp_date')}
       <div class="field"><label>Tag</label><select id="exp_tag"><option value="">-- Select --</option>${tags.map(t=>`<option>${t}</option>`).join('')}</select></div>
-      <div class="two-col">
-        <div class="field"><label>Amount (₹)</label><input type="number" id="exp_amount" placeholder="0" oninput="expModeCalc()"></div>
-        <div class="field"><label>Paid Via</label><select id="exp_mode" onchange="expModeCalc()"><option value="Cash">Cash</option><option value="GPay">GPay</option><option value="Both">Both</option></select></div>
-      </div>
+      <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="exp_amount" placeholder="0" oninput="expModeCalc()"></div><div class="field"><label>Paid Via</label><select id="exp_mode" onchange="expModeCalc()"><option value="Cash">Cash</option><option value="GPay">UPI/GPay</option><option value="Both">Both</option></select></div></div>
       <div id="exp_split_fields"></div>
+      <div class="field"><label>Paid From Account <span style="font-weight:400;font-size:10px;color:#888">(auto-debit)</span></label><select id="exp_paid_from"><option value="">Cash (manual)</option>${upiOpts}${bankOpts}</select></div>
+      <div class="field"><label>Dealer Account <span style="font-weight:400;font-size:10px;color:#7c3aed">if paying to dealer</span></label><select id="exp_dealer">${dealerOpts}</select></div>
       <div class="field"><label>Note</label><input type="text" id="exp_note" placeholder="Optional"></div>
       <button class="save-btn" onclick="addExpense(${si})">💾 Save Expense</button></div>`:''}
-    ${Object.keys(tagTotals).length>0?`<div class="card"><div class="card-title">📊 Summary</div>
-      <div class="srow"><span>Total Cash paid</span><span class="r">₹${fmt(totalExpCash)}</span></div>
-      <div class="srow"><span>Total GPay paid</span><span class="r">₹${fmt(totalExpGpay)}</span></div>
-      <hr class="divider">${summaryRows}</div>`:''}
+    ${Object.keys(tagTotals).length>0?`<div class="card"><div class="card-title">📊 Summary</div><div class="srow"><span>Total Cash</span><span class="r">₹${fmt(totalExpCash)}</span></div><div class="srow"><span>Total UPI/GPay</span><span class="r">₹${fmt(totalExpGpay)}</span></div><hr class="divider">${summaryRows}</div>`:''}
     <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
 }
 for(let i=0;i<4;i++){window[`delExpTag_${i}`]=function(idx){if(confirm('Delete tag?')){data.expTags[i].splice(idx,1);save();renderExpense();}};}
 window.expModeCalc=function(){const mode=document.getElementById('exp_mode')?.value;const sf=document.getElementById('exp_split_fields');if(!sf)return;sf.innerHTML=mode==='Both'?`<div class="two-col"><div class="field"><label>Cash (₹)</label><input type="number" id="exp_cash" placeholder="0" oninput="calcExpRem()"></div><div class="field"><label>GPay (₹)</label><input type="number" id="exp_gpay_sp" placeholder="0" oninput="calcExpRem()"></div></div><div id="exp_rem" style="font-size:12px;color:#888;margin-bottom:8px"></div>`:''};
 window.calcExpRem=function(){const total=Number(document.getElementById('exp_amount')?.value||0);const c=Number(document.getElementById('exp_cash')?.value||0);const g=Number(document.getElementById('exp_gpay_sp')?.value||0);const rem=total-(c+g);const el=document.getElementById('exp_rem');if(el){el.textContent=`Remaining: ₹${fmt(rem)}`;el.style.color=rem===0?'#1a7a4a':rem<0?'#c0392b':'#888';}};
 window.addExpTag=function(si){const v=document.getElementById('new_tag')?.value?.trim();if(!v)return;if(!data.expTags[si])data.expTags[si]=[];if(data.expTags[si].includes(v)){toast('Exists');return;}data.expTags[si].push(v);save();toast(`"${v}" added!`);renderExpense();};
-window.addExpense=function(si){const date=getDate('exp_date');const tag=document.getElementById('exp_tag')?.value;if(!tag){toast('Select tag');return;}const amount=Number(document.getElementById('exp_amount')?.value);if(!amount){toast('Enter amount');return;}const mode=document.getElementById('exp_mode')?.value||'Cash';let modeCash=0,modeGpay=0;if(mode==='Both'){modeCash=Number(document.getElementById('exp_cash')?.value||0);modeGpay=Number(document.getElementById('exp_gpay_sp')?.value||0);}else if(mode==='Cash')modeCash=amount;else modeGpay=amount;if(!data.shops[si].expenses)data.shops[si].expenses=[];data.shops[si].expenses.unshift({date,tag,amount,mode,modeCash,modeGpay,note:document.getElementById('exp_note')?.value?.trim()||''});save();toast('Saved! ✓');renderExpense();};
+window.addExpense=function(si){
+  const date=getDate('exp_date');
+  const tag=document.getElementById('exp_tag')?.value;if(!tag){toast('Select tag');return;}
+  const amount=Number(document.getElementById('exp_amount')?.value);if(!amount){toast('Enter amount');return;}
+  const mode=document.getElementById('exp_mode')?.value||'Cash';
+  let modeCash=0,modeGpay=0;
+  if(mode==='Both'){modeCash=Number(document.getElementById('exp_cash')?.value||0);modeGpay=Number(document.getElementById('exp_gpay_sp')?.value||0);}
+  else if(mode==='Cash')modeCash=amount;else modeGpay=amount;
+  const dealerAccount=document.getElementById('exp_dealer')?.value||'';
+  const paidFrom=document.getElementById('exp_paid_from')?.value||'';
+  const note=document.getElementById('exp_note')?.value?.trim()||'';
+  if(!data.shops[si].expenses)data.shops[si].expenses=[];
+  data.shops[si].expenses.unshift({date,tag,amount,mode,modeCash,modeGpay,dealerAccount,paidFrom,note});
+  if(dealerAccount){
+    if(!data.ledgerTxns[si])data.ledgerTxns[si]=[];
+    data.ledgerTxns[si].unshift({date,dealer:dealerAccount,type:'cr',amount,note:`Expense: ${tag}${note?' - '+note:''}`,source:'expense'});
+    if(!data.borrowings)data.borrowings=[];
+    data.borrowings.unshift({date,dealer:dealerAccount,amount:-amount,note:`Payment via expense: ${tag}`});
+  }
+  if(paidFrom&&paidFrom.includes(':')){
+    const [accType,accName]=paidFrom.split(':');
+    autoDebitBalance(si,accType.toLowerCase(),accName,amount,date,`Expense: ${tag}${note?' - '+note:''}`);
+  }
+  save();toast('Saved! ✓');renderExpense();
+};
 window.delExpense=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].expenses.splice(i,1);save();renderExpense();}};
-
-// ── GPAY ──
-function renderGpay(){
-  renderShopTabs('gpayShopTabs','gpay');
-  const si=activeShops.gpay;
-  const gpayData=data.shops[si].gpay||{entries:[],balance:0};
-  const totalRec=(gpayData.entries||[]).reduce((a,e)=>a+Number(e.amount||0),0);
-  const hist=(gpayData.entries||[]).length===0?`<div class="empty">No GPay entries</div>`:(gpayData.entries).slice(0,30).map((e,i)=>`<div class="entry-row">
-    <div><div class="entry-main b">₹${fmt(e.amount)}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div>
-    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(e.date)}</span>${isOwner()?`<button class="del-btn" onclick="delGpay(${si},${i})">×</button>`:''}</div>
-  </div>`).join('');
-  document.getElementById('gpayContent').innerHTML=`
-    <div class="metric-grid">
-      <div class="metric"><div class="metric-label">Total Received</div><div class="metric-value b">₹${fmt(totalRec)}</div></div>
-      <div class="metric"><div class="metric-label">Current Balance</div><div class="metric-value p">₹${fmt(gpayData.balance||0)}</div></div>
-    </div>
-    <div class="card"><div class="card-title">📲 GPay Balance — ${SHOPS[si].name}</div>
-      <div style="display:flex;gap:8px">
-        <input type="number" id="gpay_bal" placeholder="Update balance" style="flex:1;font-size:14px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8">
-        <button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="updateGpayBal(${si})">Update</button>
-      </div></div>
-    <div class="card"><div class="card-title">➕ Add GPay Received</div>
-      ${dateField('gpay_date')}
-      <div class="two-col">
-        <div class="field"><label>Amount (₹)</label><input type="number" id="gpay_rec" placeholder="0"></div>
-        <div class="field"><label>Note</label><input type="text" id="gpay_note" placeholder="From whom?"></div>
-      </div>
-      <button class="save-btn" onclick="addGpay(${si})">💾 Save</button></div>
-    <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
+function autoDebitBalance(si,accType,accName,amount,date,note){
+  if(!data.shops[si].balanceAccounts)return;
+  const ba=data.shops[si].balanceAccounts;
+  if(accType==='upi'){const acc=ba.upi.find(a=>a.name===accName);if(acc){acc.balance=(Number(acc.balance)||0)-amount;if(!acc.entries)acc.entries=[];acc.entries.unshift({date,amount:-amount,note});}}
+  else if(accType==='bank'){const acc=ba.bank.find(a=>a.name===accName);if(acc){acc.balance=(Number(acc.balance)||0)-amount;if(!acc.entries)acc.entries=[];acc.entries.unshift({date,amount:-amount,note});}}
 }
-window.updateGpayBal=function(si){const val=document.getElementById('gpay_bal')?.value;if(!val||isNaN(val))return;if(!data.shops[si].gpay)data.shops[si].gpay={entries:[],balance:0};data.shops[si].gpay.balance=Number(val);save();toast('Updated! ✓');renderGpay();};
-window.addGpay=function(si){const date=getDate('gpay_date');const amount=Number(document.getElementById('gpay_rec')?.value);if(!amount||amount<=0){toast('Enter amount');return;}if(!data.shops[si].gpay)data.shops[si].gpay={entries:[],balance:0};data.shops[si].gpay.entries.unshift({date,amount,note:document.getElementById('gpay_note')?.value?.trim()||''});save();toast('Saved! ✓');renderGpay();};
-window.delGpay=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].gpay.entries.splice(i,1);save();renderGpay();}};
+// ── BALANCE (renamed from GPay) ──
+function renderBalance(){
+  renderShopTabs('balShopTabs','balance');
+  const si=activeShops.balance;
+  if(!data.shops[si].balanceAccounts)data.shops[si].balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
+  const ba=data.shops[si].balanceAccounts;
+  const subLabels={cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank'};
+  const subTabs=`<div class="sub-tabs">${Object.keys(subLabels).map(k=>`<button class="sub-tab${activeBalanceSub===k?' active':''}" onclick="swBalSub('${k}')">${subLabels[k]}</button>`).join('')}</div>`;
+  let inner='';
+  if(activeBalanceSub==='cash')inner=renderBalCash(si,ba);
+  else if(activeBalanceSub==='upi')inner=renderBalUPI(si,ba);
+  else inner=renderBalBank(si,ba);
+  document.getElementById('balContent').innerHTML=subTabs+inner;
+}
+window.swBalSub=function(s){activeBalanceSub=s;renderBalance();};
 
-// ── ACCESSORIES & REPAIRING ──
+function renderBalCash(si,ba){
+  const cashData=ba.cash||{balance:0,entries:[]};
+  const entries=cashData.entries||[];
+  const hist=entries.length===0?`<div class="empty">No cash entries</div>`:entries.slice(0,30).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}">${Number(e.amount)>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(e.date)}</span>${isOwner()?`<button class="del-btn" onclick="delCashEntry(${si},${i})">×</button>`:''}</div></div>`).join('');
+  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Cash Balance</div><div class="metric-value b">₹${fmt(cashData.balance||0)}</div></div></div>
+  <div class="card"><div class="card-title">💵 Cash Balance — ${SHOPS[si].name}</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px"><input type="number" id="cash_bal_upd" placeholder="Set current balance" style="flex:1;font-size:14px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="updateCashBal(${si})">Update</button></div></div>
+  <div class="card"><div class="card-title">➕ Add Cash Entry</div>
+    ${dateField('cash_date')}
+    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="cash_amt" placeholder="0"></div><div class="field"><label>Type</label><select id="cash_type"><option value="1">+ In / Received</option><option value="-1">- Out / Paid</option></select></div></div>
+    <div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="From whom / for what"></div>
+    <button class="save-btn" onclick="addCashEntry(${si})">💾 Save</button></div>
+  <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
+}
+window.updateCashBal=function(si){const val=document.getElementById('cash_bal_upd')?.value;if(!val||isNaN(val))return;data.shops[si].balanceAccounts.cash.balance=Number(val);save();toast('Updated! ✓');renderBalance();};
+window.addCashEntry=function(si){const date=getDate('cash_date');const amount=Number(document.getElementById('cash_amt')?.value);if(!amount){toast('Enter amount');return;}const mult=Number(document.getElementById('cash_type')?.value||1);const finalAmt=amount*mult;const ca=data.shops[si].balanceAccounts.cash;ca.entries.unshift({date,amount:finalAmt,note:document.getElementById('cash_note')?.value?.trim()||''});ca.balance=(Number(ca.balance)||0)+finalAmt;save();toast('Saved! ✓');renderBalance();};
+window.delCashEntry=function(si,i){if(!isOwner())return;if(confirm('Delete?')){const ca=data.shops[si].balanceAccounts.cash;const e=ca.entries[i];ca.balance=(Number(ca.balance)||0)-Number(e.amount||0);ca.entries.splice(i,1);save();renderBalance();}};
+
+function renderBalUPI(si,ba){
+  const accounts=ba.upi||[];
+  const totalBal=accounts.reduce((s,a)=>s+Number(a.balance||0),0);
+  const accountCards=accounts.map((a,ai)=>{
+    const entries=a.entries||[];
+    const hist=entries.length===0?`<div style="font-size:12px;color:#bbb;padding:6px 0">No entries</div>`:entries.slice(0,10).map((e)=>`<div class="entry-row" style="padding:4px 0"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}" style="font-size:12px">${Number(e.amount)>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+    return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-size:14px;font-weight:700">${a.name}</div><div style="font-size:11px;color:#888">${a.number||''}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:700;color:#2563eb">₹${fmt(a.balance||0)}</div>${isOwner()?`<button onclick="delUPIAccount(${si},${ai})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">Remove</button>`:''}</div></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_entry_amt_${ai}" placeholder="Amount" style="flex:1;font-size:13px;padding:7px 9px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><select id="upi_entry_type_${ai}" style="font-size:12px;padding:7px 8px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><option value="1">+ In</option><option value="-1">- Out</option></select><input type="text" id="upi_entry_note_${ai}" placeholder="Note" style="flex:1;font-size:12px;padding:7px 9px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:8px 12px;margin:0;font-size:12px" onclick="addUPIEntry(${si},${ai})">Add</button></div>
+    <div style="max-height:120px;overflow-y:auto">${hist}</div></div>`;
+  }).join('');
+  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Total UPI Balance</div><div class="metric-value b">₹${fmt(totalBal)}</div></div><div class="metric"><div class="metric-label">Accounts</div><div class="metric-value">${accounts.length}</div></div></div>
+  <div class="card"><div class="card-title">➕ Add UPI Account</div>
+    <div class="two-col"><div class="field"><label>Account Name</label><input type="text" id="upi_new_name" placeholder="e.g. Nikunj GPay"></div><div class="field"><label>Number / UPI ID</label><input type="text" id="upi_new_num" placeholder="Mobile / UPI"></div></div>
+    <div class="field"><label>Opening Balance (₹)</label><input type="number" id="upi_new_bal" placeholder="0"></div>
+    <button class="save-btn" onclick="addUPIAccount(${si})">➕ Add Account</button></div>
+  ${accountCards||'<div class="card"><div class="empty">No UPI accounts yet</div></div>'}`;
+}
+window.addUPIAccount=function(si){const name=document.getElementById('upi_new_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_new_num')?.value?.trim()||'',balance:Number(document.getElementById('upi_new_bal')?.value||0),entries:[]});save();toast(`${name} added!`);renderBalance();};
+window.delUPIAccount=function(si,ai){if(!isOwner())return;if(confirm('Remove UPI account?')){data.shops[si].balanceAccounts.upi.splice(ai,1);save();renderBalance();}};
+window.addUPIEntry=function(si,ai){const amount=Number(document.getElementById(`upi_entry_amt_${ai}`)?.value);if(!amount){toast('Enter amount');return;}const mult=Number(document.getElementById(`upi_entry_type_${ai}`)?.value||1);const finalAmt=amount*mult;const acc=data.shops[si].balanceAccounts.upi[ai];if(!acc.entries)acc.entries=[];acc.entries.unshift({date:todayISO(),amount:finalAmt,note:document.getElementById(`upi_entry_note_${ai}`)?.value?.trim()||''});acc.balance=(Number(acc.balance)||0)+finalAmt;save();toast('Saved!');renderBalance();};
+
+function renderBalBank(si,ba){
+  const accounts=ba.bank||[];
+  const totalBal=accounts.reduce((s,a)=>s+Number(a.balance||0),0);
+  const accountCards=accounts.map((a,ai)=>{
+    const entries=a.entries||[];
+    const hist=entries.length===0?`<div style="font-size:12px;color:#bbb;padding:6px 0">No entries</div>`:entries.slice(0,10).map((e)=>`<div class="entry-row" style="padding:4px 0"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}" style="font-size:12px">${Number(e.amount)>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+    return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-size:14px;font-weight:700">${a.name}</div><div style="font-size:11px;color:#888">${a.accountNo||''}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:700;color:#1a7a4a">₹${fmt(a.balance||0)}</div>${isOwner()?`<button onclick="delBankAccount(${si},${ai})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">Remove</button>`:''}</div></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_entry_amt_${ai}" placeholder="Amount" style="flex:1;font-size:13px;padding:7px 9px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><select id="bank_entry_type_${ai}" style="font-size:12px;padding:7px 8px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><option value="1">+ In</option><option value="-1">- Out</option></select><input type="text" id="bank_entry_note_${ai}" placeholder="Note" style="flex:1;font-size:12px;padding:7px 9px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:8px 12px;margin:0;font-size:12px" onclick="addBankEntry(${si},${ai})">Add</button></div>
+    <div style="max-height:120px;overflow-y:auto">${hist}</div></div>`;
+  }).join('');
+  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Total Bank Balance</div><div class="metric-value g">₹${fmt(totalBal)}</div></div><div class="metric"><div class="metric-label">Accounts</div><div class="metric-value">${accounts.length}</div></div></div>
+  <div class="card"><div class="card-title">➕ Add Bank Account</div>
+    <div class="two-col"><div class="field"><label>Account Name</label><input type="text" id="bank_new_name" placeholder="e.g. SBI Current"></div><div class="field"><label>A/C Number (last 4)</label><input type="text" id="bank_new_num" placeholder="XXXX"></div></div>
+    <div class="field"><label>Opening Balance (₹)</label><input type="number" id="bank_new_bal" placeholder="0"></div>
+    <button class="save-btn" onclick="addBankAccount(${si})">➕ Add Account</button></div>
+  ${accountCards||'<div class="card"><div class="empty">No bank accounts yet</div></div>'}`;
+}
+window.addBankAccount=function(si){const name=document.getElementById('bank_new_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_new_num')?.value?.trim()||'',balance:Number(document.getElementById('bank_new_bal')?.value||0),entries:[]});save();toast(`${name} added!`);renderBalance();};
+window.delBankAccount=function(si,ai){if(!isOwner())return;if(confirm('Remove bank account?')){data.shops[si].balanceAccounts.bank.splice(ai,1);save();renderBalance();}};
+window.addBankEntry=function(si,ai){const amount=Number(document.getElementById(`bank_entry_amt_${ai}`)?.value);if(!amount){toast('Enter amount');return;}const mult=Number(document.getElementById(`bank_entry_type_${ai}`)?.value||1);const finalAmt=amount*mult;const acc=data.shops[si].balanceAccounts.bank[ai];if(!acc.entries)acc.entries=[];acc.entries.unshift({date:todayISO(),amount:finalAmt,note:document.getElementById(`bank_entry_note_${ai}`)?.value?.trim()||''});acc.balance=(Number(acc.balance)||0)+finalAmt;save();toast('Saved!');renderBalance();};
+
+// ── ACCESSORIES ──────────────────────────────────────────────────────────────
 function renderAccessories(){
   renderShopTabs('accShopTabs','accessories');
-  const si=activeShops.accessories;
-  const acc=data.shops[si].accessories||[];
-  const rep=data.shops[si].repairing||[];
-  const accTotal=acc.reduce((a,e)=>a+Number(e.total||0),0),accCash=acc.reduce((a,e)=>a+Number(e.cash||0),0),accGpay=acc.reduce((a,e)=>a+Number(e.gpay||0),0),accCard=acc.reduce((a,e)=>a+Number(e.card||0),0);
-  const repTotal=rep.reduce((a,e)=>a+Number(e.total||0),0),repCash=rep.reduce((a,e)=>a+Number(e.cash||0),0),repGpay=rep.reduce((a,e)=>a+Number(e.gpay||0),0),repCard=rep.reduce((a,e)=>a+Number(e.card||0),0);
-  const accHist=acc.length===0?`<div class="empty">No entries</div>`:acc.slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main g">₹${fmt(e.total)}</div><div class="entry-sub">Cash ₹${fmt(e.cash)} · GPay ₹${fmt(e.gpay)} · Card ₹${fmt(e.card)}</div></div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(e.date)}</span>${isOwner()?`<button class="del-btn" onclick="delAcc(${si},${i})">×</button>`:''}</div></div>`).join('');
-  const repHist=rep.length===0?`<div class="empty">No entries</div>`:rep.slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main g">₹${fmt(e.total)}</div><div class="entry-sub">Cash ₹${fmt(e.cash)} · GPay ₹${fmt(e.gpay)} · Card ₹${fmt(e.card)}${e.note?' · '+e.note:''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(e.date)}</span>${isOwner()?`<button class="del-btn" onclick="delRep(${si},${i})">×</button>`:''}</div></div>`).join('');
+  const si=activeShops.accessories??0,shop=data.shops[si];
+  const acc=shop.accessories||[];const rep=shop.repairing||[];
+  function calcRem(item){return (Number(item.qty||0))-(Number(item.sold||0));}
+  const accRows=acc.map((a,i)=>`<div class="entry-row">
+    <div><div class="entry-main">${a.name}</div><div class="entry-sub">Qty: ${a.qty} | Sold: ${a.sold||0} | Rem: ${calcRem(a)} | ₹${fmt(a.price||0)}</div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="number" id="acc_sell_${i}" placeholder="Sell" style="width:60px;font-size:12px;padding:5px 7px;border:0.5px solid #ddd;border-radius:7px;background:#fafaf8">
+      <button onclick="sellAcc(${si},${i})" style="font-size:11px;background:#1a7a4a;color:#fff;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">Sell</button>
+      ${isOwner()?`<button onclick="delAcc(${si},${i})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">✕</button>`:''}
+    </div></div>`).join('');
+  const repRows=rep.map((r,i)=>`<div class="entry-row">
+    <div><div class="entry-main">${r.name} <span style="font-size:11px;color:#888">— ${r.status||'Pending'}</span></div><div class="entry-sub">₹${fmt(r.amount||0)} | ${r.note||''}</div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="toggleRepStatus(${si},${i})" style="font-size:11px;background:#6c3483;color:#fff;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">Toggle</button>
+      ${isOwner()?`<button onclick="delRep(${si},${i})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">✕</button>`:''}
+    </div></div>`).join('');
   document.getElementById('accContent').innerHTML=`
-    <div class="card" style="border-color:#c8e6c9"><div class="card-title g">🎧 Accessories — ${SHOPS[si].name}</div>
-      <div class="metric-grid">
-        <div class="metric"><div class="metric-label">Total Sale</div><div class="metric-value g">₹${fmt(accTotal)}</div></div>
-        <div class="metric"><div class="metric-label">Cash</div><div class="metric-value">₹${fmt(accCash)}</div></div>
-        <div class="metric"><div class="metric-label">GPay</div><div class="metric-value b">₹${fmt(accGpay)}</div></div>
-        <div class="metric"><div class="metric-label">Card</div><div class="metric-value p">₹${fmt(accCard)}</div></div>
-      </div>
-      ${dateField('acc_date')}
-      <div class="field"><label>Total Sale (₹)</label><input type="number" id="acc_total" placeholder="0" oninput="calcRem('acc')"></div>
-      <div class="three-col">
-        <div class="field"><label>Cash</label><input type="number" id="acc_cash" placeholder="0" oninput="calcRem('acc')"></div>
-        <div class="field"><label>GPay</label><input type="number" id="acc_gpay" placeholder="0" oninput="calcRem('acc')"></div>
-        <div class="field"><label>Card</label><input type="number" id="acc_card" placeholder="0" oninput="calcRem('acc')"></div>
-      </div>
-      <div id="acc_rem" style="font-size:12px;margin-bottom:8px;color:#888"></div>
-      <button class="save-btn" onclick="addAcc(${si})">💾 Save Accessories</button></div>
-    <div class="card"><div class="card-title">🕐 History</div><div style="max-height:160px;overflow-y:auto">${accHist}</div></div>
-    <div class="card" style="border-color:#bbdefb"><div class="card-title b">🔧 Repairing — ${SHOPS[si].name}</div>
-      <div class="metric-grid">
-        <div class="metric"><div class="metric-label">Total Revenue</div><div class="metric-value b">₹${fmt(repTotal)}</div></div>
-        <div class="metric"><div class="metric-label">Cash</div><div class="metric-value">₹${fmt(repCash)}</div></div>
-        <div class="metric"><div class="metric-label">GPay</div><div class="metric-value b">₹${fmt(repGpay)}</div></div>
-        <div class="metric"><div class="metric-label">Card</div><div class="metric-value p">₹${fmt(repCard)}</div></div>
-      </div>
-      ${dateField('rep_date')}
-      <div class="field"><label>Total Amount (₹)</label><input type="number" id="rep_total" placeholder="0" oninput="calcRem('rep')"></div>
-      <div class="three-col">
-        <div class="field"><label>Cash</label><input type="number" id="rep_cash" placeholder="0" oninput="calcRem('rep')"></div>
-        <div class="field"><label>GPay</label><input type="number" id="rep_gpay" placeholder="0" oninput="calcRem('rep')"></div>
-        <div class="field"><label>Card</label><input type="number" id="rep_card" placeholder="0" oninput="calcRem('rep')"></div>
-      </div>
-      <div class="field"><label>Note</label><input type="text" id="rep_note" placeholder="e.g. Screen, Battery"></div>
-      <div id="rep_rem" style="font-size:12px;margin-bottom:8px;color:#888"></div>
-      <button class="save-btn" onclick="addRep(${si})">💾 Save Repairing</button></div>
-    <div class="card"><div class="card-title">🕐 History</div><div style="max-height:160px;overflow-y:auto">${repHist}</div></div>`;
-}
-window.calcRem=function(p){const total=Number(document.getElementById(p+'_total')?.value||0);const c=Number(document.getElementById(p+'_cash')?.value||0);const g=Number(document.getElementById(p+'_gpay')?.value||0);const k=Number(document.getElementById(p+'_card')?.value||0);const rem=total-(c+g+k);const el=document.getElementById(p+'_rem');if(el){el.textContent=total>0?`Unaccounted: ₹${fmt(rem)}`:'';el.style.color=rem===0?'#1a7a4a':rem<0?'#c0392b':'#888';}};
-window.addAcc=function(si){const date=getDate('acc_date');const total=Number(document.getElementById('acc_total')?.value||0);if(!total){toast('Enter total');return;}if(!data.shops[si].accessories)data.shops[si].accessories=[];data.shops[si].accessories.unshift({date,total,cash:Number(document.getElementById('acc_cash')?.value||0),gpay:Number(document.getElementById('acc_gpay')?.value||0),card:Number(document.getElementById('acc_card')?.value||0)});save();toast('Saved! ✓');renderAccessories();};
-window.addRep=function(si){const date=getDate('rep_date');const total=Number(document.getElementById('rep_total')?.value||0);if(!total){toast('Enter total');return;}if(!data.shops[si].repairing)data.shops[si].repairing=[];data.shops[si].repairing.unshift({date,total,cash:Number(document.getElementById('rep_cash')?.value||0),gpay:Number(document.getElementById('rep_gpay')?.value||0),card:Number(document.getElementById('rep_card')?.value||0),note:document.getElementById('rep_note')?.value?.trim()||''});save();toast('Saved! ✓');renderAccessories();};
-window.delAcc=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].accessories.splice(i,1);save();renderAccessories();}};
-window.delRep=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].repairing.splice(i,1);save();renderAccessories();}};
-
-// ── STAFF ──
-function renderStaffPage(){
-  renderShopTabs('staffShopTabs','staff');
-  const si=activeShops.staff;
-  const tabs=['list','leave','advance','salary'];
-  const labels={list:'👤 List',leave:'📅 Leaves',advance:'💵 Advance',salary:'💰 Salary'};
-  const subBtns=`<div class="sub-tabs">${tabs.map(s=>`<button class="sub-tab${activeStaffSub===s?' active':''}" onclick="swStaffSub('${s}')">${labels[s]}</button>`).join('')}</div>`;
-  let inner='';
-  if(activeStaffSub==='list')inner=renderStaffList(si);
-  else if(activeStaffSub==='leave')inner=renderLeave(si);
-  else if(activeStaffSub==='advance')inner=renderAdvance(si);
-  else inner=renderSalary(si);
-  document.getElementById('staffContent').innerHTML=subBtns+inner;
-}
-window.swStaffSub=function(s){activeStaffSub=s;renderStaffPage();};
-function renderStaffList(si){
-  const staff=data.staff[si]||[];const cm=curYM();
-  const rows=staff.length===0?`<div class="empty">No staff added</div>`:staff.map((st,i)=>{
-    const lv=(st.leaves||[]).filter(l=>l.month===cm).reduce((a,l)=>a+Number(l.days||0),0);
-    const adv=(st.advances||[]).filter(a=>a.month===cm).reduce((s,l)=>s+Number(l.amount||0),0);
-    const salPaid=(st.salaries||[]).filter(s=>s.month===cm).reduce((s,l)=>s+Number(l.paid||0),0);
-    return `<div class="staff-row"><div>
-      <div class="staff-name">${st.name}</div>
-      <div class="staff-meta">${st.role||'Staff'} ${st.joined?'· '+st.joined:''} ${st.fixedSalary?`· ₹${fmt(st.fixedSalary)}/mo`:''}</div>
-      <div style="margin-top:4px">
-        ${lv>0?`<span class="badge warn">${lv}d leave</span>`:''}
-        ${adv>0?`<span class="badge danger">Adv ₹${fmt(adv)}</span>`:''}
-        ${salPaid>0?`<span class="badge success">Sal ₹${fmt(salPaid)}</span>`:''}
-      </div></div>
-      ${isOwner()?`<button class="del-btn" onclick="delStaff(${si},${i})">×</button>`:''}
-    </div>`;
-  }).join('');
-  return `<div class="card"><div class="card-title">➕ Add Staff</div>
-    <div class="field"><label>Full Name</label><input type="text" id="st_name" placeholder="Name"></div>
+  <div class="section-header">🔌 Accessories</div>
+  <div class="card"><div class="card-title">➕ Add Accessory</div>
     <div class="two-col">
-      <div class="field"><label>Role</label><input type="text" id="st_role" placeholder="Manager / Sales"></div>
-      <div class="field"><label>Joined</label><input type="text" id="st_joined" placeholder="Jan 2024"></div>
+      <div class="field"><label>Name</label><input type="text" id="acc_name" placeholder="e.g. Earphones"></div>
+      <div class="field"><label>Qty</label><input type="number" id="acc_qty" placeholder="0"></div>
     </div>
-    <div class="field"><label>Fixed Monthly Salary (₹)</label><input type="number" id="st_salary" placeholder="0"></div>
-    <button class="save-btn" onclick="addStaff(${si})">➕ Add</button></div>
-    <div class="card"><div class="card-title">👥 ${SHOPS[si].name} — ${ymLabel(curYM())}</div>${rows}</div>`;
+    <div class="field"><label>Price (₹)</label><input type="number" id="acc_price" placeholder="0"></div>
+    <button class="save-btn" onclick="addAcc(${si})">➕ Add</button>
+  </div>
+  <div class="card"><div class="card-title">📦 Stock</div>${accRows||'<div class="empty">No accessories</div>'}</div>
+  <div class="section-header">🔧 Repairing</div>
+  <div class="card"><div class="card-title">➕ Add Job</div>
+    <div class="two-col">
+      <div class="field"><label>Customer / Item</label><input type="text" id="rep_name" placeholder="e.g. iPhone 12 screen"></div>
+      <div class="field"><label>Amount (₹)</label><input type="number" id="rep_amt" placeholder="0"></div>
+    </div>
+    <div class="field"><label>Note</label><input type="text" id="rep_note" placeholder="Issue details"></div>
+    <button class="save-btn" onclick="addRep(${si})">➕ Add Job</button>
+  </div>
+  <div class="card"><div class="card-title">🔧 Jobs</div>${repRows||'<div class="empty">No repair jobs</div>'}</div>`;
 }
-window.addStaff=function(si){const name=document.getElementById('st_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.staff[si])data.staff[si]=[];data.staff[si].push({name,role:document.getElementById('st_role')?.value?.trim()||'',joined:document.getElementById('st_joined')?.value?.trim()||'',fixedSalary:Number(document.getElementById('st_salary')?.value||0),leaves:[],advances:[],salaries:[]});save();toast(name+' added!');renderStaffPage();};
-window.delStaff=function(si,i){if(!isOwner())return;if(confirm('Remove?')){data.staff[si].splice(i,1);save();renderStaffPage();}};
-function renderLeave(si){
-  const staff=data.staff[si]||[];if(!staff.length)return`<div class="card"><div class="empty">Add staff first</div></div>`;
-  const cm=curYM();const opts=staff.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
-  const allL=[];staff.forEach((st,stIdx)=>{(st.leaves||[]).filter(l=>l.month===cm).forEach((l)=>allL.push({...l,stName:st.name,stIdx,li_orig:(st.leaves||[]).indexOf(l)}));});
-  const hist=allL.length===0?`<div class="empty">No leaves this month</div>`:allL.map(l=>`<div class="entry-row"><div><div class="entry-main">${l.stName}</div><div class="entry-sub">${l.days} day${l.days>1?'s':''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${ymLabel(l.month)}</span>${isOwner()?`<button class="del-btn" onclick="delLeave(${si},${l.stIdx},${l.li_orig})">×</button>`:''}</div></div>`).join('');
-  return `<div class="card"><div class="card-title">📅 Add Leave</div>
-    <div class="field"><label>Staff</label><select id="lv_staff">${opts}</select></div>
-    <div class="two-col"><div class="field"><label>Month</label><input type="month" id="lv_month" value="${cm}" ${isOwner()?'':'readonly'}></div>
-    <div class="field"><label>Days</label><input type="number" id="lv_days" placeholder="1" min="0.5" step="0.5"></div></div>
-    <button class="save-btn" onclick="addLeave(${si})">💾 Save</button></div>
-    <div class="card"><div class="card-title">📋 This Month</div><div style="max-height:200px;overflow-y:auto">${hist}</div></div>`;
-}
-window.addLeave=function(si){const idx=parseInt(document.getElementById('lv_staff')?.value);const month=document.getElementById('lv_month')?.value;const days=parseFloat(document.getElementById('lv_days')?.value);if(!days||days<=0){toast('Enter days');return;}if(!data.staff[si][idx].leaves)data.staff[si][idx].leaves=[];data.staff[si][idx].leaves.push({month,days});save();toast('Saved!');renderStaffPage();};
-window.delLeave=function(si,stIdx,li){if(!isOwner())return;data.staff[si][stIdx].leaves.splice(li,1);save();renderStaffPage();};
-function renderAdvance(si){
-  const staff=data.staff[si]||[];if(!staff.length)return`<div class="card"><div class="empty">Add staff first</div></div>`;
-  const cm=curYM();const opts=staff.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
-  const thisMonthAdv=[];staff.forEach((st,stIdx)=>{(st.advances||[]).filter(a=>a.month===cm).forEach((a)=>thisMonthAdv.push({...a,stName:st.name,stIdx,ai_orig:(st.advances||[]).indexOf(a)}));});
-  const totals=staff.map(st=>({name:st.name,total:(st.advances||[]).filter(a=>a.month===cm).reduce((s,l)=>s+Number(l.amount||0),0)})).filter(x=>x.total>0);
-  const hist=thisMonthAdv.length===0?`<div class="empty">No advances this month</div>`:thisMonthAdv.map(a=>`<div class="entry-row"><div><div class="entry-main">${a.stName}</div><div class="entry-sub r">₹${fmt(a.amount)}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${ymLabel(a.month)}</span>${isOwner()?`<button class="del-btn" onclick="delAdvance(${si},${a.stIdx},${a.ai_orig})">×</button>`:''}</div></div>`).join('');
-  return `<div class="card"><div class="card-title">💵 Add Advance</div>
-    <div class="field"><label>Staff</label><select id="adv_staff">${opts}</select></div>
-    <div class="two-col"><div class="field"><label>Month</label><input type="month" id="adv_month" value="${cm}" ${isOwner()?'':'readonly'}></div>
-    <div class="field"><label>Amount (₹)</label><input type="number" id="adv_amount" placeholder="0"></div></div>
-    <button class="save-btn" onclick="addAdvance(${si})">💾 Save</button></div>
-    ${totals.length>0?`<div class="card"><div class="card-title">⚠️ This Month Total</div>${totals.map(t=>`<div class="staff-row" style="padding:6px 0"><div class="staff-name">${t.name}</div><span class="badge danger">₹${fmt(t.total)}</span></div>`).join('')}</div>`:''}
-    <div class="card"><div class="card-title">📋 This Month</div><div style="max-height:180px;overflow-y:auto">${hist}</div></div>`;
-}
-window.addAdvance=function(si){const idx=parseInt(document.getElementById('adv_staff')?.value);const month=document.getElementById('adv_month')?.value;const amount=parseFloat(document.getElementById('adv_amount')?.value);if(!amount||amount<=0){toast('Enter amount');return;}if(!data.staff[si][idx].advances)data.staff[si][idx].advances=[];data.staff[si][idx].advances.push({month,amount});save();toast('Saved!');renderStaffPage();};
-window.delAdvance=function(si,stIdx,ai){if(!isOwner())return;data.staff[si][stIdx].advances.splice(ai,1);save();renderStaffPage();};
-function renderSalary(si){
-  const staff=data.staff[si]||[];if(!staff.length)return`<div class="card"><div class="empty">Add staff first</div></div>`;
-  const cm=curYM();const opts=staff.map((s,i)=>`<option value="${i}">${s.name}${s.fixedSalary?' (₹'+fmt(s.fixedSalary)+')':''}</option>`).join('');
-  const summary=staff.map((st,stIdx)=>{
-    const paid=(st.salaries||[]).filter(s=>s.month===cm).reduce((s,l)=>s+Number(l.paid||0),0);
-    const adv=(st.advances||[]).filter(a=>a.month===cm).reduce((s,l)=>s+Number(l.amount||0),0);
-    const due=Math.max(0,(st.fixedSalary||0)-paid);
-    const net=Math.max(0,due-adv);
-    return {name:st.name,fixed:st.fixedSalary||0,paid,adv,due,net,stIdx};
-  });
-  const summRows=summary.map(s=>`<div class="staff-row"><div>
-    <div class="staff-name">${s.name}</div>
-    <div class="staff-meta">Fixed ₹${fmt(s.fixed)} · Paid ₹${fmt(s.paid)} · Advance ₹${fmt(s.adv)}</div>
-    <div style="margin-top:4px">${s.due>0?`<span class="badge danger">Due ₹${fmt(s.due)}</span>`:' <span class="badge success">Fully Paid ✓</span>'}${s.adv>0?`<span class="badge warn">After Adv ₹${fmt(s.net)}</span>`:''}</div>
-  </div></div>`).join('');
-  const allSal=[];staff.forEach((st,stIdx)=>{(st.salaries||[]).filter(s=>s.month===cm).forEach((s)=>allSal.push({...s,stName:st.name,stIdx,si_orig:(st.salaries||[]).indexOf(s)}));});
-  const hist=allSal.length===0?`<div class="empty">No payments this month</div>`:allSal.map(s=>`<div class="entry-row"><div><div class="entry-main">${s.stName}</div><div class="entry-sub g">Paid ₹${fmt(s.paid)}${s.note?' · '+s.note:''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${ymLabel(s.month)}</span>${isOwner()?`<button class="del-btn" onclick="delSalary(${si},${s.stIdx},${s.si_orig})">×</button>`:''}</div></div>`).join('');
-  return `<div class="card"><div class="card-title">💰 Pay Salary</div>
-    <div class="field"><label>Staff</label><select id="sal_staff" onchange="prefillSalary(${si})">${opts}</select></div>
-    <div class="two-col"><div class="field"><label>Month</label><input type="month" id="sal_month" value="${cm}" ${isOwner()?'':'readonly'}></div>
-    <div class="field"><label>Amount Paid (₹)</label><input type="number" id="sal_paid" placeholder="0"></div></div>
-    <div class="field"><label>Note</label><input type="text" id="sal_note" placeholder="Full / Partial"></div>
-    <button class="save-btn" onclick="addSalary(${si})">💾 Save</button></div>
-    <div class="card"><div class="card-title">📊 ${ymLabel(cm)} Status</div>${summRows}</div>
-    <div class="card"><div class="card-title">🕐 This Month</div><div style="max-height:180px;overflow-y:auto">${hist}</div></div>`;
-}
-window.prefillSalary=function(si){const idx=parseInt(document.getElementById('sal_staff')?.value);const st=data.staff[si]?.[idx];if(!st||!st.fixedSalary)return;const cm=curYM();const paid=(st.salaries||[]).filter(s=>s.month===cm).reduce((s,l)=>s+Number(l.paid||0),0);const adv=(st.advances||[]).filter(a=>a.month===cm).reduce((s,l)=>s+Number(l.amount||0),0);const due=Math.max(0,st.fixedSalary-paid-adv);const el=document.getElementById('sal_paid');if(el)el.value=due||'';};
-window.addSalary=function(si){const idx=parseInt(document.getElementById('sal_staff')?.value);const month=document.getElementById('sal_month')?.value;const paid=parseFloat(document.getElementById('sal_paid')?.value);if(!paid||paid<=0){toast('Enter amount');return;}if(!data.staff[si][idx].salaries)data.staff[si][idx].salaries=[];data.staff[si][idx].salaries.push({month,paid,note:document.getElementById('sal_note')?.value?.trim()||''});save();toast('Saved!');renderStaffPage();};
-window.delSalary=function(si,stIdx,sIdx){if(!isOwner())return;data.staff[si][stIdx].salaries.splice(sIdx,1);save();renderStaffPage();};
+window.addAcc=function(si){const name=document.getElementById('acc_name')?.value?.trim();if(!name){toast('Enter name');return;}const qty=Number(document.getElementById('acc_qty')?.value||0);const price=Number(document.getElementById('acc_price')?.value||0);if(!data.shops[si].accessories)data.shops[si].accessories=[];data.shops[si].accessories.push({name,qty,price,sold:0});save();toast('Added!');renderAccessories();};
+window.sellAcc=function(si,i){const qty=Number(document.getElementById(`acc_sell_${i}`)?.value||0);if(!qty){toast('Enter qty');return;}const a=data.shops[si].accessories[i];if(!a)return;a.sold=(Number(a.sold)||0)+qty;if(a.sold>a.qty){toast('Sold > Stock!');a.sold-=qty;return;}save();toast('Sold!');renderAccessories();};
+window.delAcc=function(si,i){if(!isOwner())return;if(confirm('Remove?')){data.shops[si].accessories.splice(i,1);save();renderAccessories();}};
+window.addRep=function(si){const name=document.getElementById('rep_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.shops[si].repairing)data.shops[si].repairing=[];data.shops[si].repairing.push({name,amount:Number(document.getElementById('rep_amt')?.value||0),note:document.getElementById('rep_note')?.value?.trim()||'',status:'Pending',date:todayISO()});save();toast('Added!');renderAccessories();};
+window.toggleRepStatus=function(si,i){const r=data.shops[si].repairing[i];if(!r)return;r.status=r.status==='Done'?'Pending':'Done';save();renderAccessories();};
+window.delRep=function(si,i){if(!isOwner())return;if(confirm('Remove?')){data.shops[si].repairing.splice(i,1);save();renderAccessories();}};
 
-// ── BORROWINGS ──
+// ── STAFF ─────────────────────────────────────────────────────────────────────
+function renderStaffPage(){
+  const si=activeShops.staff??0,staffList=data.staff[si]||[];
+  const tab=window._staffTab||'list';
+  const tabs=['list','leave','advance','salary'].map(t=>`<button onclick="window._staffTab='${t}';renderStaffPage()" style="flex:1;padding:8px 4px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:${tab===t?'#1a7a4a':'#f5f5f0'};color:${tab===t?'#fff':'#555'}">${{list:'👤 Staff',leave:'🏖 Leave',advance:'💸 Advance',salary:'💰 Salary'}[t]}</button>`).join('');
+  let body='';
+  if(tab==='list'){
+    const rows=staffList.map((s,i)=>`<div class="entry-row"><div><div class="entry-main">${s.name}</div><div class="entry-sub">${s.role} | Joined: ${fmtDate(s.joined||'')} | Salary: ₹${fmt(s.fixedSalary||0)}</div></div>${isOwner()?`<button onclick="delStaff(${si},${i})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">✕</button>`:''}</div>`).join('');
+    body=`<div class="card"><div class="card-title">➕ Add Staff</div>
+      <div class="two-col"><div class="field"><label>Name</label><input type="text" id="st_name" placeholder="Name"></div><div class="field"><label>Role</label><input type="text" id="st_role" placeholder="Manager/Staff"></div></div>
+      <div class="two-col"><div class="field"><label>Joined</label><input type="date" id="st_joined" value="${todayISO()}"></div><div class="field"><label>Fixed Salary (₹)</label><input type="number" id="st_sal" placeholder="0"></div></div>
+      <button class="save-btn" onclick="addStaff(${si})">➕ Add</button></div>
+    <div class="card"><div class="card-title">👥 Staff List</div>${rows||'<div class="empty">No staff</div>'}</div>`;
+  } else if(tab==='leave'){
+    const opts=staffList.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+    const allLeaves=staffList.flatMap((s,i)=>(s.leaves||[]).map(l=>({...l,name:s.name,si:i}))).sort((a,b)=>b.date.localeCompare(a.date));
+    const leaveRows=allLeaves.map(l=>`<div class="entry-row"><div><div class="entry-main">${l.name}</div><div class="entry-sub">${fmtDate(l.date)} | ${l.type||'Leave'} | ${l.note||''}</div></div></div>`).join('');
+    body=`<div class="card"><div class="card-title">➕ Mark Leave</div>
+      <div class="two-col"><div class="field"><label>Staff</label><select id="leave_who">${opts}</select></div><div class="field"><label>Date</label><input type="date" id="leave_date" value="${todayISO()}"></div></div>
+      <div class="two-col"><div class="field"><label>Type</label><select id="leave_type"><option>Leave</option><option>Half Day</option><option>Absent</option></select></div><div class="field"><label>Note</label><input type="text" id="leave_note" placeholder="Reason"></div></div>
+      <button class="save-btn" onclick="addLeave(${si})">Save</button></div>
+    <div class="card"><div class="card-title">🏖 Leave History</div>${leaveRows||'<div class="empty">No leaves</div>'}</div>`;
+  } else if(tab==='advance'){
+    const opts=staffList.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+    const allAdv=staffList.flatMap((s,i)=>(s.advances||[]).map(a=>({...a,name:s.name}))).sort((a,b)=>b.date.localeCompare(a.date));
+    const advRows=allAdv.map(a=>`<div class="entry-row"><div><div class="entry-main">${a.name}</div><div class="entry-sub">${fmtDate(a.date)} | ₹${fmt(a.amount||0)} | ${a.note||''}</div></div></div>`).join('');
+    body=`<div class="card"><div class="card-title">💸 Give Advance</div>
+      <div class="two-col"><div class="field"><label>Staff</label><select id="adv_who">${opts}</select></div><div class="field"><label>Amount (₹)</label><input type="number" id="adv_amt" placeholder="0"></div></div>
+      <div class="field"><label>Note</label><input type="text" id="adv_note" placeholder="Reason"></div>
+      <button class="save-btn" onclick="addAdvance(${si})">Save</button></div>
+    <div class="card"><div class="card-title">💸 Advances</div>${advRows||'<div class="empty">No advances</div>'}</div>`;
+  } else if(tab==='salary'){
+    const opts=staffList.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+    const allSal=staffList.flatMap((s,i)=>(s.salaries||[]).map(a=>({...a,name:s.name}))).sort((a,b)=>b.date.localeCompare(a.date));
+    const salRows=allSal.map(s=>`<div class="entry-row"><div><div class="entry-main">${s.name}</div><div class="entry-sub">${fmtDate(s.date)} | ₹${fmt(s.amount||0)} | ${s.note||''}</div></div></div>`).join('');
+    body=`<div class="card"><div class="card-title">💰 Pay Salary</div>
+      <div class="two-col"><div class="field"><label>Staff</label><select id="sal_who">${opts}</select></div><div class="field"><label>Amount (₹)</label><input type="number" id="sal_amt" placeholder="0"></div></div>
+      <div class="field"><label>Note / Month</label><input type="text" id="sal_note" placeholder="e.g. May 2026"></div>
+      <button class="save-btn" onclick="addSalary(${si})">Save</button></div>
+    <div class="card"><div class="card-title">💰 Salary History</div>${salRows||'<div class="empty">No salaries</div>'}</div>`;
+  }
+  document.getElementById('staffContent').innerHTML=`<div class="section-header">👤 Staff — ${SHOPS[si].name}</div><div style="display:flex;gap:6px;margin:0 0 12px">${tabs}</div>${body}`;
+}
+window.addStaff=function(si){const name=document.getElementById('st_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.staff[si])data.staff[si]=[];data.staff[si].push({name,role:document.getElementById('st_role')?.value?.trim()||'Staff',joined:document.getElementById('st_joined')?.value||todayISO(),fixedSalary:Number(document.getElementById('st_sal')?.value||0),leaves:[],advances:[],salaries:[]});save();toast('Added!');renderStaffPage();};
+window.delStaff=function(si,i){if(!isOwner())return;if(confirm('Remove staff?')){data.staff[si].splice(i,1);save();renderStaffPage();}};
+window.addLeave=function(si){const i=Number(document.getElementById('leave_who')?.value||0);if(!data.staff[si][i].leaves)data.staff[si][i].leaves=[];data.staff[si][i].leaves.push({date:document.getElementById('leave_date')?.value||todayISO(),type:document.getElementById('leave_type')?.value||'Leave',note:document.getElementById('leave_note')?.value?.trim()||''});save();toast('Saved!');renderStaffPage();};
+window.addAdvance=function(si){const i=Number(document.getElementById('adv_who')?.value||0);if(!data.staff[si][i].advances)data.staff[si][i].advances=[];data.staff[si][i].advances.push({date:todayISO(),amount:Number(document.getElementById('adv_amt')?.value||0),note:document.getElementById('adv_note')?.value?.trim()||''});save();toast('Saved!');renderStaffPage();};
+window.addSalary=function(si){const i=Number(document.getElementById('sal_who')?.value||0);if(!data.staff[si][i].salaries)data.staff[si][i].salaries=[];data.staff[si][i].salaries.push({date:todayISO(),amount:Number(document.getElementById('sal_amt')?.value||0),note:document.getElementById('sal_note')?.value?.trim()||''});save();toast('Saved!');renderStaffPage();};
+
+// ── DEALERS (BORROWINGS) ──────────────────────────────────────────────────────
 function renderBorrowings(){
-  if(!isOwner()){document.getElementById('borrowContent').innerHTML=`<div class="empty">Owner only</div>`;return;}
+  renderShopTabs('borrowShopTabs','borrowings');
+  const si=activeShops.borrowings??0;
+  const dealers=data.dealerAccounts[si]||[];
   const borrowings=data.borrowings||[];
-  const personMap={};
-  borrowings.forEach((b,i)=>{if(!personMap[b.person])personMap[b.person]={name:b.person,shop:b.shop||'',records:[]};personMap[b.person].records.push({...b,i});});
-  const personCards=Object.values(personMap).map(p=>{
-    const totalBorrowed=p.records.reduce((s,r)=>s+Number(r.amount||0),0);
-    const totalRepaid=p.records.reduce((s,r)=>s+Number(r.repaid||0),0);
-    const outstanding=totalBorrowed-totalRepaid;
-    const rows=p.records.map(r=>`<div class="entry-row"><div><div class="entry-main">₹${fmt(r.amount)}${r.repaid>0?` <span class="g">· Repaid ₹${fmt(r.repaid)}</span>`:''}</div><div class="entry-sub">${r.note||''}${r.shop?' · '+r.shop:''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(r.date)}</span><button class="del-btn" onclick="delBorrow(${r.i})">×</button></div></div>`).join('');
-    return `<div class="person-card"><div class="person-card-head"><div><div class="staff-name">${p.name}</div>${p.shop?`<div class="staff-meta">${p.shop}</div>`:''}</div><div style="text-align:right"><div style="font-size:11px;color:#aaa">Outstanding</div><div style="font-size:17px;font-weight:700;color:${outstanding>0?'#c0392b':outstanding<0?'#1a7a4a':'#888'}">₹${fmt(Math.abs(outstanding))}</div></div></div><div style="max-height:140px;overflow-y:auto">${rows}</div></div>`;
-  }).join('');
-  const allPeople=['Owner (Self)'];
-  SHOPS.forEach((_,si)=>{(data.staff[si]||[]).forEach(st=>{if(!allPeople.includes(st.name))allPeople.push(st.name);});});
-  const peopleOpts=allPeople.map(p=>`<option value="${p}">${p}</option>`).join('');
-  const shopOpts=`<option value="">General</option>`+SHOPS.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
-  const totalOut=borrowings.reduce((s,b)=>s+Number(b.amount||0)-Number(b.repaid||0),0);
-  document.getElementById('borrowContent').innerHTML=`
-    <div class="net-box"><div class="lbl">Total Outstanding</div><div class="val ${totalOut>0?'r':totalOut<0?'g':''}">₹${fmt(Math.abs(totalOut))}</div></div>
-    <div class="card"><div class="card-title">💰 Add Borrowing Record</div>
-      ${dateField('bor_date')}
-      <div class="two-col">
-        <div class="field"><label>Person</label><select id="bor_person">${peopleOpts}</select></div>
-        <div class="field"><label>Branch</label><select id="bor_shop">${shopOpts}</select></div>
+  const selDealer=window._selDealer||'';
+  const dealerOpts=dealers.map(d=>`<option value="${d.name}" ${selDealer===d.name?'selected':''}>${d.name}</option>`).join('');
+  const grouped={};
+  borrowings.forEach(b=>{if(!grouped[b.dealer])grouped[b.dealer]=[];grouped[b.dealer].push(b);});
+  const dealerCards=dealers.map(d=>{
+    const entries=(grouped[d.name]||[]).sort((a,b)=>b.date.localeCompare(a.date));
+    const total=entries.reduce((s,e)=>s+Number(e.amount||0),0);
+    const rows=entries.slice(0,5).map(e=>`<div class="entry-row" style="padding:4px 0"><div><div class="entry-main ${Number(e.amount)>0?'r':'g'}" style="font-size:13px">${Number(e.amount)>0?'+':'-'}₹${fmt(Math.abs(e.amount))}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+    return `<div class="dealer-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:14px;font-weight:700">🏪 ${d.name}</div>
+        <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${total>0?'#c0392b':'#1a7a4a'}">${total>0?'+':''}₹${fmt(total)}</div><div style="font-size:10px;color:#888">${total>0?'Dues':'Clear/Advance'}</div></div>
       </div>
-      <div class="two-col">
-        <div class="field"><label>Amount Borrowed (₹)</label><input type="number" id="bor_amount" placeholder="0"></div>
-        <div class="field"><label>Amount Repaid (₹)</label><input type="number" id="bor_repaid" placeholder="0"></div>
-      </div>
-      <div class="field"><label>Note</label><input type="text" id="bor_note" placeholder="Reason / details"></div>
-      <button class="save-btn" onclick="addBorrow()">💾 Save</button></div>
-    ${Object.keys(personMap).length>0?personCards:'<div class="card"><div class="empty">No records yet</div></div>'}`;
-}
-window.addBorrow=function(){const date=getDate('bor_date');const person=document.getElementById('bor_person')?.value;if(!person){toast('Select person');return;}const amount=Number(document.getElementById('bor_amount')?.value||0);const repaid=Number(document.getElementById('bor_repaid')?.value||0);if(!amount&&!repaid){toast('Enter amount');return;}if(!data.borrowings)data.borrowings=[];data.borrowings.unshift({date,person,shop:document.getElementById('bor_shop')?.value||'',amount,repaid,note:document.getElementById('bor_note')?.value?.trim()||''});save();toast('Saved!');renderBorrowings();};
-window.delBorrow=function(i){if(confirm('Delete?')){data.borrowings.splice(i,1);save();renderBorrowings();}};
-
-// ── TRANSFER ──
-function renderTransfer(){
-  const shopOpts=SHOPS.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
-  const transfers=data.transfers||[];
-  const hist=transfers.length===0?`<div class="empty">No transfers</div>`:transfers.slice(0,30).map((t,i)=>`<div class="entry-row"><div><div class="entry-main"><span class="from-tag">FROM: ${SHOPS[t.from].name}</span> → <span class="to-tag">TO: ${SHOPS[t.to].name}</span></div><div class="entry-sub">₹${fmt(t.amount)}${t.goods?' · '+t.goods:''}${t.qty?' · Qty:'+t.qty:''}</div>${t.note?`<div class="entry-sub" style="color:#bbb">${t.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(t.date)}</span>${isOwner()?`<button class="del-btn" onclick="delTransfer(${i})">×</button>`:''}</div></div>`).join('');
-  document.getElementById('transferContent').innerHTML=`
-    <div class="card"><div class="card-title">🔄 Inter-Branch Transfer</div>
-      ${dateField('tr_date')}
-      <div class="two-col"><div class="field"><label>From</label><select id="tr_from">${shopOpts}</select></div>
-      <div class="field"><label>To</label><select id="tr_to">${SHOPS.map((s,i)=>`<option value="${i}"${i===1?' selected':''}>${s.name}</option>`).join('')}</select></div></div>
-      <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="tr_amount" placeholder="0"></div>
-      <div class="field"><label>Qty</label><input type="number" id="tr_qty" placeholder="pcs"></div></div>
-      <div class="field"><label>Goods</label><input type="text" id="tr_goods" placeholder="e.g. Mobiles, Chargers"></div>
-      <div class="field"><label>Note</label><input type="text" id="tr_note" placeholder="Optional"></div>
-      <button class="save-btn" onclick="addTransfer()">💾 Save</button></div>
-    <div class="card"><div class="card-title">🕐 History</div><div style="max-height:280px;overflow-y:auto">${hist}</div></div>`;
-}
-window.addTransfer=function(){const date=getDate('tr_date');const from=parseInt(document.getElementById('tr_from')?.value);const to=parseInt(document.getElementById('tr_to')?.value);if(from===to){toast('Same shop!');return;}const amount=document.getElementById('tr_amount')?.value?.trim();if(!amount){toast('Enter amount');return;}if(!data.transfers)data.transfers=[];data.transfers.unshift({date,from,to,amount,qty:document.getElementById('tr_qty')?.value?.trim(),goods:document.getElementById('tr_goods')?.value?.trim(),note:document.getElementById('tr_note')?.value?.trim()});save();toast('Saved!');renderTransfer();};
-window.delTransfer=function(i){if(!isOwner())return;if(confirm('Delete?')){data.transfers.splice(i,1);save();renderTransfer();}};
-
-// ── DASHBOARD ──
-function renderDashboard(){
-  const shops=accessibleShops();
-  const selYM=document.getElementById('dash_month')?.value||curYM();
-  let grand={amount:0,expense:0,acc:0,rep:0,pieces:0,adj:0,salDue:0,recharge:0,udhariOwed:0,bakiJama:0,brandTotal:0};
-  const shopCards=shops.map(si=>{
-    const entries=data.shops[si].entries||[];
-    let amount=0,pieces=0,adj=0;for(const e of entries){amount+=Number(e.amount||0);pieces+=Number(e.pieces||0);adj+=Number(e.adjustment||0);}
-    const expTotal=(data.shops[si].expenses||[]).reduce((s,e)=>s+Number(e.amount||0),0);
-    const accTotal=(data.shops[si].accessories||[]).reduce((s,e)=>s+Number(e.total||0),0);
-    const repTotal=(data.shops[si].repairing||[]).reduce((s,e)=>s+Number(e.total||0),0);
-    const rechargeTotal=(data.shops[si].recharge||[]).reduce((s,r)=>s+Number(r.amount||0),0);
-    const udhariOwed=(data.shops[si].udhari||[]).filter(u=>u.direction==='they_owe').reduce((s,u)=>s+Number(u.amount||0)-Number(u.repaid||0),0);
-    const bakiJamaTotal=(data.shops[si].bakijama||[]).reduce((s,b)=>s+Number(b.amount||0),0);
-    const brandTotals={};(data.shops[si].brandSales||[]).forEach(b=>{brandTotals[b.brand]=(brandTotals[b.brand]||0)+Number(b.amount||0);});
-    const brandTotal=Object.values(brandTotals).reduce((a,b)=>a+b,0);
-    const brandRows=Object.entries(brandTotals).map(([br,amt])=>`<div class="srow" style="padding-left:12px;font-size:12px"><span style="color:#aaa">↳ ${br}</span><span class="g">₹${fmt(amt)}</span></div>`).join('');
-    const staffSum=(data.staff[si]||[]).map(st=>{
-      const lv=(st.leaves||[]).filter(l=>l.month===selYM).reduce((s,l)=>s+Number(l.days||0),0);
-      const adv=(st.advances||[]).filter(a=>a.month===selYM).reduce((s,l)=>s+Number(l.amount||0),0);
-      const salPaid=(st.salaries||[]).filter(s=>s.month===selYM).reduce((s,l)=>s+Number(l.paid||0),0);
-      const salDue=Math.max(0,(st.fixedSalary||0)-salPaid);
-      return {...st,lv,adv,salPaid,salDue};
-    });
-    const totalSalDue=staffSum.reduce((s,st)=>s+st.salDue,0);
-    const staffRows=staffSum.length===0?`<div style="font-size:12px;color:#bbb;padding:4px 0">No staff</div>`:staffSum.map(st=>`<div class="srow"><span>${st.name}</span><span>${st.lv>0?st.lv+'d · ':''}${st.adv>0?'Adv ₹'+fmt(st.adv)+' · ':''}${st.salDue>0?`<span class="r">Due ₹${fmt(st.salDue)}</span>`:`<span class="g">Paid ✓</span>`}</span></div>`).join('');
-    const tOut=(data.transfers||[]).filter(t=>t.from===si).reduce((s,t)=>s+Number(t.amount||0),0);
-    const tIn=(data.transfers||[]).filter(t=>t.to===si).reduce((s,t)=>s+Number(t.amount||0),0);
-    grand.amount+=amount;grand.expense+=expTotal;grand.acc+=accTotal;grand.rep+=repTotal;grand.pieces+=pieces;grand.adj+=adj;grand.salDue+=totalSalDue;grand.recharge+=rechargeTotal;grand.udhariOwed+=udhariOwed;grand.bakiJama+=bakiJamaTotal;grand.brandTotal+=brandTotal;
-    return `<div class="shop-summary-block">
-      <div class="ssname">🏪 ${SHOPS[si].name}</div>
-      <div class="srow"><span>📱 Phone Sales</span><span class="g">₹${fmt(amount)}</span></div>
-      <div class="srow"><span>Pieces Sold</span><span>${fmt(pieces)}</span></div>
-      ${brandTotal>0?`<div class="srow"><span>🏷️ Brand Sales</span><span class="g">₹${fmt(brandTotal)}</span></div>${brandRows}`:''}
-      <div class="srow"><span>💸 Expense</span><span class="r">₹${fmt(expTotal)}</span></div>
-      <div class="srow"><span>🎧 Accessories</span><span class="g">₹${fmt(accTotal)}</span></div>
-      <div class="srow"><span>🔧 Repairing</span><span class="b">₹${fmt(repTotal)}</span></div>
-      <div class="srow"><span>🔄 Recharge</span><span class="p">₹${fmt(rechargeTotal)}</span></div>
-      ${udhariOwed>0?`<div class="srow"><span>📒 Udhari (They Owe)</span><span class="o">₹${fmt(udhariOwed)}</span></div>`:''}
-      ${bakiJamaTotal>0?`<div class="srow"><span>💰 Baki Jama Received</span><span class="g">₹${fmt(bakiJamaTotal)}</span></div>`:''}
-      ${adj>0?`<div class="srow"><span>⚖️ Adjustment</span><span class="v">₹${fmt(adj)}</span></div>`:''}
-      <div class="srow" style="border-top:0.5px solid #eee;margin-top:5px;padding-top:5px"><span style="font-weight:700">Net (Sales−Expense)</span><span style="font-weight:700;color:${amount-expTotal>=0?'#1a7a4a':'#c0392b'}">₹${fmt(amount-expTotal)}</span></div>
-      <hr class="divider">
-      <div class="section-label">👥 Staff — ${ymLabel(selYM)}</div>${staffRows}
-      ${totalSalDue>0?`<div class="srow" style="margin-top:4px"><span style="font-weight:700">Salary Still Due</span><span class="r" style="font-weight:700">₹${fmt(totalSalDue)}</span></div>`:''}
-      ${tOut>0||tIn>0?`<hr class="divider"><div class="section-label">🔄 Transfers</div>${tOut>0?`<div class="srow"><span>Sent Out</span><span class="o">₹${fmt(tOut)}</span></div>`:''}${tIn>0?`<div class="srow"><span>Received</span><span class="g">₹${fmt(tIn)}</span></div>`:''}`:''}
+      <div style="max-height:100px;overflow-y:auto;margin-bottom:8px">${rows||'<div class="empty" style="font-size:12px">No entries</div>'}</div>
     </div>`;
   }).join('');
-  const grandBlock=shops.length>1?`<div class="metric-grid">
-    <div class="metric"><div class="metric-label">All Sales</div><div class="metric-value g">₹${fmt(grand.amount)}</div></div>
-    <div class="metric"><div class="metric-label">Total Pieces</div><div class="metric-value">${fmt(grand.pieces)}</div></div>
-    <div class="metric"><div class="metric-label">Total Expense</div><div class="metric-value r">₹${fmt(grand.expense)}</div></div>
-    <div class="metric"><div class="metric-label">Acc + Repair</div><div class="metric-value p">₹${fmt(grand.acc+grand.rep)}</div></div>
-    <div class="metric"><div class="metric-label">Recharge</div><div class="metric-value p">₹${fmt(grand.recharge)}</div></div>
-    <div class="metric"><div class="metric-label">Udhari Pending</div><div class="metric-value o">₹${fmt(grand.udhariOwed)}</div></div>
-    ${grand.salDue>0?`<div class="metric"><div class="metric-label">Salary Due</div><div class="metric-value r">₹${fmt(grand.salDue)}</div></div>`:''}
-    ${grand.adj>0?`<div class="metric" style="background:#fdf4ff"><div class="metric-label">Adjustments</div><div class="metric-value v">₹${fmt(grand.adj)}</div></div>`:''}
-  </div>`:'';
-  document.getElementById('dashContent').innerHTML=`
-    <div class="month-bar"><label>Month:</label><select id="dash_month" onchange="renderDashboard()">${monthOptions(selYM)}</select></div>
-    ${grandBlock}${shopCards}`;
+  document.getElementById('borrowContent').innerHTML=`
+  <div class="section-header">🏪 Dealers — ${SHOPS[si].name}</div>
+  <div class="card"><div class="card-title">➕ Add Entry</div>
+    <div class="field"><label>Dealer</label>
+      <div style="display:flex;gap:6px">
+        <select id="borrow_dealer" onchange="window._selDealer=this.value" style="flex:1;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8">
+          <option value="">— Select Dealer —</option>${dealerOpts}
+        </select>
+        <input type="text" id="borrow_new_dealer" placeholder="Or type new" style="flex:1;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8">
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Amount (₹)</label><input type="number" id="borrow_amt" placeholder="Positive=borrow, Negative=paid"></div>
+      <div class="field"><label>Type</label><select id="borrow_type" style="padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8;width:100%"><option value="1">📦 Purchase / Borrow</option><option value="-1">💳 Payment Made</option></select></div>
+    </div>
+    <div class="field"><label>Note</label><input type="text" id="borrow_note" placeholder="Details"></div>
+    <button class="save-btn" onclick="addBorrowing(${si})">Save Entry</button>
+  </div>
+  ${dealerCards||'<div class="card"><div class="empty">No dealers yet. Add dealers from the Ledger section.</div></div>'}`;
 }
+window.addBorrowing=function(si){
+  const selVal=document.getElementById('borrow_dealer')?.value?.trim();
+  const newVal=document.getElementById('borrow_new_dealer')?.value?.trim();
+  const dealer=newVal||selVal;
+  if(!dealer){toast('Select or enter dealer');return;}
+  const amt=Number(document.getElementById('borrow_amt')?.value||0);
+  const mult=Number(document.getElementById('borrow_type')?.value||1);
+  if(!amt){toast('Enter amount');return;}
+  const finalAmt=amt*mult;
+  if(!data.borrowings)data.borrowings=[];
+  data.borrowings.push({date:todayISO(),dealer,amount:finalAmt,note:document.getElementById('borrow_note')?.value?.trim()||'',shop:si});
+  // if new dealer, add to dealerAccounts
+  if(newVal){
+    if(!data.dealerAccounts[si])data.dealerAccounts[si]=[];
+    if(!data.dealerAccounts[si].find(d=>d.name===newVal)){
+      data.dealerAccounts[si].push({name:newVal,phone:''});
+      // also add to ledger txn as DR
+      if(!data.ledgerTxns[si])data.ledgerTxns[si]=[];
+    }
+  }
+  // auto-add ledger DR entry if purchase
+  if(mult===1){
+    if(!data.ledgerTxns[si])data.ledgerTxns[si]=[];
+    data.ledgerTxns[si].push({date:todayISO(),dealer,type:'dr',amount:amt,note:document.getElementById('borrow_note')?.value?.trim()||'',source:'dealers'});
+  }
+  save();toast('Saved!');renderBorrowings();
+};
 
+// ── LEDGER ────────────────────────────────────────────────────────────────────
+function renderLedger(){
+  renderShopTabs('ledgerShopTabs','ledger');
+  const si=activeShops.ledger??0;
+  const dealers=data.dealerAccounts[si]||[];
+  const txns=data.ledgerTxns[si]||[];
+  const selD=window._ledgerDealer||null;
+  if(selD!==null){
+    const dealer=dealers[selD];
+    if(!dealer){window._ledgerDealer=null;renderLedger();return;}
+    const dTxns=txns.filter(t=>t.dealer===dealer.name).sort((a,b)=>b.date.localeCompare(a.date));
+    const totalDR=dTxns.filter(t=>t.type==='dr').reduce((s,t)=>s+Number(t.amount||0),0);
+    const totalCR=dTxns.filter(t=>t.type==='cr').reduce((s,t)=>s+Number(t.amount||0),0);
+    const outstanding=totalDR-totalCR;
+    const rows=dTxns.map(t=>`<div class="txn-row">
+      <div><div class="entry-main ${t.type==='dr'?'r':'g'}">${t.type==='dr'?'DR':'CR'} ₹${fmt(t.amount||0)}</div><div class="entry-sub">${t.note||''} ${t.source?`<span style="font-size:10px;background:#f0eef8;padding:1px 5px;border-radius:4px">${t.source}</span>`:''}</div></div>
+      <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
+    document.getElementById('ledgerContent').innerHTML=`
+    <div class="section-header"><button onclick="window._ledgerDealer=null;renderLedger()" style="background:none;border:none;color:#1a7a4a;font-size:14px;cursor:pointer;margin-right:6px">← Back</button>📒 ${dealer.name}</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Total Purchased (DR)</div><div class="metric-value r">₹${fmt(totalDR)}</div></div>
+      <div class="metric"><div class="metric-label">Total Paid (CR)</div><div class="metric-value g">₹${fmt(totalCR)}</div></div>
+      <div class="metric" style="grid-column:1/-1"><div class="metric-label">Outstanding Balance</div><div class="metric-value ${outstanding>0?'r':'g'}">₹${fmt(Math.abs(outstanding))} ${outstanding>0?'(You Owe)':'(Clear/Advance)'}</div></div>
+    </div>
+    <div class="card"><div class="card-title">➕ Add Transaction</div>
+      <div class="two-col">
+        <div class="field"><label>Type</label><select id="ltxn_type" style="width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8"><option value="dr">📦 DR — Purchase</option><option value="cr">💳 CR — Payment</option></select></div>
+        <div class="field"><label>Amount (₹)</label><input type="number" id="ltxn_amt" placeholder="0"></div>
+      </div>
+      <div class="field"><label>Note</label><input type="text" id="ltxn_note" placeholder="Details"></div>
+      <button class="save-btn" onclick="addLedgerTxn(${si},${selD})">Save</button>
+    </div>
+    <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions yet</div>'}</div>`;
+    return;
+  }
+  // dealer list view
+  const dealerCards=dealers.map((d,i)=>{
+    const dTxns=txns.filter(t=>t.dealer===d.name);
+    const totalDR=dTxns.filter(t=>t.type==='dr').reduce((s,t)=>s+Number(t.amount||0),0);
+    const totalCR=dTxns.filter(t=>t.type==='cr').reduce((s,t)=>s+Number(t.amount||0),0);
+    const outstanding=totalDR-totalCR;
+    return `<div class="dealer-card" onclick="window._ledgerDealer=${i};renderLedger()" style="cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:14px;font-weight:700">🏪 ${d.name}</div>${d.phone?`<div style="font-size:11px;color:#888">${d.phone}</div>`:''}</div>
+        <div style="text-align:right">
+          <div style="font-size:16px;font-weight:700;color:${outstanding>0?'#c0392b':'#1a7a4a'}">₹${fmt(Math.abs(outstanding))}</div>
+          <div style="font-size:10px;color:#888">${outstanding>0?'Outstanding':'Clear'}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:#666">
+        <span>DR: ₹${fmt(totalDR)}</span><span>CR: ₹${fmt(totalCR)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('ledgerContent').innerHTML=`
+  <div class="section-header">📒 Ledger — ${SHOPS[si].name}</div>
+  ${isOwner()?`<div class="card"><div class="card-title">➕ Add Dealer</div>
+    <div class="two-col"><div class="field"><label>Name</label><input type="text" id="ldlr_name" placeholder="Dealer name"></div><div class="field"><label>Phone (optional)</label><input type="text" id="ldlr_phone" placeholder="Mobile"></div></div>
+    <button class="save-btn" onclick="addDealer(${si})">➕ Add Dealer</button></div>`:''}
+  ${dealerCards||'<div class="card"><div class="empty">No dealers yet</div></div>'}`;
+}
+window.addDealer=function(si){
+  const name=document.getElementById('ldlr_name')?.value?.trim();
+  if(!name){toast('Enter name');return;}
+  if(!data.dealerAccounts[si])data.dealerAccounts[si]=[];
+  if(data.dealerAccounts[si].find(d=>d.name===name)){toast('Already exists');return;}
+  data.dealerAccounts[si].push({name,phone:document.getElementById('ldlr_phone')?.value?.trim()||''});
+  save();toast('Dealer added!');renderLedger();
+};
+window.addLedgerTxn=function(si,di){
+  const dealer=data.dealerAccounts[si][di];
+  if(!dealer)return;
+  const type=document.getElementById('ltxn_type')?.value||'dr';
+  const amt=Number(document.getElementById('ltxn_amt')?.value||0);
+  if(!amt){toast('Enter amount');return;}
+  if(!data.ledgerTxns[si])data.ledgerTxns[si]=[];
+  data.ledgerTxns[si].push({date:todayISO(),dealer:dealer.name,type,amount:amt,note:document.getElementById('ltxn_note')?.value?.trim()||'',source:'manual'});
+  // sync to borrowings if DR
+  if(type==='dr'){if(!data.borrowings)data.borrowings=[];data.borrowings.push({date:todayISO(),dealer:dealer.name,amount:amt,note:document.getElementById('ltxn_note')?.value?.trim()||'',shop:si});}
+  save();toast('Saved!');window._ledgerDealer=di;renderLedger();
+};
+
+// ── TRANSFER ──────────────────────────────────────────────────────────────────
+function renderTransfer(){
+  const transfers=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const shopOpts=SHOPS.map((s,i)=>`<option value="${i}">${s}</option>`).join('');
+  const rows=transfers.slice(0,20).map(t=>`<div class="entry-row">
+    <div><div class="entry-main">₹${fmt(t.amount||0)}</div><div class="entry-sub">${SHOPS[t.from]||'?'} → ${SHOPS[t.to]||'?'} | ${t.goods||''} ${t.note?'| '+t.note:''}</div></div>
+    <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
+  document.getElementById('transferContent').innerHTML=`
+  <div class="section-header">🔄 Inter-Branch Transfer</div>
+  <div class="card"><div class="card-title">➕ New Transfer</div>
+    <div class="two-col">
+      <div class="field"><label>From</label><select id="tr_from" style="width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8">${shopOpts}</select></div>
+      <div class="field"><label>To</label><select id="tr_to" style="width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8">${shopOpts}</select></div>
+    </div>
+    <div class="field"><label>Amount (₹)</label><input type="number" id="tr_amt" placeholder="0"></div>
+    <div class="field"><label>Goods / Description (optional)</label><input type="text" id="tr_goods" placeholder="What was transferred"></div>
+    <div class="field"><label>Note (optional)</label><input type="text" id="tr_note" placeholder="Any note"></div>
+    <button class="save-btn" onclick="addTransfer()">Save Transfer</button>
+  </div>
+  <div class="card"><div class="card-title">📋 Recent Transfers</div>${rows||'<div class="empty">No transfers yet</div>'}</div>`;
+}
+window.addTransfer=function(){
+  const from=Number(document.getElementById('tr_from')?.value||0);
+  const to=Number(document.getElementById('tr_to')?.value||0);
+  const amt=Number(document.getElementById('tr_amt')?.value||0);
+  if(from===to){toast('From and To must differ');return;}
+  if(!amt){toast('Enter amount');return;}
+  if(!data.transfers)data.transfers=[];
+  data.transfers.push({date:todayISO(),from,to,amount:amt,goods:document.getElementById('tr_goods')?.value?.trim()||'',note:document.getElementById('tr_note')?.value?.trim()||''});
+  save();toast('Transfer saved!');renderTransfer();
+};
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDashboard(){
+  renderShopTabs('dashShopTabs','dashboard');
+  const si=activeShops.dashboard??0,shop=data.shops[si];
+  const today=todayISO();
+  const entries=shop.entries||[];
+  const expenses=shop.expenses||[];
+  // today sales
+  const todaySales=entries.filter(e=>e.date===today);
+  const cashSales=todaySales.filter(e=>e.type==='cash').reduce((s,e)=>s+Number(e.amount||0),0);
+  const upiSales=todaySales.filter(e=>e.type==='upi').reduce((s,e)=>s+Number(e.amount||0),0);
+  const totalSales=cashSales+upiSales;
+  const phoneSales=todaySales.filter(e=>e.category==='phone');
+  const totalPhones=phoneSales.reduce((s,e)=>s+Number(e.qty||1),0);
+  // today expenses
+  const todayExp=expenses.filter(e=>e.date===today).reduce((s,e)=>s+Number(e.amount||0),0);
+  // adjustment
+  const adj=shop.adjustment||0;
+  // monthly
+  const ym=today.slice(0,7);
+  const monthSales=entries.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+Number(e.amount||0),0);
+  const monthExp=expenses.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+Number(e.amount||0),0);
+  // cash balance
+  const cashBal=shop.balanceAccounts?.cash?.balance||0;
+  // outstanding dealer dues
+  const dealers=data.dealerAccounts[si]||[];
+  const txns=data.ledgerTxns[si]||[];
+  const totalOutstanding=dealers.reduce((s,d)=>{
+    const dTxns=txns.filter(t=>t.dealer===d.name);
+    const dr=dTxns.filter(t=>t.type==='dr').reduce((a,t)=>a+Number(t.amount||0),0);
+    const cr=dTxns.filter(t=>t.type==='cr').reduce((a,t)=>a+Number(t.amount||0),0);
+    return s+(dr-cr);
+  },0);
+  document.getElementById('dashContent').innerHTML=`
+  <div class="section-header">📊 Dashboard — ${SHOPS[si].name}</div>
+  <div style="font-size:12px;color:#888;padding:0 0 8px">Today: ${fmtDate(today)}</div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">Cash Sales Today</div><div class="metric-value g">₹${fmt(cashSales)}</div></div>
+    <div class="metric"><div class="metric-label">UPI Sales Today</div><div class="metric-value g">₹${fmt(upiSales)}</div></div>
+    <div class="metric"><div class="metric-label">Total Sales Today</div><div class="metric-value g">₹${fmt(totalSales)}</div></div>
+    <div class="metric"><div class="metric-label">Phones Sold Today</div><div class="metric-value">${totalPhones}</div></div>
+    <div class="metric"><div class="metric-label">Expenses Today</div><div class="metric-value r">₹${fmt(todayExp)}</div></div>
+    <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483">₹${fmt(Math.abs(adj))} ${adj<0?'(Short)':adj>0?'(Excess)':'(Balanced)'}</div></div>
+  </div>
+  <div class="section-header" style="margin-top:8px">📅 This Month</div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">Monthly Sales</div><div class="metric-value g">₹${fmt(monthSales)}</div></div>
+    <div class="metric"><div class="metric-label">Monthly Expenses</div><div class="metric-value r">₹${fmt(monthExp)}</div></div>
+    <div class="metric"><div class="metric-label">Cash on Hand</div><div class="metric-value">${fmt(cashBal)}</div></div>
+    <div class="metric"><div class="metric-label">Dealer Outstanding</div><div class="metric-value r">₹${fmt(totalOutstanding)}</div></div>
+  </div>
+  ${isOwner()?`<div class="card" style="margin-top:12px"><div class="card-title">⚖️ Set Adjustment</div>
+    <div class="field"><label>Amount (₹, use negative for short)</label><input type="number" id="adj_val" placeholder="0" value="${adj}"></div>
+    <button class="save-btn" onclick="saveAdj(${si})">Save</button></div>`:''}`;
+}
+window.saveAdj=function(si){data.shops[si].adjustment=Number(document.getElementById('adj_val')?.value||0);save();toast('Saved!');renderDashboard();};
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
 load();
 </script>
-</body>
-</html>
+
+
+</body></html>
