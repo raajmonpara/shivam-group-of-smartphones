@@ -1,921 +1,847 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_1.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_2.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shop Manager</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
-.screen{display:none}.screen.active{display:block}
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.login-box{background:#fff;border-radius:16px;padding:32px 24px;width:100%;max-width:360px;border:0.5px solid #e0ddd5}
-.login-logo{font-size:22px;font-weight:700;margin-bottom:4px}
-.login-biz{font-size:12px;color:#888;margin-bottom:20px}
-.login-roles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
-.role-btn{padding:10px 6px;border:0.5px solid #ddd;border-radius:10px;background:#fff;font-size:12px;cursor:pointer;text-align:center;color:#555}
-.role-btn.selected{border-color:#4a4a9a;background:#f0f0fb;color:#4a4a9a;font-weight:700}
-.role-btn .icon{font-size:20px;display:block;margin-bottom:4px}
-.inp{width:100%;padding:10px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:12px;background:#fafaf8;color:#1a1a1a}
-.inp:focus{outline:none;border-color:#4a4a9a}
-.login-btn{width:100%;padding:12px;background:#4a4a9a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
-.err{color:#c0392b;font-size:12px;margin-bottom:10px;display:none}
-.app-wrap{max-width:480px;margin:0 auto;padding:0 0 82px}
-.topbar{background:#fff;border-bottom:0.5px solid #e0ddd5;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-.topbar-title{font-size:16px;font-weight:700}
-.topbar-sub{font-size:11px;color:#888;margin-top:1px}
-.logout-btn{font-size:12px;color:#888;background:none;border:0.5px solid #ddd;border-radius:8px;padding:5px 10px;cursor:pointer}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid #e0ddd5;display:flex;max-width:480px;margin:0 auto;z-index:10;overflow-x:auto}
-.nav-btn{flex:1;min-width:46px;padding:7px 2px 5px;background:none;border:none;cursor:pointer;font-size:9px;color:#888;display:flex;flex-direction:column;align-items:center;gap:2px}
-.nav-btn .ni{font-size:17px}
-.nav-btn.active{color:#4a4a9a}
-.content{padding:12px}
-.page{display:none}.page.active{display:block}
-.shop-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.shop-tab{flex:1;min-width:70px;padding:6px 4px;font-size:11px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#666;cursor:pointer;text-align:center}
-.shop-tab.active{background:#f0f0fb;color:#4a4a9a;font-weight:700;border-color:#4a4a9a}
-.card{background:#fff;border:0.5px solid #e0ddd5;border-radius:14px;padding:14px;margin-bottom:12px}
-.card-title{font-size:13px;font-weight:700;color:#555;margin-bottom:12px}
-.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.metric{background:#f5f4f0;border-radius:10px;padding:10px 12px}
-.metric-label{font-size:11px;color:#888;margin-bottom:3px}
-.metric-value{font-size:16px;font-weight:700;color:#1a1a1a}
-.g{color:#1a7a4a}.r{color:#c0392b}.b{color:#2563eb}.p{color:#4a4a9a}.o{color:#b45309}.v{color:#7c3aed}
-.field{margin-bottom:10px}
-.field label{display:block;font-size:12px;color:#666;margin-bottom:4px;font-weight:600}
-.field input,.field select{width:100%;font-size:14px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8;color:#1a1a1a}
-.field input:focus,.field select:focus{outline:none;border-color:#4a4a9a}
-.field input[readonly]{background:#f0f0f0;color:#999}
-.save-btn{width:100%;padding:11px;font-size:14px;font-weight:700;border:none;border-radius:10px;background:#4a4a9a;color:#fff;cursor:pointer;margin-top:4px}
-.save-btn:active{transform:scale(.98)}
-.entry-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-top:0.5px solid #f0ede6;gap:8px}
-.entry-main{font-size:13px;color:#1a1a1a;font-weight:600}
-.entry-sub{font-size:11px;color:#999;margin-top:2px}
-.entry-date{font-size:11px;color:#bbb;white-space:nowrap}
-.del-btn{background:none;border:none;color:#ccc;cursor:pointer;font-size:18px;padding:0 2px;flex-shrink:0}
-.del-btn:hover{color:#c0392b}
-.empty{text-align:center;padding:20px;color:#bbb;font-size:13px}
-.staff-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:0.5px solid #f0ede6;gap:8px}
-.staff-name{font-size:14px;font-weight:700}
-.staff-meta{font-size:11px;color:#999;margin-top:2px}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;margin-right:4px;font-weight:600}
-.badge.warn{background:#fff8e1;color:#b45309}
-.badge.danger{background:#fef2f2;color:#c0392b}
-.badge.success{background:#f0fdf4;color:#1a7a4a}
-.badge.info{background:#eff6ff;color:#2563eb}
-.badge.purple{background:#fdf4ff;color:#7c3aed}
-.shop-summary-block{background:#fff;border:0.5px solid #e0ddd5;border-radius:14px;padding:14px;margin-bottom:10px}
-.ssname{font-size:14px;font-weight:700;margin-bottom:10px;color:#4a4a9a}
-.srow{display:flex;justify-content:space-between;font-size:13px;color:#666;padding:3px 0}
-.srow span:last-child{font-weight:700;color:#1a1a1a}
-.divider{border:none;border-top:0.5px solid #eee;margin:8px 0}
-.section-label{font-size:11px;font-weight:700;color:#aaa;letter-spacing:.5px;text-transform:uppercase;margin:8px 0 4px}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 20px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
-.toast.show{opacity:1}
-.month-bar{display:flex;gap:8px;margin-bottom:12px;align-items:center}
-.month-bar select{flex:1;font-size:13px;padding:7px 10px;border:0.5px solid #ddd;border-radius:9px;background:#fff}
-.from-tag{background:#fef9ec;color:#b45309;border-radius:6px;padding:1px 7px;font-size:11px}
-.to-tag{background:#f0fdf4;color:#1a7a4a;border-radius:6px;padding:1px 7px;font-size:11px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0ede8;min-height:100vh;color:#1a1a1a}
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(160deg,#1a7a4a 0%,#0d4a2e 100%)}
+.login-logo{font-size:36px;margin-bottom:8px}
+.login-title{color:#fff;font-size:22px;font-weight:800;margin-bottom:4px}
+.login-sub{color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:32px}
+.login-card{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.role-tabs{display:flex;gap:8px;margin-bottom:20px}
+.role-tab{flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;border-radius:10px;cursor:pointer;background:#f5f5f0;color:#555;transition:all 0.2s}
+.role-tab.active{background:#1a7a4a;color:#fff}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.field select,.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=tel]{width:100%;padding:11px 14px;border:1.5px solid #e8e8e8;border-radius:12px;font-size:14px;background:#fafaf8;outline:none;transition:border-color 0.2s}
+.field select:focus,.field input:focus{border-color:#1a7a4a}
+.login-btn{width:100%;padding:14px;background:#1a7a4a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.error-msg{color:#c0392b;font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+#app{display:none;max-width:480px;margin:0 auto;padding-bottom:80px}
+.top-bar{background:#1a7a4a;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
+.top-bar-title{font-size:15px;font-weight:800}
+.top-bar-sub{font-size:11px;opacity:0.8}
+.logout-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #e8e8e4;display:flex;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.08)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 2px 10px;cursor:pointer;border:none;background:none;color:#999;font-size:9px;font-weight:600;transition:color 0.2s;gap:3px}
+.nav-item .icon{font-size:20px;line-height:1}
+.nav-item.active{color:#1a7a4a}
+.page{display:none;padding:12px}
+.page.active{display:block}
+.shop-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.shop-tab{padding:7px 14px;font-size:12px;font-weight:700;border:none;border-radius:20px;cursor:pointer;background:#e8e8e4;color:#666;white-space:nowrap;flex-shrink:0}
+.shop-tab.active{background:#1a7a4a;color:#fff}
+.section-header{font-size:13px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:0.5px;padding:8px 0 6px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.card-title{font-size:13px;font-weight:800;color:#333;margin-bottom:12px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.sub-tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
-.sub-tab{flex:1;min-width:60px;padding:6px 4px;font-size:11px;border:0.5px solid #ddd;border-radius:8px;background:#fff;color:#666;cursor:pointer;text-align:center}
-.sub-tab.active{border-color:#4a4a9a;background:#f0f0fb;color:#4a4a9a;font-weight:700}
-.person-card{background:#fff;border:0.5px solid #e0ddd5;border-radius:12px;padding:12px;margin-bottom:10px}
-.person-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.net-box{background:#f5f4f0;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-.net-box .lbl{font-size:12px;color:#666}
-.net-box .val{font-size:16px;font-weight:700}
-.tag-row{display:flex;flex-wrap:wrap;margin-bottom:8px;gap:4px}
-.tag-pill{display:inline-flex;align-items:center;gap:4px;background:#f5f4f0;border:0.5px solid #ddd;border-radius:20px;padding:4px 10px;font-size:12px}
-.tag-pill .tx{color:#aaa;cursor:pointer;font-size:15px;line-height:1}
-.owe-we{background:#fef2f2;color:#c0392b;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:600}
-.owe-they{background:#f0fdf4;color:#1a7a4a;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:600}
-.dealer-card{background:#fff;border:0.5px solid #e0ddd5;border-radius:12px;padding:12px;margin-bottom:10px}
-.dealer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
-.dealer-name{font-size:15px;font-weight:700;color:#1a1a1a}
-.dealer-due{font-size:18px;font-weight:700}
-.ledger-cr{color:#1a7a4a}
-.ledger-dr{color:#c0392b}
-.txn-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:0.5px solid #f5f4f0;gap:6px}
-.txn-type-dr{display:inline-block;background:#fef2f2;color:#c0392b;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700}
-.txn-type-cr{display:inline-block;background:#f0fdf4;color:#1a7a4a;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700}
+.save-btn{width:100%;padding:13px;background:#1a7a4a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.save-btn.red{background:#c0392b}
+.save-btn.blue{background:#2980b9}
+.entry-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f0ede8}
+.entry-row:last-child{border-bottom:none}
+.entry-main{font-size:14px;font-weight:700;color:#1a1a1a}
+.entry-sub{font-size:11px;color:#888;margin-top:2px}
+.entry-date{font-size:11px;color:#aaa;white-space:nowrap;margin-left:8px;flex-shrink:0}
+.empty{text-align:center;color:#bbb;font-size:13px;padding:24px 0}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.metric{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.metric-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+.metric-value{font-size:18px;font-weight:800;color:#1a1a1a}
+.metric-value.g{color:#1a7a4a}
+.metric-value.r{color:#c0392b}
+.r{color:#c0392b}
+.g{color:#1a7a4a}
+.dealer-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.txn-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f5f5f0}
+.txn-row:last-child{border-bottom:none}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px}
+.badge-dr{background:#fde8e8;color:#c0392b}
+.badge-cr{background:#e8f5ee;color:#1a7a4a}
+.badge-type{background:#e8f0fe;color:#2980b9;font-size:10px;padding:2px 7px;border-radius:8px}
+.sale-total-bar{background:linear-gradient(135deg,#1a7a4a,#0d4a2e);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.sale-total-label{font-size:11px;opacity:0.8}
+.sale-total-amount{font-size:24px;font-weight:800}
+.sub-tabs{display:flex;gap:6px;margin-bottom:12px}
+.sub-tab{flex:1;padding:8px 4px;font-size:12px;font-weight:700;border:none;border-radius:10px;cursor:pointer;background:#f0ede8;color:#666}
+.sub-tab.active{background:#1a7a4a;color:#fff}
+.acct-type-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block}
+.type-dealer{background:#fff3cd;color:#856404}
+.type-staff{background:#d1ecf1;color:#0c5460}
+.type-owner{background:#d4edda;color:#155724}
+.type-franchise{background:#e2d9f3;color:#4a235a}
+.type-customer{background:#fde8e8;color:#c0392b}
+.type-custom{background:#f0ede8;color:#555}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
 </style>
 </head>
 <body>
 
-<div id="loginScreen" class="screen active">
-<div class="login-wrap"><div class="login-box">
-  <div class="login-logo">🏪 Shop Manager</div>
-  <div class="login-biz">Shivam Group of Smartphones</div>
-  <div class="login-roles">
-    <button class="role-btn" onclick="selectRole(&#39;owner&#39;)" id="role_owner"><span class="icon">👑</span>Owner</button>
-    <button class="role-btn" onclick="selectRole(&#39;manager&#39;)" id="role_manager"><span class="icon">🧑‍💼</span>Manager</button>
-    <button class="role-btn" onclick="selectRole(&#39;staff&#39;)" id="role_staff"><span class="icon">🧑‍🏭</span>Staff</button>
+<div id="loginScreen">
+  <div class="login-logo">🏪</div>
+  <div class="login-title">Shivam Group</div>
+  <div class="login-sub">of Smartphones</div>
+  <div class="login-card">
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button>
+      <button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button>
+      <button class="role-tab" onclick="setRole(&#39;staff&#39;)">🧑‍🏭 Staff</button>
+    </div>
+    <div id="shopFieldWrap" class="field" style="display:none">
+      <label>Branch</label>
+      <select id="loginShop">
+        <option value="0">POOJARA</option>
+        <option value="1">RAMDEV</option>
+        <option value="2">SHIVAM (KOSAD)</option>
+        <option value="3">SHIVAM (KHODIYAR)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="text" id="loginPass" placeholder="Enter password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Login →</button>
+    <div class="error-msg" id="loginErr"></div>
   </div>
-  <div id="loginFields"></div>
-  <div class="err" id="loginErr">Incorrect password. Try again.</div>
-  <button class="login-btn" onclick="doLogin()">Login →</button>
-</div></div>
 </div>
 
-<div id="appScreen" class="screen">
-<div class="app-wrap">
-  <div class="topbar">
-    <div><div class="topbar-title" id="topbarTitle">Shop Manager</div><div class="topbar-sub" id="topbarSub"></div></div>
+<div id="app">
+  <div class="top-bar">
+    <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
     <button class="logout-btn" onclick="doLogout()">Logout</button>
   </div>
-  <div class="content">
-    <div class="page active" id="page_entries"><div class="shop-tabs" id="entryShopTabs"></div><div id="entryContent"></div></div>
+  <div style="position:relative">
+    <div class="page active" id="page_sales"><div class="shop-tabs" id="salesShopTabs"></div><div id="salesContent"></div></div>
     <div class="page" id="page_expense"><div class="shop-tabs" id="expShopTabs"></div><div id="expContent"></div></div>
     <div class="page" id="page_balance"><div class="shop-tabs" id="balShopTabs"></div><div id="balContent"></div></div>
-    <div class="page" id="page_accessories"><div class="shop-tabs" id="accShopTabs"></div><div id="accContent"></div></div>
+    <div class="page" id="page_accrep"><div class="shop-tabs" id="accShopTabs"></div><div id="accContent"></div></div>
     <div class="page" id="page_staff"><div class="shop-tabs" id="staffShopTabs"></div><div id="staffContent"></div></div>
-    <div class="page" id="page_borrowings"><div class="shop-tabs" id="borrowShopTabs"></div><div id="borrowContent"></div></div>
-    <div class="page" id="page_ledger"><div class="shop-tabs" id="ledgerShopTabs"></div><div id="ledgerContent"></div></div>
     <div class="page" id="page_transfer"><div id="transferContent"></div></div>
+    <div class="page" id="page_accounts"><div class="shop-tabs" id="acctShopTabs"></div><div id="acctContent"></div></div>
     <div class="page" id="page_dashboard"><div class="shop-tabs" id="dashShopTabs"></div><div id="dashContent"></div></div>
   </div>
-  <nav class="bottom-nav" id="bottomNav"></nav>
-</div>
+  <div class="bottom-nav" id="bottomNav"></div>
 </div>
 <div class="toast" id="toast"></div>
+
 <script>
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
 const SHOPS=[
-  {name:'POOJARA',  manager:'NIKUNJ', pass:'poojara123'},
-  {name:'RAMDEV',   manager:'PUNIT',  pass:'ramdev123'},
-  {name:'SHIVAM (KOSAD)',   manager:'KISHAN', pass:'shivam1123'},
-  {name:'SHIVAM (KHODIYAR)',manager:'RAJVEER',pass:'shivam2123'}
+  {name:'POOJARA',  manager:'NIKUNJ',  pass:'poojara123'},
+  {name:'RAMDEV',   manager:'PUNIT',   pass:'ramdev123'},
+  {name:'SHIVAM (KOSAD)',   manager:'KISHAN',  pass:'shivam1123'},
+  {name:'SHIVAM (KHODIYAR)',manager:'RAJVEER', pass:'shivam2123'}
 ];
 const OWNER_PASS='owner@123', STAFF_PASS='staff123';
-const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let session=null, activePage='entries';
-let activeShops={entries:0,expense:0,balance:0,accessories:0,staff:0,borrowings:0,ledger:0,dashboard:0};
-let activeStaffSub='list';
-let activeEntrySub='sales';
-let activeBalanceSub='cash';
-let activeLedgerShop=0;
-let activeLedgerDealer='';
+const ACCT_TYPES=['Dealer','Franchise','Staff','Owner','Customer','Custom'];
+const SK='shopapp_v8';
 
+let session=null, activePage='sales';
+let activeShops={sales:0,expense:0,balance:0,accrep:0,staff:0,accounts:0,dashboard:0};
+
+// ── DATA MODEL ────────────────────────────────────────────────────────────────
+const defaultShop=()=>({
+  entries:[],        // sales entries
+  expenses:[],
+  accessories:[],
+  repairing:[],
+  recharge:[],
+  expTags:[],
+  brandTags:[],
+  balanceAccounts:{
+    cash:{balance:0,entries:[]},
+    upi:[],
+    bank:[]
+  },
+  adjustment:0
+});
 let data={
-  shops:[{},{},{},{}],
+  shops:[defaultShop(),defaultShop(),defaultShop(),defaultShop()],
   staff:[[],[],[],[]],
   transfers:[],
-  expTags:[[],[],[],[]],
-  brandTags:[[],[],[],[]],
-  borrowings:[],
-  dealerAccounts:[[],[],[],[]],
-  ledgerTxns:[[],[],[],[]]
+  accounts:[],      // global account list [{id,name,type,phone,shopIdx,notes}]
+  ledger:[]         // [{id,accountId,date,type:'dr'|'cr',amount,note,source,shopIdx}]
 };
 
-const SK='shopapp_v7';
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
 function save(){localStorage.setItem(SK,JSON.stringify(data));}
 function load(){
   try{
-    const d=localStorage.getItem(SK);
-    if(d){data=JSON.parse(d);}
-    else{const old=localStorage.getItem('shopapp_v6');if(old){const od=JSON.parse(old);Object.assign(data,od);}}
-    if(!data.borrowings)data.borrowings=[];
-    if(!data.brandTags)data.brandTags=[[],[],[],[]];
-    if(!data.dealerAccounts)data.dealerAccounts=[[],[],[],[]];
-    if(!data.ledgerTxns)data.ledgerTxns=[[],[],[],[]];
-    for(let i=0;i<4;i++){
-      if(!data.shops[i].recharge)data.shops[i].recharge=[];
-      if(!data.shops[i].udhari)data.shops[i].udhari=[];
-      if(!data.shops[i].bakijama)data.shops[i].bakijama=[];
-      if(!data.shops[i].brandSales)data.shops[i].brandSales=[];
-      if(!data.shops[i].balanceAccounts)data.shops[i].balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
-      if(!data.dealerAccounts[i])data.dealerAccounts[i]=[];
-      if(!data.ledgerTxns[i])data.ledgerTxns[i]=[];
+    const raw=localStorage.getItem(SK);
+    if(raw){const d=JSON.parse(raw);deepMerge(data,d);}
+    else{
+      // migrate v7
+      const old=localStorage.getItem('shopapp_v7')||localStorage.getItem('shopapp_v6');
+      if(old){
+        const od=JSON.parse(old);
+        if(od.shops)od.shops.forEach((s,i)=>{if(data.shops[i])Object.assign(data.shops[i],s);});
+        if(od.staff)data.staff=od.staff;
+        if(od.transfers)data.transfers=od.transfers;
+        // migrate dealers to accounts
+        if(od.dealerAccounts){od.dealerAccounts.forEach((list,si)=>{(list||[]).forEach(d=>{data.accounts.push({id:uid(),name:d.name,type:'Dealer',phone:d.phone||'',shopIdx:si,notes:''});});});}
+        if(od.ledgerTxns){od.ledgerTxns.forEach((list,si)=>{(list||[]).forEach(t=>{const acct=data.accounts.find(a=>a.name===t.dealer&&a.shopIdx===si);if(acct)data.ledger.push({id:uid(),accountId:acct.id,date:t.date,type:t.type,amount:t.amount,note:t.note||'',source:t.source||'migrated',shopIdx:si});});});}
+      }
     }
-  }catch(e){console.error(e);}
+  }catch(e){console.warn('Load error',e);}
+  // ensure structure
+  while(data.shops.length<4)data.shops.push(defaultShop());
+  while(data.staff.length<4)data.staff.push([]);
+  data.shops.forEach(s=>{
+    if(!s.balanceAccounts)s.balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
+    if(!s.balanceAccounts.cash)s.balanceAccounts.cash={balance:0,entries:[]};
+    if(!s.balanceAccounts.upi)s.balanceAccounts.upi=[];
+    if(!s.balanceAccounts.bank)s.balanceAccounts.bank=[];
+    if(!s.accessories)s.accessories=[];
+    if(!s.repairing)s.repairing=[];
+    if(!s.recharge)s.recharge=[];
+    if(!s.expTags)s.expTags=[];
+    if(!s.brandTags)s.brandTags=[];
+    if(!s.entries)s.entries=[];
+    if(!s.expenses)s.expenses=[];
+  });
+  if(!data.accounts)data.accounts=[];
+  if(!data.ledger)data.ledger=[];
+  if(!data.transfers)data.transfers=[];
 }
-function fmt(n){return n?Number(n).toLocaleString('en-IN'):'0';}
-function todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function fmtDate(iso){if(!iso)return'';try{const[y,m,dd]=iso.split('-');return `${dd} ${MONTHS[parseInt(m)-1]} ${y.slice(2)}`;}catch(e){return iso;}}
-function curYM(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-function ymLabel(ym){if(!ym)return'';const[y,m]=ym.split('-');return `${MONTHS[parseInt(m)-1]} ${y}`;}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-function monthOptions(sel){let s='';const now=new Date();for(let i=0;i<13;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const ym=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;s+=`<option value="${ym}"${ym===sel?' selected':''}>${ymLabel(ym)}</option>`;}return s;}
-function accessibleShops(){return session.role==='owner'?SHOPS.map((_,i)=>i):[session.shopIdx];}
+function deepMerge(target,source){
+  Object.keys(source).forEach(k=>{
+    if(source[k]&&typeof source[k]==='object'&&!Array.isArray(source[k])&&target[k]&&typeof target[k]==='object'&&!Array.isArray(target[k])){deepMerge(target[k],source[k]);}
+    else{target[k]=source[k];}
+  });
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function fmt(n){return Number(n||0).toLocaleString('en-IN');}
+function fmtDate(d){if(!d)return '';const p=d.split('-');if(p.length<3)return d;return `${p[2]}/${p[1]}/${p[2].length===4?p[0].slice(2):p[0]}`;}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2000);}
 function isOwner(){return session&&session.role==='owner';}
-function canManageLedger(){return session&&(session.role==='owner'||session.role==='manager');}
-function dateField(id,val){
-  const v=val||todayISO();
-  if(isOwner())return `<div class="field"><label>Date *</label><input type="date" id="${id}" value="${v}" max="${todayISO()}"></div>`;
-  return `<div class="field"><label>Date</label><input type="date" id="${id}" value="${v}" readonly></div>`;
-}
-function getDate(id){return document.getElementById(id)?.value||todayISO();}
-function tagPillsHTML(tags,deleteFn){return tags.map((t,i)=>`<span class="tag-pill">🏷️ ${t} <span class="tx" onclick="${deleteFn}(${i})">×</span></span>`).join('')||'<span style="font-size:12px;color:#bbb">No tags yet</span>';}
-// ── LOGIN ──
-let selectedRole=null;
-function selectRole(r){
-  selectedRole=r;
-  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('role_'+r).classList.add('selected');
-  const f=document.getElementById('loginFields');
-  if(r==='owner')f.innerHTML=`<input class="inp" type="password" id="li_pass" placeholder="Owner password">`;
-  else f.innerHTML=`<select class="inp" id="li_shop"><option value="">Select branch</option>${SHOPS.map((s,i)=>`<option value="${i}">${s.name}${r==='manager'?' — '+s.manager:''}</option>`).join('')}</select><input class="inp" type="password" id="li_pass" placeholder="Password">`;
-  document.getElementById('loginErr').style.display='none';
-  setTimeout(()=>document.getElementById('li_pass')?.focus(),100);
+function isManager(){return session&&(session.role==='owner'||session.role==='manager');}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+let _loginRole='owner';
+function setRole(r){
+  _loginRole=r;
+  document.querySelectorAll('.role-tab').forEach((b,i)=>b.classList.toggle('active',['owner','manager','staff'][i]===r));
+  document.getElementById('shopFieldWrap').style.display=r==='owner'?'none':'block';
 }
 function doLogin(){
-  if(!selectedRole){toast('Select a role');return;}
-  const pass=document.getElementById('li_pass')?.value||'';
-  const shopEl=document.getElementById('li_shop');
-  const shopIdx=shopEl?parseInt(shopEl.value):null;
-  let ok=false;
-  if(selectedRole==='owner'){ok=(pass===OWNER_PASS);}
-  else{if(!shopEl||shopEl.value===''){toast('Select branch');return;}ok=(selectedRole==='manager'?pass===SHOPS[shopIdx].pass:pass===STAFF_PASS);}
-  if(!ok){document.getElementById('loginErr').style.display='block';return;}
-  session={role:selectedRole,shopIdx:selectedRole==='owner'?null:shopIdx};
-  if(session.shopIdx!==null)Object.keys(activeShops).forEach(k=>activeShops[k]=session.shopIdx);
-  startApp();
+  const pass=document.getElementById('loginPass').value.trim();
+  const shopIdx=parseInt(document.getElementById('loginShop').value||'0');
+  let ok=false,sess={};
+  if(_loginRole==='owner'&&pass===OWNER_PASS){ok=true;sess={role:'owner',shopIdx:null};}
+  else if(_loginRole==='manager'){const s=SHOPS[shopIdx];if(pass===s.pass){ok=true;sess={role:'manager',shopIdx};}}
+  else if(_loginRole==='staff'&&pass===STAFF_PASS){ok=true;sess={role:'staff',shopIdx};}
+  if(ok){
+    session=sess;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('loginErr').textContent='';
+    document.getElementById('loginPass').value='';
+    if(sess.shopIdx!==null)Object.keys(activeShops).forEach(k=>activeShops[k]=sess.shopIdx);
+    buildNav();switchPage('sales');
+    document.getElementById('barTitle').textContent='🏪 '+( sess.shopIdx!==null?SHOPS[sess.shopIdx].name:'All Branches');
+    document.getElementById('barSub').textContent=sess.role==='owner'?'Owner':sess.role==='manager'?'Manager — '+SHOPS[sess.shopIdx].manager:'Staff';
+  }else{document.getElementById('loginErr').textContent='Incorrect password. Try again.';}
 }
-document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-function doLogout(){session=null;selectedRole=null;document.getElementById('loginFields').innerHTML='';document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));document.getElementById('loginErr').style.display='none';showScreen('loginScreen');}
-function startApp(){
-  showScreen('appScreen');
-  document.getElementById('topbarTitle').textContent='🏪 Shop Manager';
-  document.getElementById('topbarSub').textContent=isOwner()?'All Branches — Owner':session.role==='manager'?`${SHOPS[session.shopIdx].name} — ${SHOPS[session.shopIdx].manager}`:`${SHOPS[session.shopIdx].name} — Staff`;
-  buildNav();switchPage(isOwner()?'dashboard':'entries');
-}
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function doLogout(){session=null;document.getElementById('loginScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('loginPass').value='';}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+const NAV_ITEMS=[
+  {id:'sales',icon:'📱',label:'Sales'},
+  {id:'expense',icon:'💸',label:'Expense'},
+  {id:'balance',icon:'💰',label:'Balance'},
+  {id:'accrep',icon:'🔌',label:'Acc/Rep'},
+  {id:'staff',icon:'👤',label:'Staff'},
+  {id:'transfer',icon:'🔄',label:'Transfer'},
+  {id:'accounts',icon:'📒',label:'Accounts'},
+  {id:'dashboard',icon:'📊',label:'Dashboard'},
+];
 function buildNav(){
-  const pages=[
-    {id:'entries',icon:'📱',label:'Phones'},
-    {id:'expense',icon:'💸',label:'Expense'},
-    {id:'balance',icon:'💳',label:'Balance'},
-    {id:'accessories',icon:'🎧',label:'Acc/Rep'},
-    {id:'staff',icon:'👥',label:'Staff'},
-    {id:'transfer',icon:'🔄',label:'Transfer'},
-  ];
-  if(isOwner()||session.role==='manager'){pages.push({id:'dashboard',icon:'📊',label:'Dashboard'});pages.push({id:'ledger',icon:'📒',label:'Ledger'});}
-  if(isOwner())pages.push({id:'borrowings',icon:'🧾',label:'Dealers'});
-  document.getElementById('bottomNav').innerHTML=pages.map(p=>`<button class="nav-btn" id="nav_${p.id}" onclick="switchPage('${p.id}')"><span class="ni">${p.icon}</span>${p.label}</button>`).join('');
+  document.getElementById('bottomNav').innerHTML=NAV_ITEMS.map(n=>`<button class="nav-item${activePage===n.id?' active':''}" onclick="switchPage('${n.id}')"><span class="icon">${n.icon}</span>${n.label}</button>`).join('');
 }
 function switchPage(p){
   activePage=p;
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.getElementById('page_'+p)?.classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('nav_'+p)?.classList.add('active');
+  buildNav();
   renderPage(p);
 }
-function renderShopTabs(cid,key){
-  const shops=accessibleShops();
-  document.getElementById(cid).innerHTML=shops.length>1?shops.map(i=>`<button class="shop-tab${activeShops[key]===i?' active':''}" onclick="switchShop('${key}',${i})">${SHOPS[i].name}</button>`).join(''):'';
-}
-window.switchShop=function(key,i){activeShops[key]=i;renderPage(key==='staff'?'staff':key);};
 function renderPage(p){
-  const map={entries:renderEntries,expense:renderExpense,balance:renderBalance,accessories:renderAccessories,staff:renderStaffPage,transfer:renderTransfer,dashboard:renderDashboard,borrowings:renderBorrowings,ledger:renderLedger};
+  const map={sales:renderSales,expense:renderExpense,balance:renderBalance,accrep:renderAccRep,staff:renderStaff,transfer:renderTransfer,accounts:renderAccounts,dashboard:renderDashboard};
   if(map[p])map[p]();
 }
-// ── ENTRIES ──
-function renderEntries(){
-  renderShopTabs('entryShopTabs','entries');
-  const si=activeShops.entries;
-  const subLabels={sales:'📋 Sales',brands:'🏷️ Brands',recharge:'🔄 Recharge',udhari:'📒 Udhari',bakijama:'💰 Baki Jama'};
-  const subTabs=`<div class="sub-tabs">${Object.entries(subLabels).map(([k,v])=>`<button class="sub-tab${activeEntrySub===k?' active':''}" onclick="swEntrySub('${k}')">${v}</button>`).join('')}</div>`;
-  let inner='';
-  if(activeEntrySub==='sales')inner=renderSales(si);
-  else if(activeEntrySub==='brands')inner=renderBrands(si);
-  else if(activeEntrySub==='recharge')inner=renderRecharge(si);
-  else if(activeEntrySub==='udhari')inner=renderUdhari(si);
-  else inner=renderBakiJama(si);
-  document.getElementById('entryContent').innerHTML=subTabs+inner;
-}
-window.swEntrySub=function(s){activeEntrySub=s;renderEntries();};
 
-// SALES — Advance & Bank Deposit removed; Exchange & Udhari added
-function renderSales(si){
-  const entries=data.shops[si].entries||[];
-  const hist=entries.length===0?`<div class="empty">No entries yet</div>`:entries.slice(0,30).map((e,i)=>`<div class="entry-row">
-    <div>
-      <div class="entry-main">${e.pieces?fmt(e.pieces)+' pcs · ':''}<span class="g">₹${fmt(e.amount)}</span></div>
-      <div class="entry-sub">${[e.cash?'Cash ₹'+fmt(e.cash):'',e.gpay?'GPay ₹'+fmt(e.gpay):'',e.card?'Card ₹'+fmt(e.card):'',e.exchange?'Exchange ₹'+fmt(e.exchange):'',e.udhari?'Udhari ₹'+fmt(e.udhari):''].filter(Boolean).join(' · ')}</div>
-      ${e.adjustment?`<div class="entry-sub v">⚖️ Adjustment: ₹${fmt(e.adjustment)}</div>`:''}
-      ${e.note?`<div class="entry-sub" style="color:#bbb">${e.note}</div>`:''}
-    </div>
-    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-      <span class="entry-date">${fmtDate(e.date)}</span>
-      ${isOwner()?`<button class="del-btn" onclick="delEntry(${si},${i})">×</button>`:''}
-    </div>
-  </div>`).join('');
-  return `<div class="card"><div class="card-title">📱 Phone Sales — ${SHOPS[si].name}</div>
-    ${dateField('f_date')}
-    <div class="two-col">
-      <div class="field"><label>Cash (₹)</label><input type="number" id="f_cash" placeholder="0"></div>
-      <div class="field"><label>GPay (₹)</label><input type="number" id="f_gpay" placeholder="0"></div>
-      <div class="field"><label>Card (₹)</label><input type="number" id="f_card" placeholder="0"></div>
-      <div class="field"><label>Exchange (₹)</label><input type="number" id="f_exchange" placeholder="0"></div>
-      <div class="field"><label>Udhari (₹) <span style="font-weight:400;font-size:10px;color:#b45309">→ auto-linked</span></label><input type="number" id="f_udhari" placeholder="0"></div>
-      <div class="field"><label>Udhari Person Name</label><input type="text" id="f_udhari_person" placeholder="Customer name"></div>
-      <div class="field"><label>Pieces Sold</label><input type="number" id="f_pieces" placeholder="0"></div>
-      <div class="field"><label>Sale Amount (₹)</label><input type="number" id="f_amount" placeholder="0"></div>
-    </div>
-    <div class="field"><label>⚖️ Adjustment (₹) <span style="font-weight:400;color:#7c3aed">missing/short</span></label><input type="number" id="f_adjustment" placeholder="0"></div>
-    <div class="field"><label>Note</label><input type="text" id="f_note" placeholder="Optional"></div>
-    <button class="save-btn" onclick="addEntry(${si})">💾 Save Sales Entry</button></div>
-    <div class="card"><div class="card-title">🕐 History</div><div style="max-height:260px;overflow-y:auto">${hist}</div></div>`;
+// ── SHOP TABS ─────────────────────────────────────────────────────────────────
+function renderShopTabs(containerId,key){
+  const c=document.getElementById(containerId);if(!c)return;
+  if(!isOwner()){c.innerHTML='';return;}
+  c.innerHTML=SHOPS.map((s,i)=>`<button class="shop-tab${activeShops[key]===i?' active':''}" onclick="activeShops['${key}']=${i};renderPage('${key}')">${s.name}</button>`).join('');
 }
-window.addEntry=function(si){
-  const g=id=>document.getElementById(id)?.value?.trim()||'';
-  const date=getDate('f_date');if(!date){toast('Date required');return;}
-  const udhariAmt=Number(g('f_udhari'));
-  const udhariPerson=g('f_udhari_person');
-  const e={date,cash:g('f_cash'),gpay:g('f_gpay'),card:g('f_card'),exchange:g('f_exchange'),udhari:g('f_udhari'),pieces:g('f_pieces'),amount:g('f_amount'),adjustment:g('f_adjustment'),note:g('f_note')};
-  if(!data.shops[si].entries)data.shops[si].entries=[];
-  data.shops[si].entries.unshift(e);
-  if(udhariAmt>0&&udhariPerson){
-    if(!data.shops[si].udhari)data.shops[si].udhari=[];
-    data.shops[si].udhari.unshift({date,person:udhariPerson,direction:'they_owe',amount:udhariAmt,repaid:0,note:'Auto from Phone Sale'});
+
+// ── ACCOUNT HELPERS ───────────────────────────────────────────────────────────
+function getAccounts(shopIdx,type){
+  return data.accounts.filter(a=>a.shopIdx===shopIdx&&(!type||a.type===type));
+}
+function accountOpts(shopIdx,placeholder='— Select Account —'){
+  const accts=data.accounts.filter(a=>a.shopIdx===shopIdx);
+  return `<option value="">${placeholder}</option>`+accts.map(a=>`<option value="${a.id}">[${a.type}] ${a.name}</option>`).join('');
+}
+function addLedgerEntry(accountId,date,type,amount,note,source,shopIdx){
+  if(!accountId||!amount)return;
+  data.ledger.push({id:uid(),accountId,date:date||todayISO(),type,amount:Number(amount),note:note||'',source:source||'manual',shopIdx});
+}
+
+// ── BALANCE HELPERS ───────────────────────────────────────────────────────────
+function getBalOpts(shopIdx){
+  const shop=data.shops[shopIdx];
+  const cash=`<option value="cash">💵 Cash</option>`;
+  const upi=(shop.balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">📲 ${u.name}</option>`).join('');
+  const bank=(shop.balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">🏦 ${b.name}</option>`).join('');
+  return cash+upi+bank;
+}
+function debitBalance(shopIdx,balKey,amount){
+  const shop=data.shops[shopIdx];
+  if(balKey==='cash'){shop.balanceAccounts.cash.balance=Number(shop.balanceAccounts.cash.balance||0)-Number(amount);}
+  else if(balKey.startsWith('upi_')){const i=parseInt(balKey.slice(4));if(shop.balanceAccounts.upi[i])shop.balanceAccounts.upi[i].balance=Number(shop.balanceAccounts.upi[i].balance||0)-Number(amount);}
+  else if(balKey.startsWith('bank_')){const i=parseInt(balKey.slice(5));if(shop.balanceAccounts.bank[i])shop.balanceAccounts.bank[i].balance=Number(shop.balanceAccounts.bank[i].balance||0)-Number(amount);}
+}
+function creditBalance(shopIdx,balKey,amount){
+  const shop=data.shops[shopIdx];
+  if(balKey==='cash'){shop.balanceAccounts.cash.balance=Number(shop.balanceAccounts.cash.balance||0)+Number(amount);}
+  else if(balKey.startsWith('upi_')){const i=parseInt(balKey.slice(4));if(shop.balanceAccounts.upi[i])shop.balanceAccounts.upi[i].balance=Number(shop.balanceAccounts.upi[i].balance||0)+Number(amount);}
+  else if(balKey.startsWith('bank_')){const i=parseInt(balKey.slice(5));if(shop.balanceAccounts.bank[i])shop.balanceAccounts.bank[i].balance=Number(shop.balanceAccounts.bank[i].balance||0)+Number(amount);}
+}
+function balLabel(shopIdx,balKey){
+  const shop=data.shops[shopIdx];
+  if(balKey==='cash')return 'Cash';
+  if(balKey.startsWith('upi_')){const i=parseInt(balKey.slice(4));return shop.balanceAccounts.upi[i]?.name||'UPI';}
+  if(balKey.startsWith('bank_')){const i=parseInt(balKey.slice(5));return shop.balanceAccounts.bank[i]?.name||'Bank';}
+  return balKey;
+}
+
+// ── SALES ─────────────────────────────────────────────────────────────────────
+function renderSales(){
+  renderShopTabs('salesShopTabs','sales');
+  const si=activeShops.sales;
+  const tab=window._salesTab||'entry';
+  const tabs=['entry','udhari','recharge','brands'].map(t=>`<button class="sub-tab${tab===t?' active':''}" onclick="window._salesTab='${t}';renderSales()">${{entry:'📱 Sale',udhari:'🔄 Udhari/Baki',recharge:'📶 Recharge',brands:'🏷 Brands'}[t]}</button>`).join('');
+  let body='';
+  if(tab==='entry'){
+    const entries=(data.shops[si].entries||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+    const rows=entries.map((e,i)=>`<div class="entry-row">
+      <div><div class="entry-main">${e.brand||''} ${e.model||''} <span style="font-size:11px;color:#888">${e.category||''}</span></div>
+      <div class="entry-sub">
+        ${e.cash?`💵₹${fmt(e.cash)} `:''}${e.upi?`📲₹${fmt(e.upi)} `:''}
+        ${e.exchange?`🔁₹${fmt(e.exchange)} `:''}
+        ${Number(e.udhari||0)>0?`<span class="r">Udhari ₹${fmt(e.udhari)}</span> `:''}
+        ${Number(e.bakijama||0)>0?`<span class="g">BakiJama ₹${fmt(e.bakijama)}</span>`:''}
+        ${e.udhariAccount?`• ${acctName(e.udhariAccount)}`:''}</div></div>
+      <div style="text-align:right"><div class="entry-main g">₹${fmt(e.amount)}</div><div class="entry-date">${fmtDate(e.date)}</div></div></div>`).join('');
+    // sale form
+    body=`
+    <div id="saleTotal" class="sale-total-bar"><div><div class="sale-total-label">Sale Amount</div><div class="sale-total-amount">₹<span id="saleTotalVal">0</span></div></div><div style="font-size:11px;opacity:0.8">Auto calculated</div></div>
+    <div class="card"><div class="card-title">➕ New Sale Entry</div>
+      <div class="two-col">
+        <div class="field"><label>Category</label><select id="s_cat" onchange="togglePhoneFields()"><option value="phone">📱 Phone</option><option value="accessory">🔌 Accessory</option><option value="other">📦 Other</option></select></div>
+        <div class="field"><label>Date</label><input type="date" id="s_date" value="${todayISO()}"></div>
+      </div>
+      <div id="phoneFields">
+        <div class="two-col">
+          <div class="field"><label>Brand</label><input type="text" id="s_brand" placeholder="Samsung"></div>
+          <div class="field"><label>Model</label><input type="text" id="s_model" placeholder="A55"></div>
+        </div>
+      </div>
+      <div class="field"><label>Item / Note</label><input type="text" id="s_item" placeholder="Description"></div>
+      <div class="two-col">
+        <div class="field"><label>Cash (₹)</label><input type="number" id="s_cash" placeholder="0" oninput="calcSaleTotal()"></div>
+        <div class="field"><label>UPI (₹)</label><input type="number" id="s_upi" placeholder="0" oninput="calcSaleTotal()"></div>
+      </div>
+      <div class="field"><label>Exchange (₹, deducted)</label><input type="number" id="s_exch" placeholder="0" oninput="calcSaleTotal()"></div>
+      <div style="background:#fef9f0;border-radius:12px;padding:12px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">UDHARI / BAKI JAMA</div>
+        <div class="two-col">
+          <div class="field"><label>Udhari (₹ owed by customer)</label><input type="number" id="s_udhari" placeholder="0" oninput="calcSaleTotal()"></div>
+          <div class="field"><label>Baki Jama (₹ received back)</label><input type="number" id="s_bakijama" placeholder="0" oninput="calcSaleTotal()"></div>
+        </div>
+        <div class="field"><label>Linked Account (for ledger)</label><select id="s_udhAcct">${accountOpts(si,'— No Account —')}</select></div>
+        <div class="field"><label>Received From (Balance account)</label><select id="s_bakiFrom"><option value="">— Select if Baki Jama received —</option>${getBalOpts(si)}</select></div>
+      </div>
+      <button class="save-btn" onclick="addSaleEntry(${si})">Save Sale</button>
+    </div>
+    <div class="card"><div class="card-title">📋 Recent Sales</div>${rows||'<div class="empty">No sales yet</div>'}</div>`;
+  } else if(tab==='udhari'){
+    // Combined udhari + baki jama list
+    const entries=(data.shops[si].entries||[]).filter(e=>Number(e.udhari||0)>0||Number(e.bakijama||0)>0).sort((a,b)=>b.date.localeCompare(a.date));
+    const byAcct={};
+    entries.forEach(e=>{const k=e.udhariAccount||'__none__';if(!byAcct[k])byAcct[k]=[];byAcct[k].push(e);});
+    const cards=Object.entries(byAcct).map(([aid,ents])=>{
+      const acct=aid==='__none__'?null:data.accounts.find(a=>a.id===aid);
+      const totalUdhari=ents.reduce((s,e)=>s+Number(e.udhari||0),0);
+      const totalBaki=ents.reduce((s,e)=>s+Number(e.bakijama||0),0);
+      const net=totalUdhari-totalBaki;
+      const rows=ents.map(e=>`<div class="txn-row">
+        <div><div class="entry-main">${e.brand||e.item||'Sale'} <span class="badge ${Number(e.udhari||0)>0?'badge-dr':'badge-cr'}">${Number(e.udhari||0)>0?'Udhari':'BakiJama'}</span></div>
+        <div class="entry-sub">${Number(e.udhari||0)>0?`-₹${fmt(e.udhari)}`:''} ${Number(e.bakijama||0)>0?`+₹${fmt(e.bakijama)}`:''}</div></div>
+        <span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div><div style="font-size:14px;font-weight:700">${acct?acct.name:'No Account'}</div><div style="font-size:11px;color:#888">Udhari: ₹${fmt(totalUdhari)} | Received: ₹${fmt(totalBaki)}</div></div>
+        <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${net>0?'#c0392b':'#1a7a4a'}">₹${fmt(Math.abs(net))}</div><div style="font-size:10px;color:#888">${net>0?'Outstanding':'Clear'}</div></div></div>
+        ${rows}</div>`;
+    }).join('');
+    body=`<div class="section-header">🔄 Udhari & Baki Jama</div>${cards||'<div class="card"><div class="empty">No udhari entries</div></div>'}`;
+  } else if(tab==='recharge'){
+    const recharges=(data.shops[si].recharge||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+    const rows=recharges.map(r=>`<div class="entry-row"><div><div class="entry-main">${r.name}</div><div class="entry-sub">${r.plan||''} | ${r.type||''}</div></div><div style="text-align:right"><div class="entry-main">₹${fmt(r.amount)}</div><div class="entry-date">${fmtDate(r.date)}</div></div></div>`).join('');
+    body=`<div class="card"><div class="card-title">➕ Add Recharge</div>
+      <div class="two-col"><div class="field"><label>Customer</label><input type="text" id="rch_name" placeholder="Name"></div><div class="field"><label>Amount (₹)</label><input type="number" id="rch_amt" placeholder="0"></div></div>
+      <div class="two-col"><div class="field"><label>Plan</label><input type="text" id="rch_plan" placeholder="e.g. 3GB/day"></div><div class="field"><label>Type</label><select id="rch_type"><option>Jio</option><option>Airtel</option><option>Vi</option><option>BSNL</option><option>Other</option></select></div></div>
+      <button class="save-btn" onclick="addRecharge(${si})">Save</button></div>
+    <div class="card"><div class="card-title">📶 Recent Recharges</div>${rows||'<div class="empty">No recharges</div>'}</div>`;
+  } else if(tab==='brands'){
+    const tags=data.shops[si].brandTags||[];
+    const tagRows=tags.map((t,i)=>`<span style="background:#e8f5ee;color:#1a7a4a;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer" onclick="delBrandTag(${si},${i})">${t} ✕</span>`).join(' ');
+    body=`<div class="card"><div class="card-title">🏷 Brand Tags</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">${tagRows||'<span style="color:#bbb;font-size:13px">No tags</span>'}</div>
+      <div style="display:flex;gap:8px"><input type="text" id="brandTagInput" placeholder="Add brand tag" style="flex:1;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addBrandTag(${si})" style="padding:9px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer">Add</button></div></div>`;
   }
-  save();toast('Saved! ✓');renderEntries();
+  document.getElementById('salesContent').innerHTML=`<div class="sub-tabs">${tabs}</div>${body}`;
+}
+function acctName(id){const a=data.accounts.find(x=>x.id===id);return a?a.name:'';}
+function calcSaleTotal(){
+  const cash=Number(document.getElementById('s_cash')?.value||0);
+  const upi=Number(document.getElementById('s_upi')?.value||0);
+  const exch=Number(document.getElementById('s_exch')?.value||0);
+  const udhari=Number(document.getElementById('s_udhari')?.value||0);
+  const baki=Number(document.getElementById('s_bakijama')?.value||0);
+  const total=cash+upi-exch+baki-udhari;
+  const el=document.getElementById('saleTotalVal');
+  if(el)el.textContent=fmt(Math.max(0,total));
+}
+function togglePhoneFields(){
+  const cat=document.getElementById('s_cat')?.value;
+  const pf=document.getElementById('phoneFields');
+  if(pf)pf.style.display=cat==='phone'?'block':'none';
+}
+window.addSaleEntry=function(si){
+  const cash=Number(document.getElementById('s_cash')?.value||0);
+  const upi=Number(document.getElementById('s_upi')?.value||0);
+  const exch=Number(document.getElementById('s_exch')?.value||0);
+  const udhari=Number(document.getElementById('s_udhari')?.value||0);
+  const baki=Number(document.getElementById('s_bakijama')?.value||0);
+  const amount=cash+upi-exch+baki-udhari;
+  const udhAcct=document.getElementById('s_udhAcct')?.value||'';
+  const bakiFrom=document.getElementById('s_bakiFrom')?.value||'';
+  const date=document.getElementById('s_date')?.value||todayISO();
+  if(!cash&&!upi&&!udhari&&!baki){toast('Enter at least one amount');return;}
+  const entry={id:uid(),date,category:document.getElementById('s_cat')?.value||'phone',brand:document.getElementById('s_brand')?.value?.trim()||'',model:document.getElementById('s_model')?.value?.trim()||'',item:document.getElementById('s_item')?.value?.trim()||'',cash,upi,exchange:exch,udhari,bakijama:baki,amount,udhariAccount:udhAcct};
+  if(!data.shops[si].entries)data.shops[si].entries=[];
+  data.shops[si].entries.push(entry);
+  // Cash effects
+  if(cash>0)creditBalance(si,'cash',cash);
+  if(upi>0){const def=data.shops[si].balanceAccounts.upi[0];if(def)creditBalance(si,'upi_0',upi);else creditBalance(si,'cash',upi);}
+  // Udhari → DR on account (customer owes us)
+  if(udhari>0&&udhAcct)addLedgerEntry(udhAcct,date,'dr',udhari,`Udhari - ${entry.brand||entry.item||'Sale'}`,'sale',si);
+  // Baki Jama → CR on account (received back), credit balance
+  if(baki>0){
+    if(udhAcct)addLedgerEntry(udhAcct,date,'cr',baki,`Baki Jama received`,'sale',si);
+    if(bakiFrom)creditBalance(si,bakiFrom,baki);
+  }
+  save();toast('Sale saved!');
+  document.getElementById('s_cash').value='';document.getElementById('s_upi').value='';
+  document.getElementById('s_exch').value='';document.getElementById('s_udhari').value='';
+  document.getElementById('s_bakijama').value='';document.getElementById('s_item').value='';
+  calcSaleTotal();renderSales();
 };
-window.delEntry=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].entries.splice(i,1);save();renderEntries();}};
+window.addRecharge=function(si){
+  const name=document.getElementById('rch_name')?.value?.trim();if(!name){toast('Enter name');return;}
+  if(!data.shops[si].recharge)data.shops[si].recharge=[];
+  data.shops[si].recharge.push({date:todayISO(),name,amount:Number(document.getElementById('rch_amt')?.value||0),plan:document.getElementById('rch_plan')?.value?.trim()||'',type:document.getElementById('rch_type')?.value||'Jio'});
+  save();toast('Saved!');renderSales();
+};
+window.addBrandTag=function(si){const v=document.getElementById('brandTagInput')?.value?.trim();if(!v)return;if(!data.shops[si].brandTags)data.shops[si].brandTags=[];data.shops[si].brandTags.push(v);save();renderSales();};
+window.delBrandTag=function(si,i){data.shops[si].brandTags.splice(i,1);save();renderSales();};
 
-// BRANDS
-function renderBrands(si){
-  if(!data.brandTags[si])data.brandTags[si]=[];
-  const tags=data.brandTags[si];
-  const brandSales=data.shops[si].brandSales||[];
-  const brandTotals={};
-  brandSales.forEach(b=>{brandTotals[b.brand]=(brandTotals[b.brand]||0)+Number(b.amount||0);});
-  const hist=brandSales.length===0?`<div class="empty">No brand sales yet</div>`:brandSales.slice(0,30).map((b,i)=>`<div class="entry-row">
-    <div>
-      <div class="entry-main"><span class="badge info">${b.brand}</span> <span class="g">₹${fmt(b.amount)}</span></div>
-      <div class="entry-sub">${b.pieces?b.pieces+' pcs':''} ${b.model?'· '+b.model:''} ${b.mode?'· '+b.mode:''}</div>
-      ${b.note?`<div class="entry-sub" style="color:#bbb">${b.note}</div>`:''}
-    </div>
-    <div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(b.date)}</span>${isOwner()?`<button class="del-btn" onclick="delBrandSale(${si},${i})">×</button>`:''}</div>
-  </div>`).join('');
-  const summaryRows=Object.entries(brandTotals).map(([br,amt])=>`<div class="srow"><span>🏷️ ${br}</span><span class="g">₹${fmt(amt)}</span></div>`).join('');
-  return `<div class="card"><div class="card-title">🏷️ Brand Tags — ${SHOPS[si].name}</div>
-    <div class="tag-row">${tagPillsHTML(tags,`delBrandTag_${si}`)}</div>
-    <div style="display:flex;gap:8px"><input type="text" id="new_brand" placeholder="e.g. Samsung, Apple" style="flex:1;font-size:13px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="addBrandTag(${si})">+ Add</button></div></div>
-  ${tags.length>0?`<div class="card"><div class="card-title">➕ Add Brand Sale</div>
-    ${dateField('br_date')}
-    <div class="two-col">
-      <div class="field"><label>Brand</label><select id="br_brand"><option value="">-- Select --</option>${tags.map(t=>`<option>${t}</option>`).join('')}</select></div>
-      <div class="field"><label>Model</label><input type="text" id="br_model" placeholder="e.g. S24"></div>
-    </div>
-    <div class="two-col">
-      <div class="field"><label>Amount (₹)</label><input type="number" id="br_amount" placeholder="0"></div>
-      <div class="field"><label>Pieces</label><input type="number" id="br_pieces" placeholder="1"></div>
-    </div>
-    <div class="two-col">
-      <div class="field"><label>Payment Mode</label><select id="br_mode"><option value="Cash">Cash</option><option value="GPay">GPay</option><option value="Card">Card</option><option value="Mixed">Mixed</option></select></div>
-      <div class="field"><label>Note</label><input type="text" id="br_note" placeholder="Optional"></div>
-    </div>
-    <button class="save-btn" onclick="addBrandSale(${si})">💾 Save Brand Sale</button></div>`:''}
-  ${Object.keys(brandTotals).length>0?`<div class="card"><div class="card-title">📊 Brand-wise</div>${summaryRows}</div>`:''}
-  <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
-}
-window.addBrandTag=function(si){const v=document.getElementById('new_brand')?.value?.trim();if(!v){toast('Enter brand name');return;}if(!data.brandTags[si])data.brandTags[si]=[];if(data.brandTags[si].includes(v)){toast('Already exists');return;}data.brandTags[si].push(v);save();toast(`${v} added!`);renderEntries();};
-for(let i=0;i<4;i++){window[`delBrandTag_${i}`]=function(idx){if(confirm('Remove brand?')){data.brandTags[i].splice(idx,1);save();renderEntries();}};}
-window.addBrandSale=function(si){const date=getDate('br_date');const brand=document.getElementById('br_brand')?.value;if(!brand){toast('Select brand');return;}const amount=Number(document.getElementById('br_amount')?.value||0);if(!amount){toast('Enter amount');return;}if(!data.shops[si].brandSales)data.shops[si].brandSales=[];data.shops[si].brandSales.unshift({date,brand,model:document.getElementById('br_model')?.value?.trim()||'',amount,pieces:Number(document.getElementById('br_pieces')?.value||1),mode:document.getElementById('br_mode')?.value||'Cash',note:document.getElementById('br_note')?.value?.trim()||''});save();toast('Saved! ✓');renderEntries();};
-window.delBrandSale=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].brandSales.splice(i,1);save();renderEntries();}};
-// RECHARGE
-function renderRecharge(si){
-  const recharges=data.shops[si].recharge||[];
-  const totalAmt=recharges.reduce((s,r)=>s+Number(r.amount||0),0);
-  const hist=recharges.length===0?`<div class="empty">No recharge entries</div>`:recharges.slice(0,30).map((r,i)=>`<div class="entry-row"><div><div class="entry-main">${r.customer||'Customer'} — <span class="g">₹${fmt(r.amount)}</span></div><div class="entry-sub">${r.mobile?'📞 '+r.mobile+' · ':''}<span class="badge info">${r.mode||'Cash'}</span>${r.operator?' · '+r.operator:''}</div>${r.note?`<div class="entry-sub" style="color:#bbb">${r.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(r.date)}</span>${isOwner()?`<button class="del-btn" onclick="delRecharge(${si},${i})">×</button>`:''}</div></div>`).join('');
-  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Total Recharges</div><div class="metric-value g">₹${fmt(totalAmt)}</div></div><div class="metric"><div class="metric-label">Count</div><div class="metric-value">${recharges.length}</div></div></div>
-  <div class="card"><div class="card-title">🔄 Add Recharge — ${SHOPS[si].name}</div>
-    ${dateField('rc_date')}
-    <div class="two-col"><div class="field"><label>Customer</label><input type="text" id="rc_customer" placeholder="Name"></div><div class="field"><label>Mobile</label><input type="tel" id="rc_mobile" placeholder="10-digit"></div></div>
-    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="rc_amount" placeholder="0"></div><div class="field"><label>Paid Via</label><select id="rc_mode"><option value="Cash">Cash</option><option value="GPay">GPay</option><option value="Card">Card</option></select></div></div>
-    <div class="two-col"><div class="field"><label>Operator</label><input type="text" id="rc_operator" placeholder="Jio, Airtel..."></div><div class="field"><label>Note</label><input type="text" id="rc_note" placeholder="Optional"></div></div>
-    <button class="save-btn" onclick="addRecharge(${si})">💾 Save Recharge</button></div>
-  <div class="card"><div class="card-title">🕐 History</div><div style="max-height:260px;overflow-y:auto">${hist}</div></div>`;
-}
-window.addRecharge=function(si){const date=getDate('rc_date');const amount=Number(document.getElementById('rc_amount')?.value||0);if(!amount){toast('Enter amount');return;}if(!data.shops[si].recharge)data.shops[si].recharge=[];data.shops[si].recharge.unshift({date,customer:document.getElementById('rc_customer')?.value?.trim()||'',mobile:document.getElementById('rc_mobile')?.value?.trim()||'',amount,mode:document.getElementById('rc_mode')?.value||'Cash',operator:document.getElementById('rc_operator')?.value?.trim()||'',note:document.getElementById('rc_note')?.value?.trim()||''});save();toast('Recharge saved! ✓');renderEntries();};
-window.delRecharge=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].recharge.splice(i,1);save();renderEntries();}};
-
-// UDHARI
-function renderUdhari(si){
-  const udhari=data.shops[si].udhari||[];
-  const personMap={};
-  udhari.forEach((u,i)=>{const key=u.person.toLowerCase().trim();if(!personMap[key])personMap[key]={name:u.person,records:[]};personMap[key].records.push({...u,i});});
-  const weAreOwed=udhari.filter(u=>u.direction==='they_owe').reduce((s,u)=>s+Number(u.amount||0)-Number(u.repaid||0),0);
-  const weOwe=udhari.filter(u=>u.direction==='we_owe').reduce((s,u)=>s+Number(u.amount||0)-Number(u.repaid||0),0);
-  const personCards=Object.values(personMap).map(p=>{
-    const totalOwed=p.records.filter(r=>r.direction==='they_owe').reduce((s,r)=>s+Number(r.amount||0)-Number(r.repaid||0),0);
-    const totalWeOwe=p.records.filter(r=>r.direction==='we_owe').reduce((s,r)=>s+Number(r.amount||0)-Number(r.repaid||0),0);
-    const rows=p.records.map(r=>`<div class="entry-row"><div><div class="entry-main">${r.direction==='they_owe'?`<span class="owe-they">They Owe</span>`:`<span class="owe-we">We Owe</span>`} ₹${fmt(r.amount)}</div><div class="entry-sub">${r.repaid>0?`Repaid ₹${fmt(r.repaid)} · `:''}${r.note||''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(r.date)}</span>${isOwner()?`<button class="del-btn" onclick="delUdhari(${si},${r.i})">×</button>`:''}</div></div>`).join('');
-    return `<div class="person-card"><div class="person-card-head"><div><div class="staff-name">${p.name}</div></div><div style="text-align:right">${totalOwed>0?`<div style="font-size:11px;color:#aaa">They owe</div><div class="g" style="font-size:15px;font-weight:700">₹${fmt(totalOwed)}</div>`:''} ${totalWeOwe>0?`<div style="font-size:11px;color:#aaa">We owe</div><div class="r" style="font-size:15px;font-weight:700">₹${fmt(totalWeOwe)}</div>`:''}</div></div><div style="max-height:130px;overflow-y:auto">${rows}</div></div>`;
-  }).join('');
-  return `<div class="metric-grid"><div class="metric"><div class="metric-label">They Owe Us</div><div class="metric-value g">₹${fmt(weAreOwed)}</div></div><div class="metric"><div class="metric-label">We Owe Them</div><div class="metric-value r">₹${fmt(weOwe)}</div></div></div>
-  <div class="card"><div class="card-title">📒 Add Udhari — ${SHOPS[si].name}</div>
-    ${dateField('ud_date')}
-    <div class="two-col"><div class="field"><label>Person Name</label><input type="text" id="ud_person" placeholder="Customer name"></div><div class="field"><label>Direction</label><select id="ud_dir"><option value="they_owe">They owe us</option><option value="we_owe">We owe them</option></select></div></div>
-    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="ud_amount" placeholder="0"></div><div class="field"><label>Already Repaid (₹)</label><input type="number" id="ud_repaid" placeholder="0"></div></div>
-    <div class="field"><label>Note</label><input type="text" id="ud_note" placeholder="Item / reason"></div>
-    <button class="save-btn" onclick="addUdhari(${si})">💾 Save Udhari</button></div>
-  ${Object.keys(personMap).length>0?personCards:'<div class="card"><div class="empty">No udhari records</div></div>'}`;
-}
-window.addUdhari=function(si){const date=getDate('ud_date');const person=document.getElementById('ud_person')?.value?.trim();if(!person){toast('Enter name');return;}const amount=Number(document.getElementById('ud_amount')?.value||0);if(!amount){toast('Enter amount');return;}const repaid=Number(document.getElementById('ud_repaid')?.value||0);const direction=document.getElementById('ud_dir')?.value||'they_owe';if(!data.shops[si].udhari)data.shops[si].udhari=[];data.shops[si].udhari.unshift({date,person,direction,amount,repaid,note:document.getElementById('ud_note')?.value?.trim()||''});save();toast('Udhari saved! ✓');renderEntries();};
-window.delUdhari=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].udhari.splice(i,1);save();renderEntries();}};
-
-// BAKI JAMA
-function renderBakiJama(si){
-  const bj=data.shops[si].bakijama||[];const udhari=data.shops[si].udhari||[];
-  const udhariRecovery=bj.filter(b=>b.type==='recovery').reduce((s,b)=>s+Number(b.amount||0),0);
-  const deposits=bj.filter(b=>b.type==='deposit').reduce((s,b)=>s+Number(b.amount||0),0);
-  const totalUdhariOwed=udhari.filter(u=>u.direction==='they_owe').reduce((s,u)=>s+Number(u.amount||0)-Number(u.repaid||0),0);
-  const hist=bj.length===0?`<div class="empty">No Baki Jama entries</div>`:bj.slice(0,30).map((b,i)=>`<div class="entry-row"><div><div class="entry-main">${b.person||'Customer'} — <span class="g">₹${fmt(b.amount)}</span></div><div class="entry-sub"><span class="badge ${b.type==='recovery'?'success':'info'}">${b.type==='recovery'?'Udhari Recovery':'Deposit'}</span> ${b.mode?'· '+b.mode:''}</div>${b.note?`<div class="entry-sub" style="color:#bbb">${b.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(b.date)}</span>${isOwner()?`<button class="del-btn" onclick="delBakiJama(${si},${i})">×</button>`:''}</div></div>`).join('');
-  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Udhari Recovered</div><div class="metric-value g">₹${fmt(udhariRecovery)}</div></div><div class="metric"><div class="metric-label">Deposits</div><div class="metric-value b">₹${fmt(deposits)}</div></div><div class="metric"><div class="metric-label">Still Outstanding</div><div class="metric-value r">₹${fmt(Math.max(0,totalUdhariOwed-udhariRecovery))}</div></div><div class="metric"><div class="metric-label">Total Jama</div><div class="metric-value p">₹${fmt(udhariRecovery+deposits)}</div></div></div>
-  <div class="card"><div class="card-title">💰 Add Baki Jama — ${SHOPS[si].name}</div>
-    ${dateField('bj_date')}
-    <div class="two-col"><div class="field"><label>Person Name</label><input type="text" id="bj_person" placeholder="Customer name"></div><div class="field"><label>Type</label><select id="bj_type"><option value="recovery">Udhari Recovery</option><option value="deposit">Customer Deposit</option></select></div></div>
-    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="bj_amount" placeholder="0"></div><div class="field"><label>Received Via</label><select id="bj_mode"><option value="Cash">Cash</option><option value="GPay">GPay</option><option value="Card">Card</option></select></div></div>
-    <div class="field"><label>Note</label><input type="text" id="bj_note" placeholder="Optional"></div>
-    <button class="save-btn" onclick="addBakiJama(${si})">💾 Save Baki Jama</button></div>
-  <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
-}
-window.addBakiJama=function(si){const date=getDate('bj_date');const amount=Number(document.getElementById('bj_amount')?.value||0);if(!amount){toast('Enter amount');return;}const person=document.getElementById('bj_person')?.value?.trim()||'';if(!data.shops[si].bakijama)data.shops[si].bakijama=[];data.shops[si].bakijama.unshift({date,person,type:document.getElementById('bj_type')?.value||'recovery',amount,mode:document.getElementById('bj_mode')?.value||'Cash',note:document.getElementById('bj_note')?.value?.trim()||''});save();toast('Baki Jama saved! ✓');renderEntries();};
-window.delBakiJama=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].bakijama.splice(i,1);save();renderEntries();}};
-// ── EXPENSE ──
+// ── EXPENSE ───────────────────────────────────────────────────────────────────
 function renderExpense(){
   renderShopTabs('expShopTabs','expense');
   const si=activeShops.expense;
-  if(!data.expTags[si])data.expTags[si]=[];
-  const tags=data.expTags[si];
-  const expenses=data.shops[si].expenses||[];
-  const tagTotals={};const cashTot={};const gpayTot={};
-  expenses.forEach(e=>{tagTotals[e.tag]=(tagTotals[e.tag]||0)+Number(e.amount||0);cashTot[e.tag]=(cashTot[e.tag]||0)+Number(e.modeCash||0);gpayTot[e.tag]=(gpayTot[e.tag]||0)+Number(e.modeGpay||0);});
-  const totalExpCash=Object.values(cashTot).reduce((a,b)=>a+b,0);
-  const totalExpGpay=Object.values(gpayTot).reduce((a,b)=>a+b,0);
-  const summaryRows=Object.entries(tagTotals).map(([t,a])=>`<div class="srow"><span>🏷️ ${t}</span><span class="r">₹${fmt(a)}</span></div>${cashTot[t]?`<div class="srow" style="padding-left:14px;font-size:12px"><span style="color:#aaa">↳ Cash</span><span>₹${fmt(cashTot[t])}</span></div>`:''}${gpayTot[t]?`<div class="srow" style="padding-left:14px;font-size:12px"><span style="color:#aaa">↳ UPI/GPay</span><span>₹${fmt(gpayTot[t])}</span></div>`:''}`).join('');
-  const hist=expenses.length===0?`<div class="empty">No expenses</div>`:expenses.slice(0,30).map((e,i)=>`<div class="entry-row"><div><div class="entry-main"><span class="badge warn">${e.tag}</span><span class="r">₹${fmt(e.amount)}</span>${e.dealerAccount?`<span class="badge purple" style="margin-left:4px">→ ${e.dealerAccount}</span>`:''}</div><div class="entry-sub">${e.mode}${e.paidFrom?' · via '+e.paidFrom:''}${e.note?' · '+e.note:''}</div></div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(e.date)}</span>${isOwner()?`<button class="del-btn" onclick="delExpense(${si},${i})">×</button>`:''}</div></div>`).join('');
-  const dealers=data.dealerAccounts[si]||[];
-  const dealerOpts=`<option value="">None (general)</option>`+dealers.map(d=>`<option value="${d.name}">${d.name}</option>`).join('');
-  const balAccs=data.shops[si].balanceAccounts||{cash:{},upi:[],bank:[]};
-  const upiOpts=(balAccs.upi||[]).map(a=>`<option value="UPI:${a.name}">${a.name} (UPI)</option>`).join('');
-  const bankOpts=(balAccs.bank||[]).map(a=>`<option value="Bank:${a.name}">${a.name} (Bank)</option>`).join('');
+  const expenses=(data.shops[si].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+  const tags=data.shops[si].expTags||[];
+  const tagButtons=tags.map(t=>`<button onclick="document.getElementById('exp_note').value='${t}'" style="padding:5px 10px;background:#f0ede8;border:none;border-radius:8px;font-size:12px;cursor:pointer">${t}</button>`).join('');
+  const rows=expenses.map(e=>`<div class="entry-row">
+    <div><div class="entry-main">${e.note||'Expense'} ${e.accountId?`<span class="badge badge-cr">${acctName(e.accountId)}</span>`:''}</div>
+    <div class="entry-sub">${balLabel(si,e.paidFrom||'cash')} ${e.accountId?'→ Ledger':''}</div></div>
+    <div style="text-align:right"><div class="entry-main r">₹${fmt(e.amount)}</div><div class="entry-date">${fmtDate(e.date)}</div></div></div>`).join('');
   document.getElementById('expContent').innerHTML=`
-    <div class="card"><div class="card-title">🏷️ Tags — ${SHOPS[si].name}</div>
-      <div class="tag-row">${tagPillsHTML(tags,`delExpTag_${si}`)}</div>
-      <div style="display:flex;gap:8px"><input type="text" id="new_tag" placeholder="e.g. Transport, Rent" style="flex:1;font-size:13px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="addExpTag(${si})">+ Add</button></div></div>
-    ${tags.length>0?`<div class="card"><div class="card-title">💸 Add Expense</div>
-      ${dateField('exp_date')}
-      <div class="field"><label>Tag</label><select id="exp_tag"><option value="">-- Select --</option>${tags.map(t=>`<option>${t}</option>`).join('')}</select></div>
-      <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="exp_amount" placeholder="0" oninput="expModeCalc()"></div><div class="field"><label>Paid Via</label><select id="exp_mode" onchange="expModeCalc()"><option value="Cash">Cash</option><option value="GPay">UPI/GPay</option><option value="Both">Both</option></select></div></div>
-      <div id="exp_split_fields"></div>
-      <div class="field"><label>Paid From Account <span style="font-weight:400;font-size:10px;color:#888">(auto-debit)</span></label><select id="exp_paid_from"><option value="">Cash (manual)</option>${upiOpts}${bankOpts}</select></div>
-      <div class="field"><label>Dealer Account <span style="font-weight:400;font-size:10px;color:#7c3aed">if paying to dealer</span></label><select id="exp_dealer">${dealerOpts}</select></div>
-      <div class="field"><label>Note</label><input type="text" id="exp_note" placeholder="Optional"></div>
-      <button class="save-btn" onclick="addExpense(${si})">💾 Save Expense</button></div>`:''}
-    ${Object.keys(tagTotals).length>0?`<div class="card"><div class="card-title">📊 Summary</div><div class="srow"><span>Total Cash</span><span class="r">₹${fmt(totalExpCash)}</span></div><div class="srow"><span>Total UPI/GPay</span><span class="r">₹${fmt(totalExpGpay)}</span></div><hr class="divider">${summaryRows}</div>`:''}
-    <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
+  <div class="card"><div class="card-title">➕ Add Expense</div>
+    <div class="two-col">
+      <div class="field"><label>Amount (₹)</label><input type="number" id="exp_amt" placeholder="0"></div>
+      <div class="field"><label>Date</label><input type="date" id="exp_date" value="${todayISO()}"></div>
+    </div>
+    <div class="field"><label>Note / Description</label><input type="text" id="exp_note" placeholder="e.g. Light bill, Salary..."></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagButtons}</div>
+    <div class="field"><label>Paid From</label><select id="exp_from">${getBalOpts(si)}</select></div>
+    <div class="field"><label>Account (optional — for salary, dealer payment etc.)</label><select id="exp_acct"><option value="">— Direct Expense (no ledger) —</option>${accountOpts(si)}</select></div>
+    <button class="save-btn" onclick="addExpense(${si})">Save Expense</button>
+  </div>
+  <div class="card"><div class="card-title">🏷 Quick Tags</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagButtons||'<span style="color:#bbb;font-size:12px">No tags</span>'}</div>
+    <div style="display:flex;gap:8px"><input type="text" id="expTagInput" placeholder="Add tag" style="flex:1;padding:8px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addExpTag(${si})" style="padding:8px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer">Add</button></div>
+  </div>
+  <div class="card"><div class="card-title">📋 Recent Expenses</div>${rows||'<div class="empty">No expenses</div>'}</div>`;
 }
-for(let i=0;i<4;i++){window[`delExpTag_${i}`]=function(idx){if(confirm('Delete tag?')){data.expTags[i].splice(idx,1);save();renderExpense();}};}
-window.expModeCalc=function(){const mode=document.getElementById('exp_mode')?.value;const sf=document.getElementById('exp_split_fields');if(!sf)return;sf.innerHTML=mode==='Both'?`<div class="two-col"><div class="field"><label>Cash (₹)</label><input type="number" id="exp_cash" placeholder="0" oninput="calcExpRem()"></div><div class="field"><label>GPay (₹)</label><input type="number" id="exp_gpay_sp" placeholder="0" oninput="calcExpRem()"></div></div><div id="exp_rem" style="font-size:12px;color:#888;margin-bottom:8px"></div>`:''};
-window.calcExpRem=function(){const total=Number(document.getElementById('exp_amount')?.value||0);const c=Number(document.getElementById('exp_cash')?.value||0);const g=Number(document.getElementById('exp_gpay_sp')?.value||0);const rem=total-(c+g);const el=document.getElementById('exp_rem');if(el){el.textContent=`Remaining: ₹${fmt(rem)}`;el.style.color=rem===0?'#1a7a4a':rem<0?'#c0392b':'#888';}};
-window.addExpTag=function(si){const v=document.getElementById('new_tag')?.value?.trim();if(!v)return;if(!data.expTags[si])data.expTags[si]=[];if(data.expTags[si].includes(v)){toast('Exists');return;}data.expTags[si].push(v);save();toast(`"${v}" added!`);renderExpense();};
 window.addExpense=function(si){
-  const date=getDate('exp_date');
-  const tag=document.getElementById('exp_tag')?.value;if(!tag){toast('Select tag');return;}
-  const amount=Number(document.getElementById('exp_amount')?.value);if(!amount){toast('Enter amount');return;}
-  const mode=document.getElementById('exp_mode')?.value||'Cash';
-  let modeCash=0,modeGpay=0;
-  if(mode==='Both'){modeCash=Number(document.getElementById('exp_cash')?.value||0);modeGpay=Number(document.getElementById('exp_gpay_sp')?.value||0);}
-  else if(mode==='Cash')modeCash=amount;else modeGpay=amount;
-  const dealerAccount=document.getElementById('exp_dealer')?.value||'';
-  const paidFrom=document.getElementById('exp_paid_from')?.value||'';
+  const amt=Number(document.getElementById('exp_amt')?.value||0);
+  if(!amt){toast('Enter amount');return;}
   const note=document.getElementById('exp_note')?.value?.trim()||'';
+  const paidFrom=document.getElementById('exp_from')?.value||'cash';
+  const accountId=document.getElementById('exp_acct')?.value||'';
+  const date=document.getElementById('exp_date')?.value||todayISO();
   if(!data.shops[si].expenses)data.shops[si].expenses=[];
-  data.shops[si].expenses.unshift({date,tag,amount,mode,modeCash,modeGpay,dealerAccount,paidFrom,note});
-  if(dealerAccount){
-    if(!data.ledgerTxns[si])data.ledgerTxns[si]=[];
-    data.ledgerTxns[si].unshift({date,dealer:dealerAccount,type:'cr',amount,note:`Expense: ${tag}${note?' - '+note:''}`,source:'expense'});
-    if(!data.borrowings)data.borrowings=[];
-    data.borrowings.unshift({date,dealer:dealerAccount,amount:-amount,note:`Payment via expense: ${tag}`});
-  }
-  if(paidFrom&&paidFrom.includes(':')){
-    const [accType,accName]=paidFrom.split(':');
-    autoDebitBalance(si,accType.toLowerCase(),accName,amount,date,`Expense: ${tag}${note?' - '+note:''}`);
-  }
-  save();toast('Saved! ✓');renderExpense();
+  data.shops[si].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId});
+  // debit balance
+  debitBalance(si,paidFrom,amt);
+  // ledger CR entry (we paid them)
+  if(accountId)addLedgerEntry(accountId,date,'cr',amt,note||'Payment','expense',si);
+  save();toast('Expense saved!');
+  document.getElementById('exp_amt').value='';document.getElementById('exp_note').value='';
+  renderExpense();
 };
-window.delExpense=function(si,i){if(!isOwner())return;if(confirm('Delete?')){data.shops[si].expenses.splice(i,1);save();renderExpense();}};
-function autoDebitBalance(si,accType,accName,amount,date,note){
-  if(!data.shops[si].balanceAccounts)return;
-  const ba=data.shops[si].balanceAccounts;
-  if(accType==='upi'){const acc=ba.upi.find(a=>a.name===accName);if(acc){acc.balance=(Number(acc.balance)||0)-amount;if(!acc.entries)acc.entries=[];acc.entries.unshift({date,amount:-amount,note});}}
-  else if(accType==='bank'){const acc=ba.bank.find(a=>a.name===accName);if(acc){acc.balance=(Number(acc.balance)||0)-amount;if(!acc.entries)acc.entries=[];acc.entries.unshift({date,amount:-amount,note});}}
-}
-// ── BALANCE (renamed from GPay) ──
+window.addExpTag=function(si){const v=document.getElementById('expTagInput')?.value?.trim();if(!v)return;if(!data.shops[si].expTags)data.shops[si].expTags=[];data.shops[si].expTags.push(v);save();renderExpense();};
+
+// ── BALANCE ───────────────────────────────────────────────────────────────────
 function renderBalance(){
   renderShopTabs('balShopTabs','balance');
   const si=activeShops.balance;
-  if(!data.shops[si].balanceAccounts)data.shops[si].balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
-  const ba=data.shops[si].balanceAccounts;
-  const subLabels={cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank'};
-  const subTabs=`<div class="sub-tabs">${Object.keys(subLabels).map(k=>`<button class="sub-tab${activeBalanceSub===k?' active':''}" onclick="swBalSub('${k}')">${subLabels[k]}</button>`).join('')}</div>`;
-  let inner='';
-  if(activeBalanceSub==='cash')inner=renderBalCash(si,ba);
-  else if(activeBalanceSub==='upi')inner=renderBalUPI(si,ba);
-  else inner=renderBalBank(si,ba);
-  document.getElementById('balContent').innerHTML=subTabs+inner;
+  const shop=data.shops[si];
+  const bal=shop.balanceAccounts;
+  const subTab=window._balTab||'cash';
+  const subTabs=['cash','upi','bank'].map(t=>`<button class="sub-tab${subTab===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank'}[t]}</button>`).join('');
+  let body='';
+  if(subTab==='cash'){
+    const entries=(bal.cash.entries||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+    const rows=entries.map(e=>`<div class="entry-row"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}">${Number(e.amount)>=0?'+':''} ₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+    body=`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Cash Balance</div><div class="metric-value g">₹${fmt(bal.cash.balance)}</div></div></div>
+    <div class="card"><div class="card-title">➕ Manual Entry</div>
+      <div class="two-col"><div class="field"><label>Amount (+ in / - out)</label><input type="number" id="cash_amt" placeholder="e.g. 500 or -200"></div><div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="Reason"></div></div>
+      <button class="save-btn" onclick="addCashEntry(${si})">Save</button></div>
+    <div class="card"><div class="card-title">📋 Cash Entries</div>${rows||'<div class="empty">No entries</div>'}</div>`;
+  } else if(subTab==='upi'){
+    const accounts=bal.upi||[];
+    const acctCards=accounts.map((u,i)=>{
+      const entries=(u.entries||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+      const rows=entries.map(e=>`<div class="txn-row"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}">${Number(e.amount)>=0?'+':''} ₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-weight:700">${u.name}</div><div style="font-size:11px;color:#888">${u.number||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(u.balance)}</div></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_amt_${i}" placeholder="Amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="upi_note_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addUpiEntry(${si},${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">Add</button></div>
+      ${rows}</div>`;
+    }).join('');
+    body=`${acctCards||'<div class="card"><div class="empty">No UPI accounts</div></div>'}
+    <div class="card"><div class="card-title">➕ Add UPI Account</div>
+      <div class="two-col"><div class="field"><label>Name</label><input type="text" id="upi_name" placeholder="GPay, PhonePe..."></div><div class="field"><label>Number</label><input type="text" id="upi_num" placeholder="Mobile number"></div></div>
+      <div class="field"><label>Opening Balance (₹)</label><input type="number" id="upi_bal" placeholder="0"></div>
+      <button class="save-btn" onclick="addUpiAcct(${si})">Add Account</button></div>`;
+  } else if(subTab==='bank'){
+    const accounts=bal.bank||[];
+    const acctCards=accounts.map((b,i)=>{
+      const entries=(b.entries||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+      const rows=entries.map(e=>`<div class="txn-row"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}">${Number(e.amount)>=0?'+':''} ₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-weight:700">${b.name}</div><div style="font-size:11px;color:#888">${b.accountNo||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(b.balance)}</div></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_amt_${i}" placeholder="Amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="bank_note_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addBankEntry(${si},${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">Add</button></div>
+      ${rows}</div>`;
+    }).join('');
+    body=`${acctCards||'<div class="card"><div class="empty">No bank accounts</div></div>'}
+    <div class="card"><div class="card-title">➕ Add Bank Account</div>
+      <div class="two-col"><div class="field"><label>Bank Name</label><input type="text" id="bank_name" placeholder="SBI, HDFC..."></div><div class="field"><label>Account No.</label><input type="text" id="bank_accno" placeholder="Last 4 digits"></div></div>
+      <div class="field"><label>Opening Balance (₹)</label><input type="number" id="bank_bal" placeholder="0"></div>
+      <button class="save-btn" onclick="addBankAcct(${si})">Add Account</button></div>`;
+  }
+  document.getElementById('balContent').innerHTML=`<div class="sub-tabs">${subTabs}</div>${body}`;
 }
-window.swBalSub=function(s){activeBalanceSub=s;renderBalance();};
+window.addCashEntry=function(si){const amt=Number(document.getElementById('cash_amt')?.value||0);if(!amt){toast('Enter amount');return;}const shop=data.shops[si];shop.balanceAccounts.cash.balance=Number(shop.balanceAccounts.cash.balance||0)+amt;shop.balanceAccounts.cash.entries.push({date:todayISO(),amount:amt,note:document.getElementById('cash_note')?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addUpiEntry=function(si,i){const amt=Number(document.getElementById(`upi_amt_${i}`)?.value||0);if(!amt){toast('Enter amount');return;}const u=data.shops[si].balanceAccounts.upi[i];u.balance=Number(u.balance||0)+amt;if(!u.entries)u.entries=[];u.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`upi_note_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addBankEntry=function(si,i){const amt=Number(document.getElementById(`bank_amt_${i}`)?.value||0);if(!amt){toast('Enter amount');return;}const b=data.shops[si].balanceAccounts.bank[i];b.balance=Number(b.balance||0)+amt;if(!b.entries)b.entries=[];b.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`bank_note_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:Number(document.getElementById('upi_bal')?.value||0),entries:[]});save();toast('Added!');renderBalance();};
+window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_accno')?.value?.trim()||'',balance:Number(document.getElementById('bank_bal')?.value||0),entries:[]});save();toast('Added!');renderBalance();};
 
-function renderBalCash(si,ba){
-  const cashData=ba.cash||{balance:0,entries:[]};
-  const entries=cashData.entries||[];
-  const hist=entries.length===0?`<div class="empty">No cash entries</div>`:entries.slice(0,30).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}">${Number(e.amount)>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0"><span class="entry-date">${fmtDate(e.date)}</span>${isOwner()?`<button class="del-btn" onclick="delCashEntry(${si},${i})">×</button>`:''}</div></div>`).join('');
-  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Cash Balance</div><div class="metric-value b">₹${fmt(cashData.balance||0)}</div></div></div>
-  <div class="card"><div class="card-title">💵 Cash Balance — ${SHOPS[si].name}</div>
-    <div style="display:flex;gap:8px;margin-bottom:10px"><input type="number" id="cash_bal_upd" placeholder="Set current balance" style="flex:1;font-size:14px;padding:9px 11px;border:0.5px solid #ddd;border-radius:9px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:10px 14px;margin:0" onclick="updateCashBal(${si})">Update</button></div></div>
-  <div class="card"><div class="card-title">➕ Add Cash Entry</div>
-    ${dateField('cash_date')}
-    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="cash_amt" placeholder="0"></div><div class="field"><label>Type</label><select id="cash_type"><option value="1">+ In / Received</option><option value="-1">- Out / Paid</option></select></div></div>
-    <div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="From whom / for what"></div>
-    <button class="save-btn" onclick="addCashEntry(${si})">💾 Save</button></div>
-  <div class="card"><div class="card-title">🕐 History</div><div style="max-height:240px;overflow-y:auto">${hist}</div></div>`;
+// ── ACC/REP ───────────────────────────────────────────────────────────────────
+function renderAccRep(){
+  renderShopTabs('accShopTabs','accrep');
+  const si=activeShops.accrep;
+  const shop=data.shops[si];
+  const subTab=window._accTab||'acc';
+  const subTabs=['acc','rep'].map(t=>`<button class="sub-tab${subTab===t?' active':''}" onclick="window._accTab='${t}';renderAccRep()">${{acc:'🔌 Accessories',rep:'🔧 Repairing'}[t]}</button>`).join('');
+  let body='';
+  if(subTab==='acc'){
+    const acc=shop.accessories||[];
+    function calcRem(a){return (Number(a.qty||0))-(Number(a.sold||0));}
+    const rows=acc.map((a,i)=>`<div class="entry-row">
+      <div><div class="entry-main">${a.name}</div><div class="entry-sub">Qty:${a.qty} Sold:${a.sold||0} Rem:${calcRem(a)} ₹${fmt(a.price||0)}</div></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="number" id="acc_sell_${i}" placeholder="Sell" style="width:55px;padding:5px 7px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:12px">
+        <button onclick="sellAcc(${si},${i})" style="font-size:11px;background:#1a7a4a;color:#fff;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">Sell</button>
+        ${isOwner()?`<button onclick="delAcc(${si},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:13px">✕</button>`:''}</div></div>`).join('');
+    body=`<div class="card"><div class="card-title">➕ Add Accessory</div>
+      <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acc_name" placeholder="Earphones"></div><div class="field"><label>Qty</label><input type="number" id="acc_qty" placeholder="0"></div></div>
+      <div class="field"><label>Price (₹)</label><input type="number" id="acc_price" placeholder="0"></div>
+      <button class="save-btn" onclick="addAcc(${si})">Add</button></div>
+    <div class="card"><div class="card-title">📦 Stock</div>${rows||'<div class="empty">No accessories</div>'}</div>`;
+  } else {
+    const rep=shop.repairing||[];
+    const rows=rep.map((r,i)=>`<div class="entry-row">
+      <div><div class="entry-main">${r.note||'Job'} <span style="font-size:11px;color:#888">${r.status||'Pending'}</span></div><div class="entry-sub">₹${fmt(r.amount||0)} | ${fmtDate(r.date)}</div></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button onclick="toggleRep(${si},${i})" style="font-size:11px;background:#6c3483;color:#fff;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">Toggle</button>
+        ${isOwner()?`<button onclick="delRep(${si},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:13px">✕</button>`:''}</div></div>`).join('');
+    body=`<div class="card"><div class="card-title">➕ Add Repair Job</div>
+      <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="rep_amt" placeholder="0"></div><div class="field"><label>Date</label><input type="date" id="rep_date" value="${todayISO()}"></div></div>
+      <div class="field"><label>Note</label><input type="text" id="rep_note" placeholder="iPhone 12 screen, issue..."></div>
+      <button class="save-btn" onclick="addRep(${si})">Add Job</button></div>
+    <div class="card"><div class="card-title">🔧 Jobs</div>${rows||'<div class="empty">No jobs</div>'}</div>`;
+  }
+  document.getElementById('accContent').innerHTML=`<div class="sub-tabs">${subTabs}</div>${body}`;
 }
-window.updateCashBal=function(si){const val=document.getElementById('cash_bal_upd')?.value;if(!val||isNaN(val))return;data.shops[si].balanceAccounts.cash.balance=Number(val);save();toast('Updated! ✓');renderBalance();};
-window.addCashEntry=function(si){const date=getDate('cash_date');const amount=Number(document.getElementById('cash_amt')?.value);if(!amount){toast('Enter amount');return;}const mult=Number(document.getElementById('cash_type')?.value||1);const finalAmt=amount*mult;const ca=data.shops[si].balanceAccounts.cash;ca.entries.unshift({date,amount:finalAmt,note:document.getElementById('cash_note')?.value?.trim()||''});ca.balance=(Number(ca.balance)||0)+finalAmt;save();toast('Saved! ✓');renderBalance();};
-window.delCashEntry=function(si,i){if(!isOwner())return;if(confirm('Delete?')){const ca=data.shops[si].balanceAccounts.cash;const e=ca.entries[i];ca.balance=(Number(ca.balance)||0)-Number(e.amount||0);ca.entries.splice(i,1);save();renderBalance();}};
-
-function renderBalUPI(si,ba){
-  const accounts=ba.upi||[];
-  const totalBal=accounts.reduce((s,a)=>s+Number(a.balance||0),0);
-  const accountCards=accounts.map((a,ai)=>{
-    const entries=a.entries||[];
-    const hist=entries.length===0?`<div style="font-size:12px;color:#bbb;padding:6px 0">No entries</div>`:entries.slice(0,10).map((e)=>`<div class="entry-row" style="padding:4px 0"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}" style="font-size:12px">${Number(e.amount)>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
-    return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-size:14px;font-weight:700">${a.name}</div><div style="font-size:11px;color:#888">${a.number||''}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:700;color:#2563eb">₹${fmt(a.balance||0)}</div>${isOwner()?`<button onclick="delUPIAccount(${si},${ai})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">Remove</button>`:''}</div></div>
-    <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_entry_amt_${ai}" placeholder="Amount" style="flex:1;font-size:13px;padding:7px 9px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><select id="upi_entry_type_${ai}" style="font-size:12px;padding:7px 8px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><option value="1">+ In</option><option value="-1">- Out</option></select><input type="text" id="upi_entry_note_${ai}" placeholder="Note" style="flex:1;font-size:12px;padding:7px 9px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:8px 12px;margin:0;font-size:12px" onclick="addUPIEntry(${si},${ai})">Add</button></div>
-    <div style="max-height:120px;overflow-y:auto">${hist}</div></div>`;
-  }).join('');
-  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Total UPI Balance</div><div class="metric-value b">₹${fmt(totalBal)}</div></div><div class="metric"><div class="metric-label">Accounts</div><div class="metric-value">${accounts.length}</div></div></div>
-  <div class="card"><div class="card-title">➕ Add UPI Account</div>
-    <div class="two-col"><div class="field"><label>Account Name</label><input type="text" id="upi_new_name" placeholder="e.g. Nikunj GPay"></div><div class="field"><label>Number / UPI ID</label><input type="text" id="upi_new_num" placeholder="Mobile / UPI"></div></div>
-    <div class="field"><label>Opening Balance (₹)</label><input type="number" id="upi_new_bal" placeholder="0"></div>
-    <button class="save-btn" onclick="addUPIAccount(${si})">➕ Add Account</button></div>
-  ${accountCards||'<div class="card"><div class="empty">No UPI accounts yet</div></div>'}`;
-}
-window.addUPIAccount=function(si){const name=document.getElementById('upi_new_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_new_num')?.value?.trim()||'',balance:Number(document.getElementById('upi_new_bal')?.value||0),entries:[]});save();toast(`${name} added!`);renderBalance();};
-window.delUPIAccount=function(si,ai){if(!isOwner())return;if(confirm('Remove UPI account?')){data.shops[si].balanceAccounts.upi.splice(ai,1);save();renderBalance();}};
-window.addUPIEntry=function(si,ai){const amount=Number(document.getElementById(`upi_entry_amt_${ai}`)?.value);if(!amount){toast('Enter amount');return;}const mult=Number(document.getElementById(`upi_entry_type_${ai}`)?.value||1);const finalAmt=amount*mult;const acc=data.shops[si].balanceAccounts.upi[ai];if(!acc.entries)acc.entries=[];acc.entries.unshift({date:todayISO(),amount:finalAmt,note:document.getElementById(`upi_entry_note_${ai}`)?.value?.trim()||''});acc.balance=(Number(acc.balance)||0)+finalAmt;save();toast('Saved!');renderBalance();};
-
-function renderBalBank(si,ba){
-  const accounts=ba.bank||[];
-  const totalBal=accounts.reduce((s,a)=>s+Number(a.balance||0),0);
-  const accountCards=accounts.map((a,ai)=>{
-    const entries=a.entries||[];
-    const hist=entries.length===0?`<div style="font-size:12px;color:#bbb;padding:6px 0">No entries</div>`:entries.slice(0,10).map((e)=>`<div class="entry-row" style="padding:4px 0"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}" style="font-size:12px">${Number(e.amount)>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
-    return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-size:14px;font-weight:700">${a.name}</div><div style="font-size:11px;color:#888">${a.accountNo||''}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:700;color:#1a7a4a">₹${fmt(a.balance||0)}</div>${isOwner()?`<button onclick="delBankAccount(${si},${ai})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">Remove</button>`:''}</div></div>
-    <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_entry_amt_${ai}" placeholder="Amount" style="flex:1;font-size:13px;padding:7px 9px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><select id="bank_entry_type_${ai}" style="font-size:12px;padding:7px 8px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><option value="1">+ In</option><option value="-1">- Out</option></select><input type="text" id="bank_entry_note_${ai}" placeholder="Note" style="flex:1;font-size:12px;padding:7px 9px;border:0.5px solid #ddd;border-radius:8px;background:#fafaf8"><button class="save-btn" style="width:auto;padding:8px 12px;margin:0;font-size:12px" onclick="addBankEntry(${si},${ai})">Add</button></div>
-    <div style="max-height:120px;overflow-y:auto">${hist}</div></div>`;
-  }).join('');
-  return `<div class="metric-grid"><div class="metric"><div class="metric-label">Total Bank Balance</div><div class="metric-value g">₹${fmt(totalBal)}</div></div><div class="metric"><div class="metric-label">Accounts</div><div class="metric-value">${accounts.length}</div></div></div>
-  <div class="card"><div class="card-title">➕ Add Bank Account</div>
-    <div class="two-col"><div class="field"><label>Account Name</label><input type="text" id="bank_new_name" placeholder="e.g. SBI Current"></div><div class="field"><label>A/C Number (last 4)</label><input type="text" id="bank_new_num" placeholder="XXXX"></div></div>
-    <div class="field"><label>Opening Balance (₹)</label><input type="number" id="bank_new_bal" placeholder="0"></div>
-    <button class="save-btn" onclick="addBankAccount(${si})">➕ Add Account</button></div>
-  ${accountCards||'<div class="card"><div class="empty">No bank accounts yet</div></div>'}`;
-}
-window.addBankAccount=function(si){const name=document.getElementById('bank_new_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_new_num')?.value?.trim()||'',balance:Number(document.getElementById('bank_new_bal')?.value||0),entries:[]});save();toast(`${name} added!`);renderBalance();};
-window.delBankAccount=function(si,ai){if(!isOwner())return;if(confirm('Remove bank account?')){data.shops[si].balanceAccounts.bank.splice(ai,1);save();renderBalance();}};
-window.addBankEntry=function(si,ai){const amount=Number(document.getElementById(`bank_entry_amt_${ai}`)?.value);if(!amount){toast('Enter amount');return;}const mult=Number(document.getElementById(`bank_entry_type_${ai}`)?.value||1);const finalAmt=amount*mult;const acc=data.shops[si].balanceAccounts.bank[ai];if(!acc.entries)acc.entries=[];acc.entries.unshift({date:todayISO(),amount:finalAmt,note:document.getElementById(`bank_entry_note_${ai}`)?.value?.trim()||''});acc.balance=(Number(acc.balance)||0)+finalAmt;save();toast('Saved!');renderBalance();};
-
-// ── ACCESSORIES ──────────────────────────────────────────────────────────────
-function renderAccessories(){
-  renderShopTabs('accShopTabs','accessories');
-  const si=activeShops.accessories??0,shop=data.shops[si];
-  const acc=shop.accessories||[];const rep=shop.repairing||[];
-  function calcRem(item){return (Number(item.qty||0))-(Number(item.sold||0));}
-  const accRows=acc.map((a,i)=>`<div class="entry-row">
-    <div><div class="entry-main">${a.name}</div><div class="entry-sub">Qty: ${a.qty} | Sold: ${a.sold||0} | Rem: ${calcRem(a)} | ₹${fmt(a.price||0)}</div></div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <input type="number" id="acc_sell_${i}" placeholder="Sell" style="width:60px;font-size:12px;padding:5px 7px;border:0.5px solid #ddd;border-radius:7px;background:#fafaf8">
-      <button onclick="sellAcc(${si},${i})" style="font-size:11px;background:#1a7a4a;color:#fff;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">Sell</button>
-      ${isOwner()?`<button onclick="delAcc(${si},${i})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">✕</button>`:''}
-    </div></div>`).join('');
-  const repRows=rep.map((r,i)=>`<div class="entry-row">
-    <div><div class="entry-main">${r.name} <span style="font-size:11px;color:#888">— ${r.status||'Pending'}</span></div><div class="entry-sub">₹${fmt(r.amount||0)} | ${r.note||''}</div></div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <button onclick="toggleRepStatus(${si},${i})" style="font-size:11px;background:#6c3483;color:#fff;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">Toggle</button>
-      ${isOwner()?`<button onclick="delRep(${si},${i})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">✕</button>`:''}
-    </div></div>`).join('');
-  document.getElementById('accContent').innerHTML=`
-  <div class="section-header">🔌 Accessories</div>
-  <div class="card"><div class="card-title">➕ Add Accessory</div>
-    <div class="two-col">
-      <div class="field"><label>Name</label><input type="text" id="acc_name" placeholder="e.g. Earphones"></div>
-      <div class="field"><label>Qty</label><input type="number" id="acc_qty" placeholder="0"></div>
-    </div>
-    <div class="field"><label>Price (₹)</label><input type="number" id="acc_price" placeholder="0"></div>
-    <button class="save-btn" onclick="addAcc(${si})">➕ Add</button>
-  </div>
-  <div class="card"><div class="card-title">📦 Stock</div>${accRows||'<div class="empty">No accessories</div>'}</div>
-  <div class="section-header">🔧 Repairing</div>
-  <div class="card"><div class="card-title">➕ Add Job</div>
-    <div class="two-col">
-      <div class="field"><label>Customer / Item</label><input type="text" id="rep_name" placeholder="e.g. iPhone 12 screen"></div>
-      <div class="field"><label>Amount (₹)</label><input type="number" id="rep_amt" placeholder="0"></div>
-    </div>
-    <div class="field"><label>Note</label><input type="text" id="rep_note" placeholder="Issue details"></div>
-    <button class="save-btn" onclick="addRep(${si})">➕ Add Job</button>
-  </div>
-  <div class="card"><div class="card-title">🔧 Jobs</div>${repRows||'<div class="empty">No repair jobs</div>'}</div>`;
-}
-window.addAcc=function(si){const name=document.getElementById('acc_name')?.value?.trim();if(!name){toast('Enter name');return;}const qty=Number(document.getElementById('acc_qty')?.value||0);const price=Number(document.getElementById('acc_price')?.value||0);if(!data.shops[si].accessories)data.shops[si].accessories=[];data.shops[si].accessories.push({name,qty,price,sold:0});save();toast('Added!');renderAccessories();};
-window.sellAcc=function(si,i){const qty=Number(document.getElementById(`acc_sell_${i}`)?.value||0);if(!qty){toast('Enter qty');return;}const a=data.shops[si].accessories[i];if(!a)return;a.sold=(Number(a.sold)||0)+qty;if(a.sold>a.qty){toast('Sold > Stock!');a.sold-=qty;return;}save();toast('Sold!');renderAccessories();};
-window.delAcc=function(si,i){if(!isOwner())return;if(confirm('Remove?')){data.shops[si].accessories.splice(i,1);save();renderAccessories();}};
-window.addRep=function(si){const name=document.getElementById('rep_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.shops[si].repairing)data.shops[si].repairing=[];data.shops[si].repairing.push({name,amount:Number(document.getElementById('rep_amt')?.value||0),note:document.getElementById('rep_note')?.value?.trim()||'',status:'Pending',date:todayISO()});save();toast('Added!');renderAccessories();};
-window.toggleRepStatus=function(si,i){const r=data.shops[si].repairing[i];if(!r)return;r.status=r.status==='Done'?'Pending':'Done';save();renderAccessories();};
-window.delRep=function(si,i){if(!isOwner())return;if(confirm('Remove?')){data.shops[si].repairing.splice(i,1);save();renderAccessories();}};
+window.addAcc=function(si){const name=document.getElementById('acc_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.shops[si].accessories)data.shops[si].accessories=[];data.shops[si].accessories.push({name,qty:Number(document.getElementById('acc_qty')?.value||0),price:Number(document.getElementById('acc_price')?.value||0),sold:0});save();toast('Added!');renderAccRep();};
+window.sellAcc=function(si,i){const q=Number(document.getElementById(`acc_sell_${i}`)?.value||0);if(!q)return;const a=data.shops[si].accessories[i];a.sold=(Number(a.sold)||0)+q;if(a.sold>a.qty){toast('Exceeds stock!');a.sold-=q;return;}save();toast('Sold!');renderAccRep();};
+window.delAcc=function(si,i){if(confirm('Remove?')){data.shops[si].accessories.splice(i,1);save();renderAccRep();}};
+window.addRep=function(si){if(!data.shops[si].repairing)data.shops[si].repairing=[];data.shops[si].repairing.push({date:document.getElementById('rep_date')?.value||todayISO(),amount:Number(document.getElementById('rep_amt')?.value||0),note:document.getElementById('rep_note')?.value?.trim()||'',status:'Pending'});save();toast('Added!');renderAccRep();};
+window.toggleRep=function(si,i){const r=data.shops[si].repairing[i];r.status=r.status==='Done'?'Pending':'Done';save();renderAccRep();};
+window.delRep=function(si,i){if(confirm('Remove?')){data.shops[si].repairing.splice(i,1);save();renderAccRep();}};
 
 // ── STAFF ─────────────────────────────────────────────────────────────────────
-function renderStaffPage(){
-  const si=activeShops.staff??0,staffList=data.staff[si]||[];
-  const tab=window._staffTab||'list';
-  const tabs=['list','leave','advance','salary'].map(t=>`<button onclick="window._staffTab='${t}';renderStaffPage()" style="flex:1;padding:8px 4px;font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:${tab===t?'#1a7a4a':'#f5f5f0'};color:${tab===t?'#fff':'#555'}">${{list:'👤 Staff',leave:'🏖 Leave',advance:'💸 Advance',salary:'💰 Salary'}[t]}</button>`).join('');
-  let body='';
-  if(tab==='list'){
-    const rows=staffList.map((s,i)=>`<div class="entry-row"><div><div class="entry-main">${s.name}</div><div class="entry-sub">${s.role} | Joined: ${fmtDate(s.joined||'')} | Salary: ₹${fmt(s.fixedSalary||0)}</div></div>${isOwner()?`<button onclick="delStaff(${si},${i})" style="font-size:11px;color:#c0392b;background:none;border:none;cursor:pointer">✕</button>`:''}</div>`).join('');
-    body=`<div class="card"><div class="card-title">➕ Add Staff</div>
-      <div class="two-col"><div class="field"><label>Name</label><input type="text" id="st_name" placeholder="Name"></div><div class="field"><label>Role</label><input type="text" id="st_role" placeholder="Manager/Staff"></div></div>
-      <div class="two-col"><div class="field"><label>Joined</label><input type="date" id="st_joined" value="${todayISO()}"></div><div class="field"><label>Fixed Salary (₹)</label><input type="number" id="st_sal" placeholder="0"></div></div>
-      <button class="save-btn" onclick="addStaff(${si})">➕ Add</button></div>
-    <div class="card"><div class="card-title">👥 Staff List</div>${rows||'<div class="empty">No staff</div>'}</div>`;
-  } else if(tab==='leave'){
-    const opts=staffList.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
-    const allLeaves=staffList.flatMap((s,i)=>(s.leaves||[]).map(l=>({...l,name:s.name,si:i}))).sort((a,b)=>b.date.localeCompare(a.date));
-    const leaveRows=allLeaves.map(l=>`<div class="entry-row"><div><div class="entry-main">${l.name}</div><div class="entry-sub">${fmtDate(l.date)} | ${l.type||'Leave'} | ${l.note||''}</div></div></div>`).join('');
-    body=`<div class="card"><div class="card-title">➕ Mark Leave</div>
-      <div class="two-col"><div class="field"><label>Staff</label><select id="leave_who">${opts}</select></div><div class="field"><label>Date</label><input type="date" id="leave_date" value="${todayISO()}"></div></div>
-      <div class="two-col"><div class="field"><label>Type</label><select id="leave_type"><option>Leave</option><option>Half Day</option><option>Absent</option></select></div><div class="field"><label>Note</label><input type="text" id="leave_note" placeholder="Reason"></div></div>
-      <button class="save-btn" onclick="addLeave(${si})">Save</button></div>
-    <div class="card"><div class="card-title">🏖 Leave History</div>${leaveRows||'<div class="empty">No leaves</div>'}</div>`;
-  } else if(tab==='advance'){
-    const opts=staffList.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
-    const allAdv=staffList.flatMap((s,i)=>(s.advances||[]).map(a=>({...a,name:s.name}))).sort((a,b)=>b.date.localeCompare(a.date));
-    const advRows=allAdv.map(a=>`<div class="entry-row"><div><div class="entry-main">${a.name}</div><div class="entry-sub">${fmtDate(a.date)} | ₹${fmt(a.amount||0)} | ${a.note||''}</div></div></div>`).join('');
-    body=`<div class="card"><div class="card-title">💸 Give Advance</div>
-      <div class="two-col"><div class="field"><label>Staff</label><select id="adv_who">${opts}</select></div><div class="field"><label>Amount (₹)</label><input type="number" id="adv_amt" placeholder="0"></div></div>
-      <div class="field"><label>Note</label><input type="text" id="adv_note" placeholder="Reason"></div>
-      <button class="save-btn" onclick="addAdvance(${si})">Save</button></div>
-    <div class="card"><div class="card-title">💸 Advances</div>${advRows||'<div class="empty">No advances</div>'}</div>`;
-  } else if(tab==='salary'){
-    const opts=staffList.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
-    const allSal=staffList.flatMap((s,i)=>(s.salaries||[]).map(a=>({...a,name:s.name}))).sort((a,b)=>b.date.localeCompare(a.date));
-    const salRows=allSal.map(s=>`<div class="entry-row"><div><div class="entry-main">${s.name}</div><div class="entry-sub">${fmtDate(s.date)} | ₹${fmt(s.amount||0)} | ${s.note||''}</div></div></div>`).join('');
-    body=`<div class="card"><div class="card-title">💰 Pay Salary</div>
-      <div class="two-col"><div class="field"><label>Staff</label><select id="sal_who">${opts}</select></div><div class="field"><label>Amount (₹)</label><input type="number" id="sal_amt" placeholder="0"></div></div>
-      <div class="field"><label>Note / Month</label><input type="text" id="sal_note" placeholder="e.g. May 2026"></div>
-      <button class="save-btn" onclick="addSalary(${si})">Save</button></div>
-    <div class="card"><div class="card-title">💰 Salary History</div>${salRows||'<div class="empty">No salaries</div>'}</div>`;
-  }
-  document.getElementById('staffContent').innerHTML=`<div class="section-header">👤 Staff — ${SHOPS[si].name}</div><div style="display:flex;gap:6px;margin:0 0 12px">${tabs}</div>${body}`;
+function renderStaff(){
+  renderShopTabs('staffShopTabs','staff');
+  const si=activeShops.staff;
+  const staffList=data.staff[si]||[];
+  const rows=staffList.map((s,i)=>`<div class="entry-row">
+    <div><div class="entry-main">${s.name}</div><div class="entry-sub">${s.role||'Staff'} | Leaves: ${(s.leaves||[]).length} | Joined: ${fmtDate(s.joined||'')}</div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="markLeave(${si},${i})" style="font-size:11px;background:#e8f0fe;color:#2980b9;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">+ Leave</button>
+      ${isOwner()?`<button onclick="delStaff(${si},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:13px">✕</button>`:''}</div></div>`).join('');
+  document.getElementById('staffContent').innerHTML=`
+  ${isOwner()?`<div class="card"><div class="card-title">➕ Add Staff</div>
+    <div class="two-col"><div class="field"><label>Name</label><input type="text" id="st_name" placeholder="Name"></div><div class="field"><label>Role</label><input type="text" id="st_role" placeholder="Manager/Cashier"></div></div>
+    <div class="field"><label>Joined</label><input type="date" id="st_joined" value="${todayISO()}"></div>
+    <button class="save-btn" onclick="addStaff(${si})">Add Staff</button></div>`:''}
+  <div class="card"><div class="card-title">👥 Staff — ${SHOPS[si].name}</div>${rows||'<div class="empty">No staff</div>'}</div>
+  <div class="card" style="background:#e8f5ee;border:1px solid #c3e6cb"><div style="font-size:12px;color:#155724;font-weight:600">💡 Salary & advance payments → go to Expense, select staff account</div></div>`;
 }
-window.addStaff=function(si){const name=document.getElementById('st_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.staff[si])data.staff[si]=[];data.staff[si].push({name,role:document.getElementById('st_role')?.value?.trim()||'Staff',joined:document.getElementById('st_joined')?.value||todayISO(),fixedSalary:Number(document.getElementById('st_sal')?.value||0),leaves:[],advances:[],salaries:[]});save();toast('Added!');renderStaffPage();};
-window.delStaff=function(si,i){if(!isOwner())return;if(confirm('Remove staff?')){data.staff[si].splice(i,1);save();renderStaffPage();}};
-window.addLeave=function(si){const i=Number(document.getElementById('leave_who')?.value||0);if(!data.staff[si][i].leaves)data.staff[si][i].leaves=[];data.staff[si][i].leaves.push({date:document.getElementById('leave_date')?.value||todayISO(),type:document.getElementById('leave_type')?.value||'Leave',note:document.getElementById('leave_note')?.value?.trim()||''});save();toast('Saved!');renderStaffPage();};
-window.addAdvance=function(si){const i=Number(document.getElementById('adv_who')?.value||0);if(!data.staff[si][i].advances)data.staff[si][i].advances=[];data.staff[si][i].advances.push({date:todayISO(),amount:Number(document.getElementById('adv_amt')?.value||0),note:document.getElementById('adv_note')?.value?.trim()||''});save();toast('Saved!');renderStaffPage();};
-window.addSalary=function(si){const i=Number(document.getElementById('sal_who')?.value||0);if(!data.staff[si][i].salaries)data.staff[si][i].salaries=[];data.staff[si][i].salaries.push({date:todayISO(),amount:Number(document.getElementById('sal_amt')?.value||0),note:document.getElementById('sal_note')?.value?.trim()||''});save();toast('Saved!');renderStaffPage();};
-
-// ── DEALERS (BORROWINGS) ──────────────────────────────────────────────────────
-function renderBorrowings(){
-  renderShopTabs('borrowShopTabs','borrowings');
-  const si=activeShops.borrowings??0;
-  const dealers=data.dealerAccounts[si]||[];
-  const borrowings=data.borrowings||[];
-  const selDealer=window._selDealer||'';
-  const dealerOpts=dealers.map(d=>`<option value="${d.name}" ${selDealer===d.name?'selected':''}>${d.name}</option>`).join('');
-  const grouped={};
-  borrowings.forEach(b=>{if(!grouped[b.dealer])grouped[b.dealer]=[];grouped[b.dealer].push(b);});
-  const dealerCards=dealers.map(d=>{
-    const entries=(grouped[d.name]||[]).sort((a,b)=>b.date.localeCompare(a.date));
-    const total=entries.reduce((s,e)=>s+Number(e.amount||0),0);
-    const rows=entries.slice(0,5).map(e=>`<div class="entry-row" style="padding:4px 0"><div><div class="entry-main ${Number(e.amount)>0?'r':'g'}" style="font-size:13px">${Number(e.amount)>0?'+':'-'}₹${fmt(Math.abs(e.amount))}</div>${e.note?`<div class="entry-sub">${e.note}</div>`:''}</div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
-    return `<div class="dealer-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:14px;font-weight:700">🏪 ${d.name}</div>
-        <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${total>0?'#c0392b':'#1a7a4a'}">${total>0?'+':''}₹${fmt(total)}</div><div style="font-size:10px;color:#888">${total>0?'Dues':'Clear/Advance'}</div></div>
-      </div>
-      <div style="max-height:100px;overflow-y:auto;margin-bottom:8px">${rows||'<div class="empty" style="font-size:12px">No entries</div>'}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('borrowContent').innerHTML=`
-  <div class="section-header">🏪 Dealers — ${SHOPS[si].name}</div>
-  <div class="card"><div class="card-title">➕ Add Entry</div>
-    <div class="field"><label>Dealer</label>
-      <div style="display:flex;gap:6px">
-        <select id="borrow_dealer" onchange="window._selDealer=this.value" style="flex:1;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8">
-          <option value="">— Select Dealer —</option>${dealerOpts}
-        </select>
-        <input type="text" id="borrow_new_dealer" placeholder="Or type new" style="flex:1;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8">
-      </div>
-    </div>
-    <div class="two-col">
-      <div class="field"><label>Amount (₹)</label><input type="number" id="borrow_amt" placeholder="Positive=borrow, Negative=paid"></div>
-      <div class="field"><label>Type</label><select id="borrow_type" style="padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8;width:100%"><option value="1">📦 Purchase / Borrow</option><option value="-1">💳 Payment Made</option></select></div>
-    </div>
-    <div class="field"><label>Note</label><input type="text" id="borrow_note" placeholder="Details"></div>
-    <button class="save-btn" onclick="addBorrowing(${si})">Save Entry</button>
-  </div>
-  ${dealerCards||'<div class="card"><div class="empty">No dealers yet. Add dealers from the Ledger section.</div></div>'}`;
-}
-window.addBorrowing=function(si){
-  const selVal=document.getElementById('borrow_dealer')?.value?.trim();
-  const newVal=document.getElementById('borrow_new_dealer')?.value?.trim();
-  const dealer=newVal||selVal;
-  if(!dealer){toast('Select or enter dealer');return;}
-  const amt=Number(document.getElementById('borrow_amt')?.value||0);
-  const mult=Number(document.getElementById('borrow_type')?.value||1);
-  if(!amt){toast('Enter amount');return;}
-  const finalAmt=amt*mult;
-  if(!data.borrowings)data.borrowings=[];
-  data.borrowings.push({date:todayISO(),dealer,amount:finalAmt,note:document.getElementById('borrow_note')?.value?.trim()||'',shop:si});
-  // if new dealer, add to dealerAccounts
-  if(newVal){
-    if(!data.dealerAccounts[si])data.dealerAccounts[si]=[];
-    if(!data.dealerAccounts[si].find(d=>d.name===newVal)){
-      data.dealerAccounts[si].push({name:newVal,phone:''});
-      // also add to ledger txn as DR
-      if(!data.ledgerTxns[si])data.ledgerTxns[si]=[];
-    }
-  }
-  // auto-add ledger DR entry if purchase
-  if(mult===1){
-    if(!data.ledgerTxns[si])data.ledgerTxns[si]=[];
-    data.ledgerTxns[si].push({date:todayISO(),dealer,type:'dr',amount:amt,note:document.getElementById('borrow_note')?.value?.trim()||'',source:'dealers'});
-  }
-  save();toast('Saved!');renderBorrowings();
-};
-
-// ── LEDGER ────────────────────────────────────────────────────────────────────
-function renderLedger(){
-  renderShopTabs('ledgerShopTabs','ledger');
-  const si=activeShops.ledger??0;
-  const dealers=data.dealerAccounts[si]||[];
-  const txns=data.ledgerTxns[si]||[];
-  const selD=window._ledgerDealer||null;
-  if(selD!==null){
-    const dealer=dealers[selD];
-    if(!dealer){window._ledgerDealer=null;renderLedger();return;}
-    const dTxns=txns.filter(t=>t.dealer===dealer.name).sort((a,b)=>b.date.localeCompare(a.date));
-    const totalDR=dTxns.filter(t=>t.type==='dr').reduce((s,t)=>s+Number(t.amount||0),0);
-    const totalCR=dTxns.filter(t=>t.type==='cr').reduce((s,t)=>s+Number(t.amount||0),0);
-    const outstanding=totalDR-totalCR;
-    const rows=dTxns.map(t=>`<div class="txn-row">
-      <div><div class="entry-main ${t.type==='dr'?'r':'g'}">${t.type==='dr'?'DR':'CR'} ₹${fmt(t.amount||0)}</div><div class="entry-sub">${t.note||''} ${t.source?`<span style="font-size:10px;background:#f0eef8;padding:1px 5px;border-radius:4px">${t.source}</span>`:''}</div></div>
-      <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
-    document.getElementById('ledgerContent').innerHTML=`
-    <div class="section-header"><button onclick="window._ledgerDealer=null;renderLedger()" style="background:none;border:none;color:#1a7a4a;font-size:14px;cursor:pointer;margin-right:6px">← Back</button>📒 ${dealer.name}</div>
-    <div class="metric-grid">
-      <div class="metric"><div class="metric-label">Total Purchased (DR)</div><div class="metric-value r">₹${fmt(totalDR)}</div></div>
-      <div class="metric"><div class="metric-label">Total Paid (CR)</div><div class="metric-value g">₹${fmt(totalCR)}</div></div>
-      <div class="metric" style="grid-column:1/-1"><div class="metric-label">Outstanding Balance</div><div class="metric-value ${outstanding>0?'r':'g'}">₹${fmt(Math.abs(outstanding))} ${outstanding>0?'(You Owe)':'(Clear/Advance)'}</div></div>
-    </div>
-    <div class="card"><div class="card-title">➕ Add Transaction</div>
-      <div class="two-col">
-        <div class="field"><label>Type</label><select id="ltxn_type" style="width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8"><option value="dr">📦 DR — Purchase</option><option value="cr">💳 CR — Payment</option></select></div>
-        <div class="field"><label>Amount (₹)</label><input type="number" id="ltxn_amt" placeholder="0"></div>
-      </div>
-      <div class="field"><label>Note</label><input type="text" id="ltxn_note" placeholder="Details"></div>
-      <button class="save-btn" onclick="addLedgerTxn(${si},${selD})">Save</button>
-    </div>
-    <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions yet</div>'}</div>`;
-    return;
-  }
-  // dealer list view
-  const dealerCards=dealers.map((d,i)=>{
-    const dTxns=txns.filter(t=>t.dealer===d.name);
-    const totalDR=dTxns.filter(t=>t.type==='dr').reduce((s,t)=>s+Number(t.amount||0),0);
-    const totalCR=dTxns.filter(t=>t.type==='cr').reduce((s,t)=>s+Number(t.amount||0),0);
-    const outstanding=totalDR-totalCR;
-    return `<div class="dealer-card" onclick="window._ledgerDealer=${i};renderLedger()" style="cursor:pointer">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-size:14px;font-weight:700">🏪 ${d.name}</div>${d.phone?`<div style="font-size:11px;color:#888">${d.phone}</div>`:''}</div>
-        <div style="text-align:right">
-          <div style="font-size:16px;font-weight:700;color:${outstanding>0?'#c0392b':'#1a7a4a'}">₹${fmt(Math.abs(outstanding))}</div>
-          <div style="font-size:10px;color:#888">${outstanding>0?'Outstanding':'Clear'}</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:#666">
-        <span>DR: ₹${fmt(totalDR)}</span><span>CR: ₹${fmt(totalCR)}</span>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('ledgerContent').innerHTML=`
-  <div class="section-header">📒 Ledger — ${SHOPS[si].name}</div>
-  ${isOwner()?`<div class="card"><div class="card-title">➕ Add Dealer</div>
-    <div class="two-col"><div class="field"><label>Name</label><input type="text" id="ldlr_name" placeholder="Dealer name"></div><div class="field"><label>Phone (optional)</label><input type="text" id="ldlr_phone" placeholder="Mobile"></div></div>
-    <button class="save-btn" onclick="addDealer(${si})">➕ Add Dealer</button></div>`:''}
-  ${dealerCards||'<div class="card"><div class="empty">No dealers yet</div></div>'}`;
-}
-window.addDealer=function(si){
-  const name=document.getElementById('ldlr_name')?.value?.trim();
-  if(!name){toast('Enter name');return;}
-  if(!data.dealerAccounts[si])data.dealerAccounts[si]=[];
-  if(data.dealerAccounts[si].find(d=>d.name===name)){toast('Already exists');return;}
-  data.dealerAccounts[si].push({name,phone:document.getElementById('ldlr_phone')?.value?.trim()||''});
-  save();toast('Dealer added!');renderLedger();
-};
-window.addLedgerTxn=function(si,di){
-  const dealer=data.dealerAccounts[si][di];
-  if(!dealer)return;
-  const type=document.getElementById('ltxn_type')?.value||'dr';
-  const amt=Number(document.getElementById('ltxn_amt')?.value||0);
-  if(!amt){toast('Enter amount');return;}
-  if(!data.ledgerTxns[si])data.ledgerTxns[si]=[];
-  data.ledgerTxns[si].push({date:todayISO(),dealer:dealer.name,type,amount:amt,note:document.getElementById('ltxn_note')?.value?.trim()||'',source:'manual'});
-  // sync to borrowings if DR
-  if(type==='dr'){if(!data.borrowings)data.borrowings=[];data.borrowings.push({date:todayISO(),dealer:dealer.name,amount:amt,note:document.getElementById('ltxn_note')?.value?.trim()||'',shop:si});}
-  save();toast('Saved!');window._ledgerDealer=di;renderLedger();
-};
+window.addStaff=function(si){const name=document.getElementById('st_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.staff[si])data.staff[si]=[];const staffMember={id:uid(),name,role:document.getElementById('st_role')?.value?.trim()||'Staff',joined:document.getElementById('st_joined')?.value||todayISO(),leaves:[]};data.staff[si].push(staffMember);
+// auto-create account for this staff
+const existing=data.accounts.find(a=>a.name===name&&a.type==='Staff'&&a.shopIdx===si);
+if(!existing)data.accounts.push({id:uid(),name,type:'Staff',phone:'',shopIdx:si,notes:'Auto from Staff'});
+save();toast('Added! Account created.');renderStaff();};
+window.delStaff=function(si,i){if(!isOwner())return;if(confirm('Remove staff?')){data.staff[si].splice(i,1);save();renderStaff();}};
+window.markLeave=function(si,i){const s=data.staff[si][i];if(!s.leaves)s.leaves=[];s.leaves.push({date:todayISO()});save();toast('Leave marked!');renderStaff();};
 
 // ── TRANSFER ──────────────────────────────────────────────────────────────────
 function renderTransfer(){
   const transfers=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-  const shopOpts=SHOPS.map((s,i)=>`<option value="${i}">${s}</option>`).join('');
+  const shopOpts=SHOPS.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
   const rows=transfers.slice(0,20).map(t=>`<div class="entry-row">
-    <div><div class="entry-main">₹${fmt(t.amount||0)}</div><div class="entry-sub">${SHOPS[t.from]||'?'} → ${SHOPS[t.to]||'?'} | ${t.goods||''} ${t.note?'| '+t.note:''}</div></div>
+    <div><div class="entry-main">₹${fmt(t.amount)}</div><div class="entry-sub">${SHOPS[t.from].name} → ${SHOPS[t.to].name} | ${t.balType==='cash'?'💵 Cash':'🏦 Bank'} | ${t.goods||''} ${t.note?'| '+t.note:''}</div></div>
     <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
   document.getElementById('transferContent').innerHTML=`
   <div class="section-header">🔄 Inter-Branch Transfer</div>
   <div class="card"><div class="card-title">➕ New Transfer</div>
     <div class="two-col">
-      <div class="field"><label>From</label><select id="tr_from" style="width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8">${shopOpts}</select></div>
-      <div class="field"><label>To</label><select id="tr_to" style="width:100%;padding:9px 12px;border:0.5px solid #ddd;border-radius:10px;font-size:13px;background:#fafaf8">${shopOpts}</select></div>
+      <div class="field"><label>From Branch</label><select id="tr_from">${shopOpts}</select></div>
+      <div class="field"><label>To Branch</label><select id="tr_to">${shopOpts}</select></div>
     </div>
-    <div class="field"><label>Amount (₹)</label><input type="number" id="tr_amt" placeholder="0"></div>
+    <div class="two-col">
+      <div class="field"><label>Amount (₹)</label><input type="number" id="tr_amt" placeholder="0"></div>
+      <div class="field"><label>Balance Type</label><select id="tr_bal"><option value="cash">💵 Cash</option><option value="bank">🏦 Bank</option></select></div>
+    </div>
+    <div id="tr_bank_sel_wrap" class="field" style="display:none"><label>Which Bank Account</label><select id="tr_bank_idx"></select></div>
     <div class="field"><label>Goods / Description (optional)</label><input type="text" id="tr_goods" placeholder="What was transferred"></div>
     <div class="field"><label>Note (optional)</label><input type="text" id="tr_note" placeholder="Any note"></div>
     <button class="save-btn" onclick="addTransfer()">Save Transfer</button>
   </div>
   <div class="card"><div class="card-title">📋 Recent Transfers</div>${rows||'<div class="empty">No transfers yet</div>'}</div>`;
+  document.getElementById('tr_bal').onchange=function(){
+    const isBak=this.value==='bank';
+    document.getElementById('tr_bank_sel_wrap').style.display=isBak?'block':'none';
+    if(isBak){const fromIdx=parseInt(document.getElementById('tr_from').value||0);const banks=data.shops[fromIdx].balanceAccounts.bank||[];document.getElementById('tr_bank_idx').innerHTML=banks.map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')||'<option>No bank accounts</option>';}
+  };
 }
 window.addTransfer=function(){
-  const from=Number(document.getElementById('tr_from')?.value||0);
-  const to=Number(document.getElementById('tr_to')?.value||0);
+  const from=parseInt(document.getElementById('tr_from')?.value||0);
+  const to=parseInt(document.getElementById('tr_to')?.value||0);
   const amt=Number(document.getElementById('tr_amt')?.value||0);
+  const balType=document.getElementById('tr_bal')?.value||'cash';
   if(from===to){toast('From and To must differ');return;}
   if(!amt){toast('Enter amount');return;}
+  const date=todayISO();
+  const goods=document.getElementById('tr_goods')?.value?.trim()||'';
+  const note=document.getElementById('tr_note')?.value?.trim()||'';
   if(!data.transfers)data.transfers=[];
-  data.transfers.push({date:todayISO(),from,to,amount:amt,goods:document.getElementById('tr_goods')?.value?.trim()||'',note:document.getElementById('tr_note')?.value?.trim()||''});
+  data.transfers.push({id:uid(),date,from,to,amount:amt,balType,goods,note});
+  // affect balances
+  if(balType==='cash'){
+    debitBalance(from,'cash',amt);
+    creditBalance(to,'cash',amt);
+  } else {
+    const bankIdx=parseInt(document.getElementById('tr_bank_idx')?.value||0);
+    debitBalance(from,`bank_${bankIdx}`,amt);
+    // credit to first bank of "to" branch or cash
+    const toBanks=data.shops[to].balanceAccounts.bank||[];
+    if(toBanks.length>0)creditBalance(to,'bank_0',amt);else creditBalance(to,'cash',amt);
+  }
+  // ledger entries — create inter-branch accounts if needed
+  const fromName=SHOPS[from].name,toName=SHOPS[to].name;
+  // "To" branch owes "From" branch
+  let fromAcct=data.accounts.find(a=>a.name===`Branch: ${fromName}`&&a.shopIdx===to);
+  if(!fromAcct){fromAcct={id:uid(),name:`Branch: ${fromName}`,type:'Custom',phone:'',shopIdx:to,notes:'Inter-branch'};data.accounts.push(fromAcct);}
+  let toAcct=data.accounts.find(a=>a.name===`Branch: ${toName}`&&a.shopIdx===from);
+  if(!toAcct){toAcct={id:uid(),name:`Branch: ${toName}`,type:'Custom',phone:'',shopIdx:from,notes:'Inter-branch'};data.accounts.push(toAcct);}
+  // From shop: TO branch owes them (DR on toAcct in from-shop)
+  addLedgerEntry(toAcct.id,date,'dr',amt,`Transfer to ${toName} - ${goods||note||''}`.trim(),'transfer',from);
+  // To shop: they owe FROM branch (DR on fromAcct in to-shop — they received money)
+  addLedgerEntry(fromAcct.id,date,'cr',amt,`Received from ${fromName} - ${goods||note||''}`.trim(),'transfer',to);
   save();toast('Transfer saved!');renderTransfer();
 };
+
+// ── ACCOUNTS ──────────────────────────────────────────────────────────────────
+function renderAccounts(){
+  renderShopTabs('acctShopTabs','accounts');
+  const si=activeShops.accounts;
+  const selAcct=window._selAcct||null;
+  if(selAcct!==null){
+    const acct=data.accounts.find(a=>a.id===selAcct&&a.shopIdx===si);
+    if(!acct){window._selAcct=null;renderAccounts();return;}
+    const txns=data.ledger.filter(t=>t.accountId===acct.id).sort((a,b)=>b.date.localeCompare(a.date));
+    const totalDR=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+Number(t.amount||0),0);
+    const totalCR=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+Number(t.amount||0),0);
+    const bal=totalDR-totalCR;
+    const rows=txns.map(t=>`<div class="txn-row">
+      <div><div class="entry-main">${t.type==='dr'?'DR':'CR'} <span class="badge ${t.type==='dr'?'badge-dr':'badge-cr'}">₹${fmt(t.amount)}</span> <span class="badge-type" style="font-size:10px;padding:2px 6px;border-radius:8px;background:#f0ede8;color:#555">${t.source||''}</span></div>
+      <div class="entry-sub">${t.note||''}</div></div>
+      <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
+    const typeBadge=`<span class="acct-type-badge type-${acct.type.toLowerCase()}">${acct.type}</span>`;
+    document.getElementById('acctContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <button onclick="window._selAcct=null;renderAccounts()" style="background:none;border:none;color:#1a7a4a;font-size:20px;cursor:pointer">←</button>
+      <div><div style="font-size:16px;font-weight:800">${acct.name} ${typeBadge}</div>${acct.phone?`<div style="font-size:12px;color:#888">${acct.phone}</div>`:''}</div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Total DR</div><div class="metric-value r">₹${fmt(totalDR)}</div></div>
+      <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(totalCR)}</div></div>
+      <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
+    </div>
+    <div class="card"><div class="card-title">➕ Manual Entry</div>
+      <div class="two-col">
+        <div class="field"><label>Type</label><select id="ltxn_type"><option value="dr">DR (they owe you)</option><option value="cr">CR (you paid them)</option></select></div>
+        <div class="field"><label>Amount (₹)</label><input type="number" id="ltxn_amt" placeholder="0"></div>
+      </div>
+      <div class="field"><label>Note</label><input type="text" id="ltxn_note" placeholder="Details"></div>
+      <div class="field"><label>Affect Balance (optional)</label><select id="ltxn_bal"><option value="">— No balance change —</option>${getBalOpts(si)}</select></div>
+      <button class="save-btn" onclick="addManualLedger('${acct.id}',${si})">Save</button>
+    </div>
+    <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
+    return;
+  }
+  // list view
+  const accts=data.accounts.filter(a=>a.shopIdx===si);
+  const byType={};
+  ACCT_TYPES.forEach(t=>byType[t]=[]);
+  accts.forEach(a=>{if(!byType[a.type])byType[a.type]=[];byType[a.type].push(a);});
+  const cards=ACCT_TYPES.flatMap(type=>{
+    const list=byType[type]||[];
+    if(!list.length)return [];
+    return [`<div class="section-header">${{Dealer:'🏪',Franchise:'🤝',Staff:'👤',Owner:'👑',Customer:'🧑',Custom:'📂'}[type]||'📂'} ${type}s</div>`,...list.map(a=>{
+      const txns=data.ledger.filter(t=>t.accountId===a.id);
+      const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+Number(t.amount||0),0);
+      const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+Number(t.amount||0),0);
+      const bal=dr-cr;
+      return `<div class="dealer-card" onclick="window._selAcct='${a.id}';renderAccounts()" style="cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-size:14px;font-weight:700">${a.name}</div>${a.phone?`<div style="font-size:11px;color:#888">${a.phone}</div>`:''}</div>
+          <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${bal>0?'#c0392b':'#1a7a4a'}">₹${fmt(Math.abs(bal))}</div><div style="font-size:10px;color:#888">${bal>0?'Outstanding':'Clear'}</div></div>
+        </div></div>`;
+    })];
+  }).join('');
+  document.getElementById('acctContent').innerHTML=`
+  ${isOwner()||isManager()?`<div class="card"><div class="card-title">➕ Add Account</div>
+    <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acct_name" placeholder="Account name"></div><div class="field"><label>Type</label><select id="acct_type">${ACCT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
+    <div class="two-col"><div class="field"><label>Phone (optional)</label><input type="text" id="acct_phone" placeholder="Mobile"></div><div class="field"><label>Notes</label><input type="text" id="acct_notes" placeholder="Any note"></div></div>
+    <button class="save-btn" onclick="addAccount(${si})">Add Account</button></div>`:''}
+  ${cards||'<div class="card"><div class="empty">No accounts yet</div></div>'}`;
+}
+window.addAccount=function(si){const name=document.getElementById('acct_name')?.value?.trim();if(!name){toast('Enter name');return;}if(data.accounts.find(a=>a.name===name&&a.shopIdx===si)){toast('Already exists');return;}data.accounts.push({id:uid(),name,type:document.getElementById('acct_type')?.value||'Custom',phone:document.getElementById('acct_phone')?.value?.trim()||'',shopIdx:si,notes:document.getElementById('acct_notes')?.value?.trim()||''});save();toast('Account added!');renderAccounts();};
+window.addManualLedger=function(accountId,si){const type=document.getElementById('ltxn_type')?.value||'dr';const amt=Number(document.getElementById('ltxn_amt')?.value||0);if(!amt){toast('Enter amount');return;}const note=document.getElementById('ltxn_note')?.value?.trim()||'';const balKey=document.getElementById('ltxn_bal')?.value||'';addLedgerEntry(accountId,todayISO(),type,amt,note,'manual',si);if(balKey){if(type==='cr')debitBalance(si,balKey,amt);else creditBalance(si,balKey,amt);}save();toast('Saved!');renderAccounts();};
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard(){
   renderShopTabs('dashShopTabs','dashboard');
-  const si=activeShops.dashboard??0,shop=data.shops[si];
+  const si=activeShops.dashboard;
+  const shop=data.shops[si];
   const today=todayISO();
+  const ym=today.slice(0,7);
   const entries=shop.entries||[];
   const expenses=shop.expenses||[];
-  // today sales
-  const todaySales=entries.filter(e=>e.date===today);
-  const cashSales=todaySales.filter(e=>e.type==='cash').reduce((s,e)=>s+Number(e.amount||0),0);
-  const upiSales=todaySales.filter(e=>e.type==='upi').reduce((s,e)=>s+Number(e.amount||0),0);
-  const totalSales=cashSales+upiSales;
-  const phoneSales=todaySales.filter(e=>e.category==='phone');
-  const totalPhones=phoneSales.reduce((s,e)=>s+Number(e.qty||1),0);
-  // today expenses
+  // today
+  const todayEntries=entries.filter(e=>e.date===today);
+  const todayCash=todayEntries.reduce((s,e)=>s+Number(e.cash||0),0);
+  const todayUpi=todayEntries.reduce((s,e)=>s+Number(e.upi||0),0);
+  const todaySale=todayEntries.reduce((s,e)=>s+Number(e.amount||0),0);
+  const todayPhones=todayEntries.filter(e=>e.category==='phone').reduce((s,e)=>s+1,0);
   const todayExp=expenses.filter(e=>e.date===today).reduce((s,e)=>s+Number(e.amount||0),0);
-  // adjustment
-  const adj=shop.adjustment||0;
-  // monthly
-  const ym=today.slice(0,7);
-  const monthSales=entries.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+Number(e.amount||0),0);
+  // month
+  const monthEntries=entries.filter(e=>e.date.startsWith(ym));
+  const monthSale=monthEntries.reduce((s,e)=>s+Number(e.amount||0),0);
   const monthExp=expenses.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+Number(e.amount||0),0);
-  // cash balance
+  // acc/rep
+  const acc=shop.accessories||[];
+  const rep=shop.repairing||[];
+  const todayAccSold=acc.filter(a=>a.lastSoldDate===today).reduce((s,a)=>s+Number(a.price||0)*(Number(a.sold||0)),0);
+  const monthAccVal=acc.reduce((s,a)=>s+Number(a.price||0)*(Number(a.sold||0)),0);
+  const todayRepDone=rep.filter(r=>r.date===today&&r.status==='Done').reduce((s,r)=>s+Number(r.amount||0),0);
+  const monthRepVal=rep.reduce((s,r)=>s+Number(r.amount||0),0);
+  // balances
   const cashBal=shop.balanceAccounts?.cash?.balance||0;
-  // outstanding dealer dues
-  const dealers=data.dealerAccounts[si]||[];
-  const txns=data.ledgerTxns[si]||[];
-  const totalOutstanding=dealers.reduce((s,d)=>{
-    const dTxns=txns.filter(t=>t.dealer===d.name);
-    const dr=dTxns.filter(t=>t.type==='dr').reduce((a,t)=>a+Number(t.amount||0),0);
-    const cr=dTxns.filter(t=>t.type==='cr').reduce((a,t)=>a+Number(t.amount||0),0);
-    return s+(dr-cr);
+  const upiTotal=(shop.balanceAccounts?.upi||[]).reduce((s,u)=>s+Number(u.balance||0),0);
+  const bankTotal=(shop.balanceAccounts?.bank||[]).reduce((s,b)=>s+Number(b.balance||0),0);
+  // outstanding
+  const shopAccts=data.accounts.filter(a=>a.shopIdx===si);
+  const totalOutstanding=shopAccts.reduce((s,a)=>{
+    const txns=data.ledger.filter(t=>t.accountId===a.id);
+    const dr=txns.filter(t=>t.type==='dr').reduce((x,t)=>x+Number(t.amount||0),0);
+    const cr=txns.filter(t=>t.type==='cr').reduce((x,t)=>x+Number(t.amount||0),0);
+    return s+Math.max(0,dr-cr);
   },0);
+  const adj=shop.adjustment||0;
   document.getElementById('dashContent').innerHTML=`
-  <div class="section-header">📊 Dashboard — ${SHOPS[si].name}</div>
-  <div style="font-size:12px;color:#888;padding:0 0 8px">Today: ${fmtDate(today)}</div>
+  <div style="font-size:11px;color:#888;margin-bottom:8px">📅 Today: ${fmtDate(today)}</div>
+  <div class="section-header">Today's Sales</div>
   <div class="metric-grid">
-    <div class="metric"><div class="metric-label">Cash Sales Today</div><div class="metric-value g">₹${fmt(cashSales)}</div></div>
-    <div class="metric"><div class="metric-label">UPI Sales Today</div><div class="metric-value g">₹${fmt(upiSales)}</div></div>
-    <div class="metric"><div class="metric-label">Total Sales Today</div><div class="metric-value g">₹${fmt(totalSales)}</div></div>
-    <div class="metric"><div class="metric-label">Phones Sold Today</div><div class="metric-value">${totalPhones}</div></div>
-    <div class="metric"><div class="metric-label">Expenses Today</div><div class="metric-value r">₹${fmt(todayExp)}</div></div>
-    <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483">₹${fmt(Math.abs(adj))} ${adj<0?'(Short)':adj>0?'(Excess)':'(Balanced)'}</div></div>
+    <div class="metric"><div class="metric-label">💵 Cash</div><div class="metric-value g">₹${fmt(todayCash)}</div></div>
+    <div class="metric"><div class="metric-label">📲 UPI</div><div class="metric-value g">₹${fmt(todayUpi)}</div></div>
+    <div class="metric"><div class="metric-label">📱 Total Sale</div><div class="metric-value g">₹${fmt(todaySale)}</div></div>
+    <div class="metric"><div class="metric-label">📦 Phones Sold</div><div class="metric-value">${todayPhones}</div></div>
+    <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">₹${fmt(todayExp)}</div></div>
+    <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483">₹${fmt(Math.abs(adj))} ${adj<0?'(Short)':adj>0?'(Excess)':'(Bal)'}</div></div>
   </div>
-  <div class="section-header" style="margin-top:8px">📅 This Month</div>
+  <div class="section-header">This Month</div>
   <div class="metric-grid">
-    <div class="metric"><div class="metric-label">Monthly Sales</div><div class="metric-value g">₹${fmt(monthSales)}</div></div>
-    <div class="metric"><div class="metric-label">Monthly Expenses</div><div class="metric-value r">₹${fmt(monthExp)}</div></div>
-    <div class="metric"><div class="metric-label">Cash on Hand</div><div class="metric-value">${fmt(cashBal)}</div></div>
-    <div class="metric"><div class="metric-label">Dealer Outstanding</div><div class="metric-value r">₹${fmt(totalOutstanding)}</div></div>
+    <div class="metric"><div class="metric-label">Total Sales</div><div class="metric-value g">₹${fmt(monthSale)}</div></div>
+    <div class="metric"><div class="metric-label">Total Expenses</div><div class="metric-value r">₹${fmt(monthExp)}</div></div>
+    <div class="metric"><div class="metric-label">🔌 Acc. Value Sold</div><div class="metric-value">₹${fmt(monthAccVal)}</div></div>
+    <div class="metric"><div class="metric-label">🔧 Repair Total</div><div class="metric-value">₹${fmt(monthRepVal)}</div></div>
   </div>
-  ${isOwner()?`<div class="card" style="margin-top:12px"><div class="card-title">⚖️ Set Adjustment</div>
-    <div class="field"><label>Amount (₹, use negative for short)</label><input type="number" id="adj_val" placeholder="0" value="${adj}"></div>
+  <div class="section-header">Balances</div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">💵 Cash</div><div class="metric-value">₹${fmt(cashBal)}</div></div>
+    <div class="metric"><div class="metric-label">📲 UPI Total</div><div class="metric-value">₹${fmt(upiTotal)}</div></div>
+    <div class="metric"><div class="metric-label">🏦 Bank Total</div><div class="metric-value">₹${fmt(bankTotal)}</div></div>
+    <div class="metric"><div class="metric-label">⚠️ Outstanding</div><div class="metric-value r">₹${fmt(totalOutstanding)}</div></div>
+  </div>
+  ${isOwner()?`<div class="card"><div class="card-title">⚖️ Set Adjustment</div>
+    <div class="field"><input type="number" id="adj_val" value="${adj}" placeholder="0 or negative for short"></div>
     <button class="save-btn" onclick="saveAdj(${si})">Save</button></div>`:''}`;
 }
 window.saveAdj=function(si){data.shops[si].adjustment=Number(document.getElementById('adj_val')?.value||0);save();toast('Saved!');renderDashboard();};
