@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_2.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop Manager</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0ede8;min-height:100vh;color:#1a1a1a}
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(160deg,#1a7a4a 0%,#0d4a2e 100%)}
+.login-logo{font-size:36px;margin-bottom:8px}
+.login-title{color:#fff;font-size:22px;font-weight:800;margin-bottom:4px}
+.login-sub{color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:32px}
+.login-card{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.role-tabs{display:flex;gap:8px;margin-bottom:20px}
+.role-tab{flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;border-radius:10px;cursor:pointer;background:#f5f5f0;color:#555;transition:all 0.2s}
+.role-tab.active{background:#1a7a4a;color:#fff}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.field select,.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=tel]{width:100%;padding:11px 14px;border:1.5px solid #e8e8e8;border-radius:12px;font-size:14px;background:#fafaf8;outline:none;transition:border-color 0.2s}
+.field select:focus,.field input:focus{border-color:#1a7a4a}
+.login-btn{width:100%;padding:14px;background:#1a7a4a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.error-msg{color:#c0392b;font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+#app{display:none;max-width:480px;margin:0 auto;padding-bottom:80px}
+.top-bar{background:#1a7a4a;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
+.top-bar-title{font-size:15px;font-weight:800}
+.top-bar-sub{font-size:11px;opacity:0.8}
+.logout-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #e8e8e4;display:flex;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.08)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 2px 10px;cursor:pointer;border:none;background:none;color:#999;font-size:9px;font-weight:600;transition:color 0.2s;gap:3px}
+.nav-item .icon{font-size:20px;line-height:1}
+.nav-item.active{color:#1a7a4a}
+.page{display:none;padding:12px}
+.page.active{display:block}
+.shop-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.shop-tab{padding:7px 14px;font-size:12px;font-weight:700;border:none;border-radius:20px;cursor:pointer;background:#e8e8e4;color:#666;white-space:nowrap;flex-shrink:0}
+.shop-tab.active{background:#1a7a4a;color:#fff}
+.section-header{font-size:13px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:0.5px;padding:8px 0 6px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.card-title{font-size:13px;font-weight:800;color:#333;margin-bottom:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.save-btn{width:100%;padding:13px;background:#1a7a4a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
+.save-btn.red{background:#c0392b}
+.save-btn.blue{background:#2980b9}
+.entry-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f0ede8}
+.entry-row:last-child{border-bottom:none}
+.entry-main{font-size:14px;font-weight:700;color:#1a1a1a}
+.entry-sub{font-size:11px;color:#888;margin-top:2px}
+.entry-date{font-size:11px;color:#aaa;white-space:nowrap;margin-left:8px;flex-shrink:0}
+.empty{text-align:center;color:#bbb;font-size:13px;padding:24px 0}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.metric{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.metric-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+.metric-value{font-size:18px;font-weight:800;color:#1a1a1a}
+.metric-value.g{color:#1a7a4a}
+.metric-value.r{color:#c0392b}
+.r{color:#c0392b}
+.g{color:#1a7a4a}
+.dealer-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.txn-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f5f5f0}
+.txn-row:last-child{border-bottom:none}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px}
+.badge-dr{background:#fde8e8;color:#c0392b}
+.badge-cr{background:#e8f5ee;color:#1a7a4a}
+.badge-type{background:#e8f0fe;color:#2980b9;font-size:10px;padding:2px 7px;border-radius:8px}
+.sale-total-bar{background:linear-gradient(135deg,#1a7a4a,#0d4a2e);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.sale-total-label{font-size:11px;opacity:0.8}
+.sale-total-amount{font-size:24px;font-weight:800}
+.sub-tabs{display:flex;gap:6px;margin-bottom:12px}
+.sub-tab{flex:1;padding:8px 4px;font-size:12px;font-weight:700;border:none;border-radius:10px;cursor:pointer;background:#f0ede8;color:#666}
+.sub-tab.active{background:#1a7a4a;color:#fff}
+.acct-type-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block}
+.type-dealer{background:#fff3cd;color:#856404}
+.type-staff{background:#d1ecf1;color:#0c5460}
+.type-owner{background:#d4edda;color:#155724}
+.type-franchise{background:#e2d9f3;color:#4a235a}
+.type-customer{background:#fde8e8;color:#c0392b}
+.type-custom{background:#f0ede8;color:#555}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-logo">🏪</div>
+  <div class="login-title">Shivam Group</div>
+  <div class="login-sub">of Smartphones</div>
+  <div class="login-card">
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button>
+      <button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button>
+      <button class="role-tab" onclick="setRole(&#39;staff&#39;)">🧑‍🏭 Staff</button>
+    </div>
+    <div id="shopFieldWrap" class="field" style="display:none">
+      <label>Branch</label>
+      <select id="loginShop">
+        <option value="0">POOJARA</option>
+        <option value="1">RAMDEV</option>
+        <option value="2">SHIVAM (KOSAD)</option>
+        <option value="3">SHIVAM (KHODIYAR)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="text" id="loginPass" placeholder="Enter password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Login →</button>
+    <div class="error-msg" id="loginErr"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="top-bar">
+    <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
+  </div>
+  <div style="position:relative">
+    <div class="page active" id="page_sales"><div class="shop-tabs" id="salesShopTabs"></div><div id="salesContent"></div></div>
+    <div class="page" id="page_expense"><div class="shop-tabs" id="expShopTabs"></div><div id="expContent"></div></div>
+    <div class="page" id="page_balance"><div class="shop-tabs" id="balShopTabs"></div><div id="balContent"></div></div>
+    <div class="page" id="page_accrep"><div class="shop-tabs" id="accShopTabs"></div><div id="accContent"></div></div>
+    <div class="page" id="page_staff"><div class="shop-tabs" id="staffShopTabs"></div><div id="staffContent"></div></div>
+    <div class="page" id="page_transfer"><div id="transferContent"></div></div>
+    <div class="page" id="page_accounts"><div class="shop-tabs" id="acctShopTabs"></div><div id="acctContent"></div></div>
+    <div class="page" id="page_dashboard"><div class="shop-tabs" id="dashShopTabs"></div><div id="dashContent"></div></div>
+  </div>
+  <div class="bottom-nav" id="bottomNav"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const SHOPS=[
+  {name:'POOJARA',  manager:'NIKUNJ',  pass:'poojara123'},
+  {name:'RAMDEV',   manager:'PUNIT',   pass:'ramdev123'},
+  {name:'SHIVAM (KOSAD)',   manager:'KISHAN',  pass:'shivam1123'},
+  {name:'SHIVAM (KHODIYAR)',manager:'RAJVEER', pass:'shivam2123'}
+];
+const OWNER_PASS='owner@123', STAFF_PASS='staff123';
+const ACCT_TYPES=['Dealer','Franchise','Staff','Owner','Customer','Custom'];
+const SK='shopapp_v8';
+
+let session=null, activePage='sales';
+let activeShops={sales:0,expense:0,balance:0,accrep:0,staff:0,accounts:0,dashboard:0};
+
+// ── DATA MODEL ────────────────────────────────────────────────────────────────
+const defaultShop=()=>({
+  entries:[],        // sales entries
+  expenses:[],
+  accessories:[],
+  repairing:[],
+  recharge:[],
+  expTags:[],
+  brandTags:[],
+  balanceAccounts:{
+    cash:{balance:0,entries:[]},
+    upi:[],
+    bank:[]
+  },
+  adjustment:0
+});
+let data={
+  shops:[defaultShop(),defaultShop(),defaultShop(),defaultShop()],
+  staff:[[],[],[],[]],
+  transfers:[],
+  accounts:[],      // global account list [{id,name,type,phone,shopIdx,notes}]
+  ledger:[]         // [{id,accountId,date,type:'dr'|'cr',amount,note,source,shopIdx}]
+};
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
+function save(){localStorage.setItem(SK,JSON.stringify(data));}
+function load(){
+  try{
+    const raw=localStorage.getItem(SK);
+    if(raw){const d=JSON.parse(raw);deepMerge(data,d);}
+    else{
+      // migrate v7
+      const old=localStorage.getItem('shopapp_v7')||localStorage.getItem('shopapp_v6');
+      if(old){
+        const od=JSON.parse(old);
+        if(od.shops)od.shops.forEach((s,i)=>{if(data.shops[i])Object.assign(data.shops[i],s);});
+        if(od.staff)data.staff=od.staff;
+        if(od.transfers)data.transfers=od.transfers;
+        // migrate dealers to accounts
+        if(od.dealerAccounts){od.dealerAccounts.forEach((list,si)=>{(list||[]).forEach(d=>{data.accounts.push({id:uid(),name:d.name,type:'Dealer',phone:d.phone||'',shopIdx:si,notes:''});});});}
+        if(od.ledgerTxns){od.ledgerTxns.forEach((list,si)=>{(list||[]).forEach(t=>{const acct=data.accounts.find(a=>a.name===t.dealer&&a.shopIdx===si);if(acct)data.ledger.push({id:uid(),accountId:acct.id,date:t.date,type:t.type,amount:t.amount,note:t.note||'',source:t.source||'migrated',shopIdx:si});});});}
+      }
+    }
+  }catch(e){console.warn('Load error',e);}
+  // ensure structure
+  while(data.shops.length<4)data.shops.push(defaultShop());
+  while(data.staff.length<4)data.staff.push([]);
+  data.shops.forEach(s=>{
+    if(!s.balanceAccounts)s.balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
+    if(!s.balanceAccounts.cash)s.balanceAccounts.cash={balance:0,entries:[]};
+    if(!s.balanceAccounts.upi)s.balanceAccounts.upi=[];
+    if(!s.balanceAccounts.bank)s.balanceAccounts.bank=[];
+    if(!s.accessories)s.accessories=[];
+    if(!s.repairing)s.repairing=[];
+    if(!s.recharge)s.recharge=[];
+    if(!s.expTags)s.expTags=[];
+    if(!s.brandTags)s.brandTags=[];
+    if(!s.entries)s.entries=[];
+    if(!s.expenses)s.expenses=[];
+  });
+  if(!data.accounts)data.accounts=[];
+  if(!data.ledger)data.ledger=[];
+  if(!data.transfers)data.transfers=[];
+}
+function deepMerge(target,source){
+  Object.keys(source).forEach(k=>{
+    if(source[k]&&typeof source[k]==='object'&&!Array.isArray(source[k])&&target[k]&&typeof target[k]==='object'&&!Array.isArray(target[k])){deepMerge(target[k],source[k]);}
+    else{target[k]=source[k];}
+  });
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function fmt(n){return Number(n||0).toLocaleString('en-IN');}
+function fmtDate(d){if(!d)return '';const p=d.split('-');if(p.length<3)return d;return `${p[2]}/${p[1]}/${p[2].length===4?p[0].slice(2):p[0]}`;}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2000);}
+function isOwner(){return session&&session.role==='owner';}
+function isManager(){return session&&(session.role==='owner'||session.role==='manager');}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+let _loginRole='owner';
+function setRole(r){
+  _loginRole=r;
+  document.querySelectorAll('.role-tab').forEach((b,i)=>b.classList.toggle('active',['owner','manager','staff'][i]===r));
+  document.getElementById('shopFieldWrap').style.display=r==='owner'?'none':'block';
+}
+function doLogin(){
+  const pass=document.getElementById('loginPass').value.trim();
+  const shopIdx=parseInt(document.getElementById('loginShop').value||'0');
+  let ok=false,sess={};
+  if(_loginRole==='owner'&&pass===OWNER_PASS){ok=true;sess={role:'owner',shopIdx:null};}
+  else if(_loginRole==='manager'){const s=SHOPS[shopIdx];if(pass===s.pass){ok=true;sess={role:'manager',shopIdx};}}
+  else if(_loginRole==='staff'&&pass===STAFF_PASS){ok=true;sess={role:'staff',shopIdx};}
+  if(ok){
+    session=sess;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('loginErr').textContent='';
+    document.getElementById('loginPass').value='';
+    if(sess.shopIdx!==null)Object.keys(activeShops).forEach(k=>activeShops[k]=sess.shopIdx);
+    buildNav();switchPage('sales');
+    document.getElementById('barTitle').textContent='🏪 '+( sess.shopIdx!==null?SHOPS[sess.shopIdx].name:'All Branches');
+    document.getElementById('barSub').textContent=sess.role==='owner'?'Owner':sess.role==='manager'?'Manager — '+SHOPS[sess.shopIdx].manager:'Staff';
+  }else{document.getElementById('loginErr').textContent='Incorrect password. Try again.';}
+}
+function doLogout(){session=null;document.getElementById('loginScreen').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('loginPass').value='';}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+const NAV_ITEMS=[
+  {id:'sales',icon:'📱',label:'Sales'},
+  {id:'expense',icon:'💸',label:'Expense'},
+  {id:'balance',icon:'💰',label:'Balance'},
+  {id:'accrep',icon:'🔌',label:'Acc/Rep'},
+  {id:'staff',icon:'👤',label:'Staff'},
+  {id:'transfer',icon:'🔄',label:'Transfer'},
+  {id:'accounts',icon:'📒',label:'Accounts'},
+  {id:'dashboard',icon:'📊',label:'Dashboard'},
+];
+function buildNav(){
+  document.getElementById('bottomNav').innerHTML=NAV_ITEMS.map(n=>`<button class="nav-item${activePage===n.id?' active':''}" onclick="switchPage('${n.id}')"><span class="icon">${n.icon}</span>${n.label}</button>`).join('');
+}
+function switchPage(p){
+  activePage=p;
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page_'+p)?.classList.add('active');
+  buildNav();
+  renderPage(p);
+}
+function renderPage(p){
+  const map={sales:renderSales,expense:renderExpense,balance:renderBalance,accrep:renderAccRep,staff:renderStaff,transfer:renderTransfer,accounts:renderAccounts,dashboard:renderDashboard};
+  if(map[p])map[p]();
+}
+
+// ── SHOP TABS ─────────────────────────────────────────────────────────────────
+function renderShopTabs(containerId,key){
+  const c=document.getElementById(containerId);if(!c)return;
+  if(!isOwner()){c.innerHTML='';return;}
+  c.innerHTML=SHOPS.map((s,i)=>`<button class="shop-tab${activeShops[key]===i?' active':''}" onclick="activeShops['${key}']=${i};renderPage('${key}')">${s.name}</button>`).join('');
+}
+
+// ── ACCOUNT HELPERS ───────────────────────────────────────────────────────────
+function getAccounts(shopIdx,type){
+  return data.accounts.filter(a=>a.shopIdx===shopIdx&&(!type||a.type===type));
+}
+function accountOpts(shopIdx,placeholder='— Select Account —'){
+  const accts=data.accounts.filter(a=>a.shopIdx===shopIdx);
+  return `<option value="">${placeholder}</option>`+accts.map(a=>`<option value="${a.id}">[${a.type}] ${a.name}</option>`).join('');
+}
+function addLedgerEntry(accountId,date,type,amount,note,source,shopIdx){
+  if(!accountId||!amount)return;
+  data.ledger.push({id:uid(),accountId,date:date||todayISO(),type,amount:Number(amount),note:note||'',source:source||'manual',shopIdx});
+}
+
+// ── BALANCE HELPERS ───────────────────────────────────────────────────────────
+function getBalOpts(shopIdx){
+  const shop=data.shops[shopIdx];
+  const cash=`<option value="cash">💵 Cash</option>`;
+  const upi=(shop.balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">📲 ${u.name}</option>`).join('');
+  const bank=(shop.balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">🏦 ${b.name}</option>`).join('');
+  return cash+upi+bank;
+}
+function debitBalance(shopIdx,balKey,amount){
+  const shop=data.shops[shopIdx];
+  if(balKey==='cash'){shop.balanceAccounts.cash.balance=Number(shop.balanceAccounts.cash.balance||0)-Number(amount);}
+  else if(balKey.startsWith('upi_')){const i=parseInt(balKey.slice(4));if(shop.balanceAccounts.upi[i])shop.balanceAccounts.upi[i].balance=Number(shop.balanceAccounts.upi[i].balance||0)-Number(amount);}
+  else if(balKey.startsWith('bank_')){const i=parseInt(balKey.slice(5));if(shop.balanceAccounts.bank[i])shop.balanceAccounts.bank[i].balance=Number(shop.balanceAccounts.bank[i].balance||0)-Number(amount);}
+}
+function creditBalance(shopIdx,balKey,amount){
+  const shop=data.shops[shopIdx];
+  if(balKey==='cash'){shop.balanceAccounts.cash.balance=Number(shop.balanceAccounts.cash.balance||0)+Number(amount);}
+  else if(balKey.startsWith('upi_')){const i=parseInt(balKey.slice(4));if(shop.balanceAccounts.upi[i])shop.balanceAccounts.upi[i].balance=Number(shop.balanceAccounts.upi[i].balance||0)+Number(amount);}
+  else if(balKey.startsWith('bank_')){const i=parseInt(balKey.slice(5));if(shop.balanceAccounts.bank[i])shop.balanceAccounts.bank[i].balance=Number(shop.balanceAccounts.bank[i].balance||0)+Number(amount);}
+}
+function balLabel(shopIdx,balKey){
+  const shop=data.shops[shopIdx];
+  if(balKey==='cash')return 'Cash';
+  if(balKey.startsWith('upi_')){const i=parseInt(balKey.slice(4));return shop.balanceAccounts.upi[i]?.name||'UPI';}
+  if(balKey.startsWith('bank_')){const i=parseInt(balKey.slice(5));return shop.balanceAccounts.bank[i]?.name||'Bank';}
+  return balKey;
+}
+
+// ── SALES ─────────────────────────────────────────────────────────────────────
+function renderSales(){
+  renderShopTabs('salesShopTabs','sales');
+  const si=activeShops.sales;
+  const tab=window._salesTab||'entry';
+  const tabs=['entry','udhari','recharge','brands'].map(t=>`<button class="sub-tab${tab===t?' active':''}" onclick="window._salesTab='${t}';renderSales()">${{entry:'📱 Sale',udhari:'🔄 Udhari/Baki',recharge:'📶 Recharge',brands:'🏷 Brands'}[t]}</button>`).join('');
+  let body='';
+  if(tab==='entry'){
+    const entries=(data.shops[si].entries||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+    const rows=entries.map((e,i)=>`<div class="entry-row">
+      <div><div class="entry-main">${e.brand||''} ${e.model||''} <span style="font-size:11px;color:#888">${e.category||''}</span></div>
+      <div class="entry-sub">
+        ${e.cash?`💵₹${fmt(e.cash)} `:''}${e.upi?`📲₹${fmt(e.upi)} `:''}
+        ${e.exchange?`🔁₹${fmt(e.exchange)} `:''}
+        ${Number(e.udhari||0)>0?`<span class="r">Udhari ₹${fmt(e.udhari)}</span> `:''}
+        ${Number(e.bakijama||0)>0?`<span class="g">BakiJama ₹${fmt(e.bakijama)}</span>`:''}
+        ${e.udhariAccount?`• ${acctName(e.udhariAccount)}`:''}</div></div>
+      <div style="text-align:right"><div class="entry-main g">₹${fmt(e.amount)}</div><div class="entry-date">${fmtDate(e.date)}</div></div></div>`).join('');
+    // sale form
+    body=`
+    <div id="saleTotal" class="sale-total-bar"><div><div class="sale-total-label">Sale Amount</div><div class="sale-total-amount">₹<span id="saleTotalVal">0</span></div></div><div style="font-size:11px;opacity:0.8">Auto calculated</div></div>
+    <div class="card"><div class="card-title">➕ New Sale Entry</div>
+      <div class="two-col">
+        <div class="field"><label>Category</label><select id="s_cat" onchange="togglePhoneFields()"><option value="phone">📱 Phone</option><option value="accessory">🔌 Accessory</option><option value="other">📦 Other</option></select></div>
+        <div class="field"><label>Date</label><input type="date" id="s_date" value="${todayISO()}"></div>
+      </div>
+      <div id="phoneFields">
+        <div class="two-col">
+          <div class="field"><label>Brand</label><input type="text" id="s_brand" placeholder="Samsung"></div>
+          <div class="field"><label>Model</label><input type="text" id="s_model" placeholder="A55"></div>
+        </div>
+      </div>
+      <div class="field"><label>Item / Note</label><input type="text" id="s_item" placeholder="Description"></div>
+      <div class="two-col">
+        <div class="field"><label>Cash (₹)</label><input type="number" id="s_cash" placeholder="0" oninput="calcSaleTotal()"></div>
+        <div class="field"><label>UPI (₹)</label><input type="number" id="s_upi" placeholder="0" oninput="calcSaleTotal()"></div>
+      </div>
+      <div class="field"><label>Exchange (₹, deducted)</label><input type="number" id="s_exch" placeholder="0" oninput="calcSaleTotal()"></div>
+      <div style="background:#fef9f0;border-radius:12px;padding:12px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">UDHARI / BAKI JAMA</div>
+        <div class="two-col">
+          <div class="field"><label>Udhari (₹ owed by customer)</label><input type="number" id="s_udhari" placeholder="0" oninput="calcSaleTotal()"></div>
+          <div class="field"><label>Baki Jama (₹ received back)</label><input type="number" id="s_bakijama" placeholder="0" oninput="calcSaleTotal()"></div>
+        </div>
+        <div class="field"><label>Linked Account (for ledger)</label><select id="s_udhAcct">${accountOpts(si,'— No Account —')}</select></div>
+        <div class="field"><label>Received From (Balance account)</label><select id="s_bakiFrom"><option value="">— Select if Baki Jama received —</option>${getBalOpts(si)}</select></div>
+      </div>
+      <button class="save-btn" onclick="addSaleEntry(${si})">Save Sale</button>
+    </div>
+    <div class="card"><div class="card-title">📋 Recent Sales</div>${rows||'<div class="empty">No sales yet</div>'}</div>`;
+  } else if(tab==='udhari'){
+    // Combined udhari + baki jama list
+    const entries=(data.shops[si].entries||[]).filter(e=>Number(e.udhari||0)>0||Number(e.bakijama||0)>0).sort((a,b)=>b.date.localeCompare(a.date));
+    const byAcct={};
+    entries.forEach(e=>{const k=e.udhariAccount||'__none__';if(!byAcct[k])byAcct[k]=[];byAcct[k].push(e);});
+    const cards=Object.entries(byAcct).map(([aid,ents])=>{
+      const acct=aid==='__none__'?null:data.accounts.find(a=>a.id===aid);
+      const totalUdhari=ents.reduce((s,e)=>s+Number(e.udhari||0),0);
+      const totalBaki=ents.reduce((s,e)=>s+Number(e.bakijama||0),0);
+      const net=totalUdhari-totalBaki;
+      const rows=ents.map(e=>`<div class="txn-row">
+        <div><div class="entry-main">${e.brand||e.item||'Sale'} <span class="badge ${Number(e.udhari||0)>0?'badge-dr':'badge-cr'}">${Number(e.udhari||0)>0?'Udhari':'BakiJama'}</span></div>
+        <div class="entry-sub">${Number(e.udhari||0)>0?`-₹${fmt(e.udhari)}`:''} ${Number(e.bakijama||0)>0?`+₹${fmt(e.bakijama)}`:''}</div></div>
+        <span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div><div style="font-size:14px;font-weight:700">${acct?acct.name:'No Account'}</div><div style="font-size:11px;color:#888">Udhari: ₹${fmt(totalUdhari)} | Received: ₹${fmt(totalBaki)}</div></div>
+        <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${net>0?'#c0392b':'#1a7a4a'}">₹${fmt(Math.abs(net))}</div><div style="font-size:10px;color:#888">${net>0?'Outstanding':'Clear'}</div></div></div>
+        ${rows}</div>`;
+    }).join('');
+    body=`<div class="section-header">🔄 Udhari & Baki Jama</div>${cards||'<div class="card"><div class="empty">No udhari entries</div></div>'}`;
+  } else if(tab==='recharge'){
+    const recharges=(data.shops[si].recharge||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+    const rows=recharges.map(r=>`<div class="entry-row"><div><div class="entry-main">${r.name}</div><div class="entry-sub">${r.plan||''} | ${r.type||''}</div></div><div style="text-align:right"><div class="entry-main">₹${fmt(r.amount)}</div><div class="entry-date">${fmtDate(r.date)}</div></div></div>`).join('');
+    body=`<div class="card"><div class="card-title">➕ Add Recharge</div>
+      <div class="two-col"><div class="field"><label>Customer</label><input type="text" id="rch_name" placeholder="Name"></div><div class="field"><label>Amount (₹)</label><input type="number" id="rch_amt" placeholder="0"></div></div>
+      <div class="two-col"><div class="field"><label>Plan</label><input type="text" id="rch_plan" placeholder="e.g. 3GB/day"></div><div class="field"><label>Type</label><select id="rch_type"><option>Jio</option><option>Airtel</option><option>Vi</option><option>BSNL</option><option>Other</option></select></div></div>
+      <button class="save-btn" onclick="addRecharge(${si})">Save</button></div>
+    <div class="card"><div class="card-title">📶 Recent Recharges</div>${rows||'<div class="empty">No recharges</div>'}</div>`;
+  } else if(tab==='brands'){
+    const tags=data.shops[si].brandTags||[];
+    const tagRows=tags.map((t,i)=>`<span style="background:#e8f5ee;color:#1a7a4a;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;cursor:pointer" onclick="delBrandTag(${si},${i})">${t} ✕</span>`).join(' ');
+    body=`<div class="card"><div class="card-title">🏷 Brand Tags</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">${tagRows||'<span style="color:#bbb;font-size:13px">No tags</span>'}</div>
+      <div style="display:flex;gap:8px"><input type="text" id="brandTagInput" placeholder="Add brand tag" style="flex:1;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addBrandTag(${si})" style="padding:9px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer">Add</button></div></div>`;
+  }
+  document.getElementById('salesContent').innerHTML=`<div class="sub-tabs">${tabs}</div>${body}`;
+}
+function acctName(id){const a=data.accounts.find(x=>x.id===id);return a?a.name:'';}
+function calcSaleTotal(){
+  const cash=Number(document.getElementById('s_cash')?.value||0);
+  const upi=Number(document.getElementById('s_upi')?.value||0);
+  const exch=Number(document.getElementById('s_exch')?.value||0);
+  const udhari=Number(document.getElementById('s_udhari')?.value||0);
+  const baki=Number(document.getElementById('s_bakijama')?.value||0);
+  const total=cash+upi-exch+baki-udhari;
+  const el=document.getElementById('saleTotalVal');
+  if(el)el.textContent=fmt(Math.max(0,total));
+}
+function togglePhoneFields(){
+  const cat=document.getElementById('s_cat')?.value;
+  const pf=document.getElementById('phoneFields');
+  if(pf)pf.style.display=cat==='phone'?'block':'none';
+}
+window.addSaleEntry=function(si){
+  const cash=Number(document.getElementById('s_cash')?.value||0);
+  const upi=Number(document.getElementById('s_upi')?.value||0);
+  const exch=Number(document.getElementById('s_exch')?.value||0);
+  const udhari=Number(document.getElementById('s_udhari')?.value||0);
+  const baki=Number(document.getElementById('s_bakijama')?.value||0);
+  const amount=cash+upi-exch+baki-udhari;
+  const udhAcct=document.getElementById('s_udhAcct')?.value||'';
+  const bakiFrom=document.getElementById('s_bakiFrom')?.value||'';
+  const date=document.getElementById('s_date')?.value||todayISO();
+  if(!cash&&!upi&&!udhari&&!baki){toast('Enter at least one amount');return;}
+  const entry={id:uid(),date,category:document.getElementById('s_cat')?.value||'phone',brand:document.getElementById('s_brand')?.value?.trim()||'',model:document.getElementById('s_model')?.value?.trim()||'',item:document.getElementById('s_item')?.value?.trim()||'',cash,upi,exchange:exch,udhari,bakijama:baki,amount,udhariAccount:udhAcct};
+  if(!data.shops[si].entries)data.shops[si].entries=[];
+  data.shops[si].entries.push(entry);
+  // Cash effects
+  if(cash>0)creditBalance(si,'cash',cash);
+  if(upi>0){const def=data.shops[si].balanceAccounts.upi[0];if(def)creditBalance(si,'upi_0',upi);else creditBalance(si,'cash',upi);}
+  // Udhari → DR on account (customer owes us)
+  if(udhari>0&&udhAcct)addLedgerEntry(udhAcct,date,'dr',udhari,`Udhari - ${entry.brand||entry.item||'Sale'}`,'sale',si);
+  // Baki Jama → CR on account (received back), credit balance
+  if(baki>0){
+    if(udhAcct)addLedgerEntry(udhAcct,date,'cr',baki,`Baki Jama received`,'sale',si);
+    if(bakiFrom)creditBalance(si,bakiFrom,baki);
+  }
+  save();toast('Sale saved!');
+  document.getElementById('s_cash').value='';document.getElementById('s_upi').value='';
+  document.getElementById('s_exch').value='';document.getElementById('s_udhari').value='';
+  document.getElementById('s_bakijama').value='';document.getElementById('s_item').value='';
+  calcSaleTotal();renderSales();
+};
+window.addRecharge=function(si){
+  const name=document.getElementById('rch_name')?.value?.trim();if(!name){toast('Enter name');return;}
+  if(!data.shops[si].recharge)data.shops[si].recharge=[];
+  data.shops[si].recharge.push({date:todayISO(),name,amount:Number(document.getElementById('rch_amt')?.value||0),plan:document.getElementById('rch_plan')?.value?.trim()||'',type:document.getElementById('rch_type')?.value||'Jio'});
+  save();toast('Saved!');renderSales();
+};
+window.addBrandTag=function(si){const v=document.getElementById('brandTagInput')?.value?.trim();if(!v)return;if(!data.shops[si].brandTags)data.shops[si].brandTags=[];data.shops[si].brandTags.push(v);save();renderSales();};
+window.delBrandTag=function(si,i){data.shops[si].brandTags.splice(i,1);save();renderSales();};
+
+// ── EXPENSE ───────────────────────────────────────────────────────────────────
+function renderExpense(){
+  renderShopTabs('expShopTabs','expense');
+  const si=activeShops.expense;
+  const expenses=(data.shops[si].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+  const tags=data.shops[si].expTags||[];
+  const tagButtons=tags.map(t=>`<button onclick="document.getElementById('exp_note').value='${t}'" style="padding:5px 10px;background:#f0ede8;border:none;border-radius:8px;font-size:12px;cursor:pointer">${t}</button>`).join('');
+  const rows=expenses.map(e=>`<div class="entry-row">
+    <div><div class="entry-main">${e.note||'Expense'} ${e.accountId?`<span class="badge badge-cr">${acctName(e.accountId)}</span>`:''}</div>
+    <div class="entry-sub">${balLabel(si,e.paidFrom||'cash')} ${e.accountId?'→ Ledger':''}</div></div>
+    <div style="text-align:right"><div class="entry-main r">₹${fmt(e.amount)}</div><div class="entry-date">${fmtDate(e.date)}</div></div></div>`).join('');
+  document.getElementById('expContent').innerHTML=`
+  <div class="card"><div class="card-title">➕ Add Expense</div>
+    <div class="two-col">
+      <div class="field"><label>Amount (₹)</label><input type="number" id="exp_amt" placeholder="0"></div>
+      <div class="field"><label>Date</label><input type="date" id="exp_date" value="${todayISO()}"></div>
+    </div>
+    <div class="field"><label>Note / Description</label><input type="text" id="exp_note" placeholder="e.g. Light bill, Salary..."></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagButtons}</div>
+    <div class="field"><label>Paid From</label><select id="exp_from">${getBalOpts(si)}</select></div>
+    <div class="field"><label>Account (optional — for salary, dealer payment etc.)</label><select id="exp_acct"><option value="">— Direct Expense (no ledger) —</option>${accountOpts(si)}</select></div>
+    <button class="save-btn" onclick="addExpense(${si})">Save Expense</button>
+  </div>
+  <div class="card"><div class="card-title">🏷 Quick Tags</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagButtons||'<span style="color:#bbb;font-size:12px">No tags</span>'}</div>
+    <div style="display:flex;gap:8px"><input type="text" id="expTagInput" placeholder="Add tag" style="flex:1;padding:8px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addExpTag(${si})" style="padding:8px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer">Add</button></div>
+  </div>
+  <div class="card"><div class="card-title">📋 Recent Expenses</div>${rows||'<div class="empty">No expenses</div>'}</div>`;
+}
+window.addExpense=function(si){
+  const amt=Number(document.getElementById('exp_amt')?.value||0);
+  if(!amt){toast('Enter amount');return;}
+  const note=document.getElementById('exp_note')?.value?.trim()||'';
+  const paidFrom=document.getElementById('exp_from')?.value||'cash';
+  const accountId=document.getElementById('exp_acct')?.value||'';
+  const date=document.getElementById('exp_date')?.value||todayISO();
+  if(!data.shops[si].expenses)data.shops[si].expenses=[];
+  data.shops[si].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId});
+  // debit balance
+  debitBalance(si,paidFrom,amt);
+  // ledger CR entry (we paid them)
+  if(accountId)addLedgerEntry(accountId,date,'cr',amt,note||'Payment','expense',si);
+  save();toast('Expense saved!');
+  document.getElementById('exp_amt').value='';document.getElementById('exp_note').value='';
+  renderExpense();
+};
+window.addExpTag=function(si){const v=document.getElementById('expTagInput')?.value?.trim();if(!v)return;if(!data.shops[si].expTags)data.shops[si].expTags=[];data.shops[si].expTags.push(v);save();renderExpense();};
+
+// ── BALANCE ───────────────────────────────────────────────────────────────────
+function renderBalance(){
+  renderShopTabs('balShopTabs','balance');
+  const si=activeShops.balance;
+  const shop=data.shops[si];
+  const bal=shop.balanceAccounts;
+  const subTab=window._balTab||'cash';
+  const subTabs=['cash','upi','bank'].map(t=>`<button class="sub-tab${subTab===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank'}[t]}</button>`).join('');
+  let body='';
+  if(subTab==='cash'){
+    const entries=(bal.cash.entries||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+    const rows=entries.map(e=>`<div class="entry-row"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}">${Number(e.amount)>=0?'+':''} ₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+    body=`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Cash Balance</div><div class="metric-value g">₹${fmt(bal.cash.balance)}</div></div></div>
+    <div class="card"><div class="card-title">➕ Manual Entry</div>
+      <div class="two-col"><div class="field"><label>Amount (+ in / - out)</label><input type="number" id="cash_amt" placeholder="e.g. 500 or -200"></div><div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="Reason"></div></div>
+      <button class="save-btn" onclick="addCashEntry(${si})">Save</button></div>
+    <div class="card"><div class="card-title">📋 Cash Entries</div>${rows||'<div class="empty">No entries</div>'}</div>`;
+  } else if(subTab==='upi'){
+    const accounts=bal.upi||[];
+    const acctCards=accounts.map((u,i)=>{
+      const entries=(u.entries||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+      const rows=entries.map(e=>`<div class="txn-row"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}">${Number(e.amount)>=0?'+':''} ₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-weight:700">${u.name}</div><div style="font-size:11px;color:#888">${u.number||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(u.balance)}</div></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_amt_${i}" placeholder="Amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="upi_note_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addUpiEntry(${si},${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">Add</button></div>
+      ${rows}</div>`;
+    }).join('');
+    body=`${acctCards||'<div class="card"><div class="empty">No UPI accounts</div></div>'}
+    <div class="card"><div class="card-title">➕ Add UPI Account</div>
+      <div class="two-col"><div class="field"><label>Name</label><input type="text" id="upi_name" placeholder="GPay, PhonePe..."></div><div class="field"><label>Number</label><input type="text" id="upi_num" placeholder="Mobile number"></div></div>
+      <div class="field"><label>Opening Balance (₹)</label><input type="number" id="upi_bal" placeholder="0"></div>
+      <button class="save-btn" onclick="addUpiAcct(${si})">Add Account</button></div>`;
+  } else if(subTab==='bank'){
+    const accounts=bal.bank||[];
+    const acctCards=accounts.map((b,i)=>{
+      const entries=(b.entries||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+      const rows=entries.map(e=>`<div class="txn-row"><div><div class="entry-main ${Number(e.amount)>=0?'g':'r'}">${Number(e.amount)>=0?'+':''} ₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><div style="font-weight:700">${b.name}</div><div style="font-size:11px;color:#888">${b.accountNo||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(b.balance)}</div></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_amt_${i}" placeholder="Amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="bank_note_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addBankEntry(${si},${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">Add</button></div>
+      ${rows}</div>`;
+    }).join('');
+    body=`${acctCards||'<div class="card"><div class="empty">No bank accounts</div></div>'}
+    <div class="card"><div class="card-title">➕ Add Bank Account</div>
+      <div class="two-col"><div class="field"><label>Bank Name</label><input type="text" id="bank_name" placeholder="SBI, HDFC..."></div><div class="field"><label>Account No.</label><input type="text" id="bank_accno" placeholder="Last 4 digits"></div></div>
+      <div class="field"><label>Opening Balance (₹)</label><input type="number" id="bank_bal" placeholder="0"></div>
+      <button class="save-btn" onclick="addBankAcct(${si})">Add Account</button></div>`;
+  }
+  document.getElementById('balContent').innerHTML=`<div class="sub-tabs">${subTabs}</div>${body}`;
+}
+window.addCashEntry=function(si){const amt=Number(document.getElementById('cash_amt')?.value||0);if(!amt){toast('Enter amount');return;}const shop=data.shops[si];shop.balanceAccounts.cash.balance=Number(shop.balanceAccounts.cash.balance||0)+amt;shop.balanceAccounts.cash.entries.push({date:todayISO(),amount:amt,note:document.getElementById('cash_note')?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addUpiEntry=function(si,i){const amt=Number(document.getElementById(`upi_amt_${i}`)?.value||0);if(!amt){toast('Enter amount');return;}const u=data.shops[si].balanceAccounts.upi[i];u.balance=Number(u.balance||0)+amt;if(!u.entries)u.entries=[];u.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`upi_note_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addBankEntry=function(si,i){const amt=Number(document.getElementById(`bank_amt_${i}`)?.value||0);if(!amt){toast('Enter amount');return;}const b=data.shops[si].balanceAccounts.bank[i];b.balance=Number(b.balance||0)+amt;if(!b.entries)b.entries=[];b.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`bank_note_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:Number(document.getElementById('upi_bal')?.value||0),entries:[]});save();toast('Added!');renderBalance();};
+window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_accno')?.value?.trim()||'',balance:Number(document.getElementById('bank_bal')?.value||0),entries:[]});save();toast('Added!');renderBalance();};
+
+// ── ACC/REP ───────────────────────────────────────────────────────────────────
+function renderAccRep(){
+  renderShopTabs('accShopTabs','accrep');
+  const si=activeShops.accrep;
+  const shop=data.shops[si];
+  const subTab=window._accTab||'acc';
+  const subTabs=['acc','rep'].map(t=>`<button class="sub-tab${subTab===t?' active':''}" onclick="window._accTab='${t}';renderAccRep()">${{acc:'🔌 Accessories',rep:'🔧 Repairing'}[t]}</button>`).join('');
+  let body='';
+  if(subTab==='acc'){
+    const acc=shop.accessories||[];
+    function calcRem(a){return (Number(a.qty||0))-(Number(a.sold||0));}
+    const rows=acc.map((a,i)=>`<div class="entry-row">
+      <div><div class="entry-main">${a.name}</div><div class="entry-sub">Qty:${a.qty} Sold:${a.sold||0} Rem:${calcRem(a)} ₹${fmt(a.price||0)}</div></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="number" id="acc_sell_${i}" placeholder="Sell" style="width:55px;padding:5px 7px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:12px">
+        <button onclick="sellAcc(${si},${i})" style="font-size:11px;background:#1a7a4a;color:#fff;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">Sell</button>
+        ${isOwner()?`<button onclick="delAcc(${si},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:13px">✕</button>`:''}</div></div>`).join('');
+    body=`<div class="card"><div class="card-title">➕ Add Accessory</div>
+      <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acc_name" placeholder="Earphones"></div><div class="field"><label>Qty</label><input type="number" id="acc_qty" placeholder="0"></div></div>
+      <div class="field"><label>Price (₹)</label><input type="number" id="acc_price" placeholder="0"></div>
+      <button class="save-btn" onclick="addAcc(${si})">Add</button></div>
+    <div class="card"><div class="card-title">📦 Stock</div>${rows||'<div class="empty">No accessories</div>'}</div>`;
+  } else {
+    const rep=shop.repairing||[];
+    const rows=rep.map((r,i)=>`<div class="entry-row">
+      <div><div class="entry-main">${r.note||'Job'} <span style="font-size:11px;color:#888">${r.status||'Pending'}</span></div><div class="entry-sub">₹${fmt(r.amount||0)} | ${fmtDate(r.date)}</div></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button onclick="toggleRep(${si},${i})" style="font-size:11px;background:#6c3483;color:#fff;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">Toggle</button>
+        ${isOwner()?`<button onclick="delRep(${si},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:13px">✕</button>`:''}</div></div>`).join('');
+    body=`<div class="card"><div class="card-title">➕ Add Repair Job</div>
+      <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="rep_amt" placeholder="0"></div><div class="field"><label>Date</label><input type="date" id="rep_date" value="${todayISO()}"></div></div>
+      <div class="field"><label>Note</label><input type="text" id="rep_note" placeholder="iPhone 12 screen, issue..."></div>
+      <button class="save-btn" onclick="addRep(${si})">Add Job</button></div>
+    <div class="card"><div class="card-title">🔧 Jobs</div>${rows||'<div class="empty">No jobs</div>'}</div>`;
+  }
+  document.getElementById('accContent').innerHTML=`<div class="sub-tabs">${subTabs}</div>${body}`;
+}
+window.addAcc=function(si){const name=document.getElementById('acc_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.shops[si].accessories)data.shops[si].accessories=[];data.shops[si].accessories.push({name,qty:Number(document.getElementById('acc_qty')?.value||0),price:Number(document.getElementById('acc_price')?.value||0),sold:0});save();toast('Added!');renderAccRep();};
+window.sellAcc=function(si,i){const q=Number(document.getElementById(`acc_sell_${i}`)?.value||0);if(!q)return;const a=data.shops[si].accessories[i];a.sold=(Number(a.sold)||0)+q;if(a.sold>a.qty){toast('Exceeds stock!');a.sold-=q;return;}save();toast('Sold!');renderAccRep();};
+window.delAcc=function(si,i){if(confirm('Remove?')){data.shops[si].accessories.splice(i,1);save();renderAccRep();}};
+window.addRep=function(si){if(!data.shops[si].repairing)data.shops[si].repairing=[];data.shops[si].repairing.push({date:document.getElementById('rep_date')?.value||todayISO(),amount:Number(document.getElementById('rep_amt')?.value||0),note:document.getElementById('rep_note')?.value?.trim()||'',status:'Pending'});save();toast('Added!');renderAccRep();};
+window.toggleRep=function(si,i){const r=data.shops[si].repairing[i];r.status=r.status==='Done'?'Pending':'Done';save();renderAccRep();};
+window.delRep=function(si,i){if(confirm('Remove?')){data.shops[si].repairing.splice(i,1);save();renderAccRep();}};
+
+// ── STAFF ─────────────────────────────────────────────────────────────────────
+function renderStaff(){
+  renderShopTabs('staffShopTabs','staff');
+  const si=activeShops.staff;
+  const staffList=data.staff[si]||[];
+  const rows=staffList.map((s,i)=>`<div class="entry-row">
+    <div><div class="entry-main">${s.name}</div><div class="entry-sub">${s.role||'Staff'} | Leaves: ${(s.leaves||[]).length} | Joined: ${fmtDate(s.joined||'')}</div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="markLeave(${si},${i})" style="font-size:11px;background:#e8f0fe;color:#2980b9;border:none;padding:5px 9px;border-radius:7px;cursor:pointer">+ Leave</button>
+      ${isOwner()?`<button onclick="delStaff(${si},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:13px">✕</button>`:''}</div></div>`).join('');
+  document.getElementById('staffContent').innerHTML=`
+  ${isOwner()?`<div class="card"><div class="card-title">➕ Add Staff</div>
+    <div class="two-col"><div class="field"><label>Name</label><input type="text" id="st_name" placeholder="Name"></div><div class="field"><label>Role</label><input type="text" id="st_role" placeholder="Manager/Cashier"></div></div>
+    <div class="field"><label>Joined</label><input type="date" id="st_joined" value="${todayISO()}"></div>
+    <button class="save-btn" onclick="addStaff(${si})">Add Staff</button></div>`:''}
+  <div class="card"><div class="card-title">👥 Staff — ${SHOPS[si].name}</div>${rows||'<div class="empty">No staff</div>'}</div>
+  <div class="card" style="background:#e8f5ee;border:1px solid #c3e6cb"><div style="font-size:12px;color:#155724;font-weight:600">💡 Salary & advance payments → go to Expense, select staff account</div></div>`;
+}
+window.addStaff=function(si){const name=document.getElementById('st_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.staff[si])data.staff[si]=[];const staffMember={id:uid(),name,role:document.getElementById('st_role')?.value?.trim()||'Staff',joined:document.getElementById('st_joined')?.value||todayISO(),leaves:[]};data.staff[si].push(staffMember);
+// auto-create account for this staff
+const existing=data.accounts.find(a=>a.name===name&&a.type==='Staff'&&a.shopIdx===si);
+if(!existing)data.accounts.push({id:uid(),name,type:'Staff',phone:'',shopIdx:si,notes:'Auto from Staff'});
+save();toast('Added! Account created.');renderStaff();};
+window.delStaff=function(si,i){if(!isOwner())return;if(confirm('Remove staff?')){data.staff[si].splice(i,1);save();renderStaff();}};
+window.markLeave=function(si,i){const s=data.staff[si][i];if(!s.leaves)s.leaves=[];s.leaves.push({date:todayISO()});save();toast('Leave marked!');renderStaff();};
+
+// ── TRANSFER ──────────────────────────────────────────────────────────────────
+function renderTransfer(){
+  const transfers=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const shopOpts=SHOPS.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
+  const rows=transfers.slice(0,20).map(t=>`<div class="entry-row">
+    <div><div class="entry-main">₹${fmt(t.amount)}</div><div class="entry-sub">${SHOPS[t.from].name} → ${SHOPS[t.to].name} | ${t.balType==='cash'?'💵 Cash':'🏦 Bank'} | ${t.goods||''} ${t.note?'| '+t.note:''}</div></div>
+    <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
+  document.getElementById('transferContent').innerHTML=`
+  <div class="section-header">🔄 Inter-Branch Transfer</div>
+  <div class="card"><div class="card-title">➕ New Transfer</div>
+    <div class="two-col">
+      <div class="field"><label>From Branch</label><select id="tr_from">${shopOpts}</select></div>
+      <div class="field"><label>To Branch</label><select id="tr_to">${shopOpts}</select></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Amount (₹)</label><input type="number" id="tr_amt" placeholder="0"></div>
+      <div class="field"><label>Balance Type</label><select id="tr_bal"><option value="cash">💵 Cash</option><option value="bank">🏦 Bank</option></select></div>
+    </div>
+    <div id="tr_bank_sel_wrap" class="field" style="display:none"><label>Which Bank Account</label><select id="tr_bank_idx"></select></div>
+    <div class="field"><label>Goods / Description (optional)</label><input type="text" id="tr_goods" placeholder="What was transferred"></div>
+    <div class="field"><label>Note (optional)</label><input type="text" id="tr_note" placeholder="Any note"></div>
+    <button class="save-btn" onclick="addTransfer()">Save Transfer</button>
+  </div>
+  <div class="card"><div class="card-title">📋 Recent Transfers</div>${rows||'<div class="empty">No transfers yet</div>'}</div>`;
+  document.getElementById('tr_bal').onchange=function(){
+    const isBak=this.value==='bank';
+    document.getElementById('tr_bank_sel_wrap').style.display=isBak?'block':'none';
+    if(isBak){const fromIdx=parseInt(document.getElementById('tr_from').value||0);const banks=data.shops[fromIdx].balanceAccounts.bank||[];document.getElementById('tr_bank_idx').innerHTML=banks.map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')||'<option>No bank accounts</option>';}
+  };
+}
+window.addTransfer=function(){
+  const from=parseInt(document.getElementById('tr_from')?.value||0);
+  const to=parseInt(document.getElementById('tr_to')?.value||0);
+  const amt=Number(document.getElementById('tr_amt')?.value||0);
+  const balType=document.getElementById('tr_bal')?.value||'cash';
+  if(from===to){toast('From and To must differ');return;}
+  if(!amt){toast('Enter amount');return;}
+  const date=todayISO();
+  const goods=document.getElementById('tr_goods')?.value?.trim()||'';
+  const note=document.getElementById('tr_note')?.value?.trim()||'';
+  if(!data.transfers)data.transfers=[];
+  data.transfers.push({id:uid(),date,from,to,amount:amt,balType,goods,note});
+  // affect balances
+  if(balType==='cash'){
+    debitBalance(from,'cash',amt);
+    creditBalance(to,'cash',amt);
+  } else {
+    const bankIdx=parseInt(document.getElementById('tr_bank_idx')?.value||0);
+    debitBalance(from,`bank_${bankIdx}`,amt);
+    // credit to first bank of "to" branch or cash
+    const toBanks=data.shops[to].balanceAccounts.bank||[];
+    if(toBanks.length>0)creditBalance(to,'bank_0',amt);else creditBalance(to,'cash',amt);
+  }
+  // ledger entries — create inter-branch accounts if needed
+  const fromName=SHOPS[from].name,toName=SHOPS[to].name;
+  // "To" branch owes "From" branch
+  let fromAcct=data.accounts.find(a=>a.name===`Branch: ${fromName}`&&a.shopIdx===to);
+  if(!fromAcct){fromAcct={id:uid(),name:`Branch: ${fromName}`,type:'Custom',phone:'',shopIdx:to,notes:'Inter-branch'};data.accounts.push(fromAcct);}
+  let toAcct=data.accounts.find(a=>a.name===`Branch: ${toName}`&&a.shopIdx===from);
+  if(!toAcct){toAcct={id:uid(),name:`Branch: ${toName}`,type:'Custom',phone:'',shopIdx:from,notes:'Inter-branch'};data.accounts.push(toAcct);}
+  // From shop: TO branch owes them (DR on toAcct in from-shop)
+  addLedgerEntry(toAcct.id,date,'dr',amt,`Transfer to ${toName} - ${goods||note||''}`.trim(),'transfer',from);
+  // To shop: they owe FROM branch (DR on fromAcct in to-shop — they received money)
+  addLedgerEntry(fromAcct.id,date,'cr',amt,`Received from ${fromName} - ${goods||note||''}`.trim(),'transfer',to);
+  save();toast('Transfer saved!');renderTransfer();
+};
+
+// ── ACCOUNTS ──────────────────────────────────────────────────────────────────
+function renderAccounts(){
+  renderShopTabs('acctShopTabs','accounts');
+  const si=activeShops.accounts;
+  const selAcct=window._selAcct||null;
+  if(selAcct!==null){
+    const acct=data.accounts.find(a=>a.id===selAcct&&a.shopIdx===si);
+    if(!acct){window._selAcct=null;renderAccounts();return;}
+    const txns=data.ledger.filter(t=>t.accountId===acct.id).sort((a,b)=>b.date.localeCompare(a.date));
+    const totalDR=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+Number(t.amount||0),0);
+    const totalCR=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+Number(t.amount||0),0);
+    const bal=totalDR-totalCR;
+    const rows=txns.map(t=>`<div class="txn-row">
+      <div><div class="entry-main">${t.type==='dr'?'DR':'CR'} <span class="badge ${t.type==='dr'?'badge-dr':'badge-cr'}">₹${fmt(t.amount)}</span> <span class="badge-type" style="font-size:10px;padding:2px 6px;border-radius:8px;background:#f0ede8;color:#555">${t.source||''}</span></div>
+      <div class="entry-sub">${t.note||''}</div></div>
+      <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
+    const typeBadge=`<span class="acct-type-badge type-${acct.type.toLowerCase()}">${acct.type}</span>`;
+    document.getElementById('acctContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <button onclick="window._selAcct=null;renderAccounts()" style="background:none;border:none;color:#1a7a4a;font-size:20px;cursor:pointer">←</button>
+      <div><div style="font-size:16px;font-weight:800">${acct.name} ${typeBadge}</div>${acct.phone?`<div style="font-size:12px;color:#888">${acct.phone}</div>`:''}</div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Total DR</div><div class="metric-value r">₹${fmt(totalDR)}</div></div>
+      <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(totalCR)}</div></div>
+      <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
+    </div>
+    <div class="card"><div class="card-title">➕ Manual Entry</div>
+      <div class="two-col">
+        <div class="field"><label>Type</label><select id="ltxn_type"><option value="dr">DR (they owe you)</option><option value="cr">CR (you paid them)</option></select></div>
+        <div class="field"><label>Amount (₹)</label><input type="number" id="ltxn_amt" placeholder="0"></div>
+      </div>
+      <div class="field"><label>Note</label><input type="text" id="ltxn_note" placeholder="Details"></div>
+      <div class="field"><label>Affect Balance (optional)</label><select id="ltxn_bal"><option value="">— No balance change —</option>${getBalOpts(si)}</select></div>
+      <button class="save-btn" onclick="addManualLedger('${acct.id}',${si})">Save</button>
+    </div>
+    <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
+    return;
+  }
+  // list view
+  const accts=data.accounts.filter(a=>a.shopIdx===si);
+  const byType={};
+  ACCT_TYPES.forEach(t=>byType[t]=[]);
+  accts.forEach(a=>{if(!byType[a.type])byType[a.type]=[];byType[a.type].push(a);});
+  const cards=ACCT_TYPES.flatMap(type=>{
+    const list=byType[type]||[];
+    if(!list.length)return [];
+    return [`<div class="section-header">${{Dealer:'🏪',Franchise:'🤝',Staff:'👤',Owner:'👑',Customer:'🧑',Custom:'📂'}[type]||'📂'} ${type}s</div>`,...list.map(a=>{
+      const txns=data.ledger.filter(t=>t.accountId===a.id);
+      const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+Number(t.amount||0),0);
+      const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+Number(t.amount||0),0);
+      const bal=dr-cr;
+      return `<div class="dealer-card" onclick="window._selAcct='${a.id}';renderAccounts()" style="cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-size:14px;font-weight:700">${a.name}</div>${a.phone?`<div style="font-size:11px;color:#888">${a.phone}</div>`:''}</div>
+          <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${bal>0?'#c0392b':'#1a7a4a'}">₹${fmt(Math.abs(bal))}</div><div style="font-size:10px;color:#888">${bal>0?'Outstanding':'Clear'}</div></div>
+        </div></div>`;
+    })];
+  }).join('');
+  document.getElementById('acctContent').innerHTML=`
+  ${isOwner()||isManager()?`<div class="card"><div class="card-title">➕ Add Account</div>
+    <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acct_name" placeholder="Account name"></div><div class="field"><label>Type</label><select id="acct_type">${ACCT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
+    <div class="two-col"><div class="field"><label>Phone (optional)</label><input type="text" id="acct_phone" placeholder="Mobile"></div><div class="field"><label>Notes</label><input type="text" id="acct_notes" placeholder="Any note"></div></div>
+    <button class="save-btn" onclick="addAccount(${si})">Add Account</button></div>`:''}
+  ${cards||'<div class="card"><div class="empty">No accounts yet</div></div>'}`;
+}
+window.addAccount=function(si){const name=document.getElementById('acct_name')?.value?.trim();if(!name){toast('Enter name');return;}if(data.accounts.find(a=>a.name===name&&a.shopIdx===si)){toast('Already exists');return;}data.accounts.push({id:uid(),name,type:document.getElementById('acct_type')?.value||'Custom',phone:document.getElementById('acct_phone')?.value?.trim()||'',shopIdx:si,notes:document.getElementById('acct_notes')?.value?.trim()||''});save();toast('Account added!');renderAccounts();};
+window.addManualLedger=function(accountId,si){const type=document.getElementById('ltxn_type')?.value||'dr';const amt=Number(document.getElementById('ltxn_amt')?.value||0);if(!amt){toast('Enter amount');return;}const note=document.getElementById('ltxn_note')?.value?.trim()||'';const balKey=document.getElementById('ltxn_bal')?.value||'';addLedgerEntry(accountId,todayISO(),type,amt,note,'manual',si);if(balKey){if(type==='cr')debitBalance(si,balKey,amt);else creditBalance(si,balKey,amt);}save();toast('Saved!');renderAccounts();};
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDashboard(){
+  renderShopTabs('dashShopTabs','dashboard');
+  const si=activeShops.dashboard;
+  const shop=data.shops[si];
+  const today=todayISO();
+  const ym=today.slice(0,7);
+  const entries=shop.entries||[];
+  const expenses=shop.expenses||[];
+  // today
+  const todayEntries=entries.filter(e=>e.date===today);
+  const todayCash=todayEntries.reduce((s,e)=>s+Number(e.cash||0),0);
+  const todayUpi=todayEntries.reduce((s,e)=>s+Number(e.upi||0),0);
+  const todaySale=todayEntries.reduce((s,e)=>s+Number(e.amount||0),0);
+  const todayPhones=todayEntries.filter(e=>e.category==='phone').reduce((s,e)=>s+1,0);
+  const todayExp=expenses.filter(e=>e.date===today).reduce((s,e)=>s+Number(e.amount||0),0);
+  // month
+  const monthEntries=entries.filter(e=>e.date.startsWith(ym));
+  const monthSale=monthEntries.reduce((s,e)=>s+Number(e.amount||0),0);
+  const monthExp=expenses.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+Number(e.amount||0),0);
+  // acc/rep
+  const acc=shop.accessories||[];
+  const rep=shop.repairing||[];
+  const todayAccSold=acc.filter(a=>a.lastSoldDate===today).reduce((s,a)=>s+Number(a.price||0)*(Number(a.sold||0)),0);
+  const monthAccVal=acc.reduce((s,a)=>s+Number(a.price||0)*(Number(a.sold||0)),0);
+  const todayRepDone=rep.filter(r=>r.date===today&&r.status==='Done').reduce((s,r)=>s+Number(r.amount||0),0);
+  const monthRepVal=rep.reduce((s,r)=>s+Number(r.amount||0),0);
+  // balances
+  const cashBal=shop.balanceAccounts?.cash?.balance||0;
+  const upiTotal=(shop.balanceAccounts?.upi||[]).reduce((s,u)=>s+Number(u.balance||0),0);
+  const bankTotal=(shop.balanceAccounts?.bank||[]).reduce((s,b)=>s+Number(b.balance||0),0);
+  // outstanding
+  const shopAccts=data.accounts.filter(a=>a.shopIdx===si);
+  const totalOutstanding=shopAccts.reduce((s,a)=>{
+    const txns=data.ledger.filter(t=>t.accountId===a.id);
+    const dr=txns.filter(t=>t.type==='dr').reduce((x,t)=>x+Number(t.amount||0),0);
+    const cr=txns.filter(t=>t.type==='cr').reduce((x,t)=>x+Number(t.amount||0),0);
+    return s+Math.max(0,dr-cr);
+  },0);
+  const adj=shop.adjustment||0;
+  document.getElementById('dashContent').innerHTML=`
+  <div style="font-size:11px;color:#888;margin-bottom:8px">📅 Today: ${fmtDate(today)}</div>
+  <div class="section-header">Today's Sales</div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">💵 Cash</div><div class="metric-value g">₹${fmt(todayCash)}</div></div>
+    <div class="metric"><div class="metric-label">📲 UPI</div><div class="metric-value g">₹${fmt(todayUpi)}</div></div>
+    <div class="metric"><div class="metric-label">📱 Total Sale</div><div class="metric-value g">₹${fmt(todaySale)}</div></div>
+    <div class="metric"><div class="metric-label">📦 Phones Sold</div><div class="metric-value">${todayPhones}</div></div>
+    <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">₹${fmt(todayExp)}</div></div>
+    <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483">₹${fmt(Math.abs(adj))} ${adj<0?'(Short)':adj>0?'(Excess)':'(Bal)'}</div></div>
+  </div>
+  <div class="section-header">This Month</div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">Total Sales</div><div class="metric-value g">₹${fmt(monthSale)}</div></div>
+    <div class="metric"><div class="metric-label">Total Expenses</div><div class="metric-value r">₹${fmt(monthExp)}</div></div>
+    <div class="metric"><div class="metric-label">🔌 Acc. Value Sold</div><div class="metric-value">₹${fmt(monthAccVal)}</div></div>
+    <div class="metric"><div class="metric-label">🔧 Repair Total</div><div class="metric-value">₹${fmt(monthRepVal)}</div></div>
+  </div>
+  <div class="section-header">Balances</div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">💵 Cash</div><div class="metric-value">₹${fmt(cashBal)}</div></div>
+    <div class="metric"><div class="metric-label">📲 UPI Total</div><div class="metric-value">₹${fmt(upiTotal)}</div></div>
+    <div class="metric"><div class="metric-label">🏦 Bank Total</div><div class="metric-value">₹${fmt(bankTotal)}</div></div>
+    <div class="metric"><div class="metric-label">⚠️ Outstanding</div><div class="metric-value r">₹${fmt(totalOutstanding)}</div></div>
+  </div>
+  ${isOwner()?`<div class="card"><div class="card-title">⚖️ Set Adjustment</div>
+    <div class="field"><input type="number" id="adj_val" value="${adj}" placeholder="0 or negative for short"></div>
+    <button class="save-btn" onclick="saveAdj(${si})">Save</button></div>`:''}`;
+}
+window.saveAdj=function(si){data.shops[si].adjustment=Number(document.getElementById('adj_val')?.value||0);save();toast('Saved!');renderDashboard();};
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+load();
+</script>
+
+
+</body></html>
