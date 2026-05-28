@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_6.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_7.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -406,102 +406,90 @@ function visShops(){return isOwner()?SHOPS:[shopObj(session?.shopIdx||SHOPS[0].i
 // ── SALES ─────────────────────────────────────────────────────────────────────
 function renderSales(){
   const shopId=isOwner()?(activeShops.sales||SHOPS.find(s=>s.hasSales).id):(session?.shopIdx);
-  const shop=shopObj(shopId);
-  const ownerSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">${SHOPS.filter(s=>s.hasSales).map(s=>`<button class="shop-tab${activeShops.sales===s.id?' active':''}" onclick="activeShops.sales='${s.id}';renderSales()">${s.name}</button>`).join('')}</div>`:'';
-  const entries=(data.shops[shopId].sales||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-  const upiS=`<option value="">— None —</option>${upiOpts(shopId)}`;
-  const bankS=`<option value="">— None —</option>${bankOpts(shopId)}`;
-  const rows=entries.map((e,i)=>{
-    if(window._editing===`sale_${i}_${shopId}`&&isManager()){
-      return `<div class="edit-row">
-        <div style="font-size:11px;font-weight:700;color:#856404;margin-bottom:8px">✏️ Editing — ${fmtDate(e.date)}</div>
-        <div class="two-col"><div class="field"><label>Date</label><input type="date" id="ed_date" value="${e.date}"></div><div class="field"><label>Qty</label><input type="number" id="ed_qty" value="${e.qty||0}"></div></div>
-        <div class="two-col"><div class="field"><label>💵 Cash</label><input type="number" id="ed_cash" value="${e.cash||0}"></div><div class="field"><label>📲 UPI Amt</label><input type="number" id="ed_upi" value="${e.upi||0}"></div></div>
-        <div class="two-col"><div class="field"><label>UPI Account</label><select id="ed_upi_acct"><option value="">—</option>${upiOpts(shopId)}</select></div><div class="field"><label>🏦 Bank Amt</label><input type="number" id="ed_bank" value="${e.bank||0}"></div></div>
-        <div class="two-col"><div class="field"><label>Bank Acct</label><select id="ed_bank_acct"><option value="">—</option>${bankOpts(shopId)}</select></div><div class="field"><label>💳 Swipe</label><input type="number" id="ed_swipe" value="${e.swipe||0}"></div></div>
-        <div class="two-col"><div class="field"><label>🔁 Exchange (deducted)</label><input type="number" id="ed_exch" value="${e.exchange||0}"></div><div class="field"><label>Udhari (not in balance)</label><input type="number" id="ed_udhari" value="${e.udhari||0}"></div></div>
-        <div class="two-col"><div class="field"><label>Udhari Account</label><select id="ed_udh_acct"><option value="">—</option>${acctOpts(shopId)}</select></div><div class="field"><label>Note</label><input type="text" id="ed_note" value="${e.note||''}"></div></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button onclick="saveSaleEdit('${shopId}',${i})" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>
-          <button onclick="window._editing=null;renderSales()" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>
-          <button onclick="delSale('${shopId}',${i})" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>
-        </div></div>`;
-    }
-    const parts=[e.cash?`💵₹${fmt(e.cash)}`:'',e.upi?`📲₹${fmt(e.upi)}`:'',e.bank?`🏦₹${fmt(e.bank)}`:'',e.swipe?`💳₹${fmt(e.swipe)}`:'',e.exchange?`🔁-₹${fmt(e.exchange)}`:'',e.udhari?`Udhari+₹${fmt(e.udhari)}`:''].filter(Boolean).join(' ');
-    const click=isManager()?`onclick="window._editing='sale_${i}_${shopId}';renderSales()" style="cursor:pointer"`:'';
-    return `<div class="entry-row" ${click}><div><div class="entry-main g">₹${fmt(e.total||0)} <span style="font-size:11px;color:#888">×${e.qty||0}</span>${e.note?` <span style="font-size:11px;color:#aaa">${e.note}</span>`:''}</div><div class="entry-sub">${parts}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`;
-  }).join('');
-  document.getElementById('salesContent').innerHTML=`
-  ${ownerSel}
-  <div class="sale-bar"><div><div style="font-size:11px;opacity:.8">Total Sale</div><div style="font-size:26px;font-weight:800">₹<span id="saleTot">0</span></div></div><div style="font-size:11px;opacity:.7;text-align:right">Cash+UPI+Bank+Swipe+Udhari−Exchange</div></div>
-  <div class="card"><div class="card-title">➕ Day-End Phone Sales</div>
-    <div class="two-col"><div class="field"><label>Date</label><input type="date" id="s_date" value="${todayISO()}"></div><div class="field"><label>Qty Sold</label><input type="number" id="s_qty" placeholder="0"></div></div>
-    <div class="two-col"><div class="field"><label>💵 Cash (₹)</label><input type="number" id="s_cash" placeholder="0" oninput="calcST()"></div><div class="field"><label>📲 UPI Amount</label><input type="number" id="s_upi" placeholder="0" oninput="calcST()"></div></div>
-    <div class="two-col"><div class="field"><label>UPI Account</label><select id="s_upi_acct"><option value="">— None —</option>${upiOpts(shopId)}</select></div><div class="field"><label>🏦 Bank Amount</label><input type="number" id="s_bank" placeholder="0" oninput="calcST()"></div></div>
-    <div class="two-col"><div class="field"><label>Bank Account</label><select id="s_bank_acct"><option value="">— None —</option>${bankOpts(shopId)}</select></div><div class="field"><label>💳 Swipe Amount</label><input type="number" id="s_swipe" placeholder="0" oninput="calcST()"></div></div>
-    <div class="two-col"><div class="field"><label>Swipe Account</label><select id="s_swipe_acct"><option value="">— None —</option>${bankOpts(shopId)}</select></div><div class="field"><label>🔁 Exchange (deducted)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div></div>
-    <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
-      <div style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px">UDHARI — adds to sale, does NOT affect balance</div>
-      <div class="two-col"><div class="field"><label>Udhari Amount (₹)</label><input type="number" id="s_udhari" placeholder="0" oninput="calcST()"></div><div class="field"><label>Customer Account</label><select id="s_udh_acct">${acctOpts(shopId,'— No Account —')}</select></div></div>
+  const pg=document.getElementById('salesContent');
+  if(pg.dataset.shopId!==shopId){
+    pg.dataset.shopId=shopId;
+    const ownerSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto" id="salesShopTabs">${SHOPS.filter(s=>s.hasSales).map(s=>`<button class="shop-tab${activeShops.sales===s.id?' active':''}" onclick="switchSalesShop('${s.id}')">${s.name}</button>`).join('')}</div>`:'';
+    pg.innerHTML=ownerSel+`
+    <div class="sale-bar"><div><div style="font-size:11px;opacity:.8">Total Sale</div><div style="font-size:26px;font-weight:800">&#8377;<span id="saleTot">0</span></div></div><div style="font-size:11px;opacity:.7;text-align:right">Cash+UPI+Bank+Swipe+Udhari-Exchange</div></div>
+    <div class="card"><div class="card-title">+ Day-End Phone Sales</div>
+      <div class="two-col"><div class="field"><label>Date</label><input type="date" id="s_date" value="${todayISO()}"></div><div class="field"><label>Qty Sold</label><input type="number" id="s_qty" placeholder="0"></div></div>
+      <div class="two-col"><div class="field"><label>Cash (Rs.)</label><input type="number" id="s_cash" placeholder="0" oninput="calcST()"></div><div class="field"><label>UPI Amount</label><input type="number" id="s_upi" placeholder="0" oninput="calcST()"></div></div>
+      <div class="two-col"><div class="field"><label>UPI Account</label><select id="s_upi_acct"><option value="">-- None --</option>${upiOpts(shopId)}</select></div><div class="field"><label>Bank Amount</label><input type="number" id="s_bank" placeholder="0" oninput="calcST()"></div></div>
+      <div class="two-col"><div class="field"><label>Bank Account</label><select id="s_bank_acct"><option value="">-- None --</option>${bankOpts(shopId)}</select></div><div class="field"><label>Swipe Amount</label><input type="number" id="s_swipe" placeholder="0" oninput="calcST()"></div></div>
+      <div class="two-col"><div class="field"><label>Swipe Account</label><select id="s_swipe_acct"><option value="">-- None --</option>${bankOpts(shopId)}</select></div><div class="field"><label>Exchange (deducted)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div></div>
+      <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
+        <div style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px">UDHARI -- adds to sale total, does NOT affect cash/UPI balance</div>
+        <div class="two-col"><div class="field"><label>Udhari Amount (Rs.)</label><input type="number" id="s_udhari" placeholder="0" oninput="calcST()"></div><div class="field"><label>Customer Account</label><select id="s_udh_acct">${acctOpts(shopId,'-- No Account --')}</select></div></div>
+      </div>
+      <div class="field"><label>Note</label><input type="text" id="s_note" placeholder="Any note"></div>
+      <button class="save-btn" onclick="addSale('${shopId}')">Save Sale</button>
     </div>
-    <div class="field"><label>Note</label><input type="text" id="s_note" placeholder="Any note"></div>
-    <button class="save-btn" onclick="addSale('${shopId}')">Save Sale</button>
-  </div>
-  <div class="card"><div class="card-title">📋 Sales History ${isManager()?'<span style="font-size:11px;color:#1a7a4a">— tap to edit</span>':''}</div>${rows||'<div class="empty">No sales</div>'}</div>`;
+    <div id="salesHistory"></div>`;
+  }
+  renderSalesHistory(shopId);
 }
-window.calcST=function(){
-  const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)-(+document.getElementById('s_exch')?.value||0);
-  const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));
-};
+window.switchSalesShop=function(id){activeShops.sales=id;document.getElementById('salesContent').dataset.shopId='';renderSales();};
+function renderSalesHistory(shopId){
+  const entries=(data.shops[shopId].sales||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const rows=entries.map((e,i)=>{
+    const editKey='sale_'+i+'_'+shopId;
+    if(window._editing===editKey&&isManager()){
+      return '<div class="edit-row">'
+        +'<div style="font-size:11px;font-weight:700;color:#856404;margin-bottom:8px">Editing '+fmtDate(e.date)+'</div>'
+        +'<div class="two-col"><div class="field"><label>Date</label><input type="date" id="ed_date" value="'+e.date+'"></div><div class="field"><label>Qty</label><input type="number" id="ed_qty" value="'+(e.qty||0)+'"></div></div>'
+        +'<div class="two-col"><div class="field"><label>Cash</label><input type="number" id="ed_cash" value="'+(e.cash||0)+'"></div><div class="field"><label>UPI</label><input type="number" id="ed_upi" value="'+(e.upi||0)+'"></div></div>'
+        +'<div class="two-col"><div class="field"><label>UPI Acct</label><select id="ed_upi_acct"><option value="">--</option>'+upiOpts(shopId)+'</select></div><div class="field"><label>Bank</label><input type="number" id="ed_bank" value="'+(e.bank||0)+'"></div></div>'
+        +'<div class="two-col"><div class="field"><label>Bank Acct</label><select id="ed_bank_acct"><option value="">--</option>'+bankOpts(shopId)+'</select></div><div class="field"><label>Swipe</label><input type="number" id="ed_swipe" value="'+(e.swipe||0)+'"></div></div>'
+        +'<div class="two-col"><div class="field"><label>Exchange</label><input type="number" id="ed_exch" value="'+(e.exchange||0)+'"></div><div class="field"><label>Udhari</label><input type="number" id="ed_udhari" value="'+(e.udhari||0)+'"></div></div>'
+        +'<div class="two-col"><div class="field"><label>Udhari Acct</label><select id="ed_udh_acct"><option value="">--</option>'+acctOpts(shopId)+'</select></div><div class="field"><label>Note</label><input type="text" id="ed_note" value="'+(e.note||'')+'"></div></div>'
+        +'<div style="display:flex;gap:8px;margin-top:8px">'
+        +'<button onclick="saveSaleEdit(\''+shopId+'\','+i+')" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>'
+        +'<button onclick="window._editing=null;renderSalesHistory(\''+shopId+'\')" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>'
+        +'<button onclick="delSale(\''+shopId+'\','+i+')" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>'
+        +'</div></div>';
+    }
+    const parts=[e.cash?'Cash:Rs.'+fmt(e.cash):'',e.upi?'UPI:Rs.'+fmt(e.upi):'',e.bank?'Bank:Rs.'+fmt(e.bank):'',e.swipe?'Swipe:Rs.'+fmt(e.swipe):'',e.exchange?'Exch:-Rs.'+fmt(e.exchange):'',e.udhari?'Udhari:+Rs.'+fmt(e.udhari):''].filter(Boolean).join(' | ');
+    const click=isManager()?'onclick="window._editing=\''+editKey+'\';renderSalesHistory(\''+shopId+'\')" style="cursor:pointer"':'';
+    return '<div class="entry-row" '+click+'><div><div class="entry-main g">Rs.'+fmt(e.total||0)+' x'+(e.qty||0)+(e.note?' <span style="font-size:11px;color:#aaa">'+e.note+'</span>':'')+'</div><div class="entry-sub">'+parts+'</div></div><span class="entry-date">'+fmtDate(e.date)+'</span></div>';
+  }).join('');
+  const hist=document.getElementById('salesHistory');
+  if(hist)hist.innerHTML='<div class="card"><div class="card-title">Sales History'+(isManager()?' -- tap to edit':'')+' </div>'+(rows||'<div class="empty">No sales</div>')+'</div>';
+}
+window.calcST=function(){const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)-(+document.getElementById('s_exch')?.value||0);const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));};
 window.addSale=function(shopId){
-  const cash=+document.getElementById('s_cash')?.value||0;
-  const upi=+document.getElementById('s_upi')?.value||0;
-  const bank=+document.getElementById('s_bank')?.value||0;
-  const swipe=+document.getElementById('s_swipe')?.value||0;
-  const exch=+document.getElementById('s_exch')?.value||0;
-  const udhari=+document.getElementById('s_udhari')?.value||0;
-  const upiAcct=document.getElementById('s_upi_acct')?.value||'';
-  const bankAcct=document.getElementById('s_bank_acct')?.value||'';
-  const swipeAcct=document.getElementById('s_swipe_acct')?.value||'';
-  const udhAcct=document.getElementById('s_udh_acct')?.value||'';
-  // total = cash+upi+bank+swipe+udhari-exchange (udhari is sale value but not received)
+  const cash=+document.getElementById('s_cash')?.value||0;const upi=+document.getElementById('s_upi')?.value||0;const bank=+document.getElementById('s_bank')?.value||0;const swipe=+document.getElementById('s_swipe')?.value||0;const exch=+document.getElementById('s_exch')?.value||0;const udhari=+document.getElementById('s_udhari')?.value||0;
+  const upiAcct=document.getElementById('s_upi_acct')?.value||'';const bankAcct=document.getElementById('s_bank_acct')?.value||'';const swipeAcct=document.getElementById('s_swipe_acct')?.value||'';const udhAcct=document.getElementById('s_udh_acct')?.value||'';
   const total=cash+upi+bank+swipe+udhari-exch;
   if(!cash&&!upi&&!bank&&!swipe&&!udhari){toast('Enter at least one amount');return;}
   const date=document.getElementById('s_date')?.value||todayISO();
   const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||''};
   data.shops[shopId].sales.push(e);
-  // only credit received amounts to balance
   if(cash>0)credit(shopId,'cash',cash);
   if(upi>0&&upiAcct)credit(shopId,upiAcct,upi);else if(upi>0)credit(shopId,'cash',upi);
   if(bank>0&&bankAcct)credit(shopId,bankAcct,bank);else if(bank>0)credit(shopId,'cash',bank);
   if(swipe>0&&swipeAcct)credit(shopId,swipeAcct,swipe);else if(swipe>0)credit(shopId,'cash',swipe);
-  // udhari → DR on customer ledger only, no balance change
   if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,'Udhari - phone sale','sale',shopId);
   save();toast('Sale saved!');
   ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  window.calcST();renderSales();
+  window.calcST();renderSalesHistory(shopId);
 };
 window.saveSaleEdit=function(shopId,i){
   const arr=data.shops[shopId].sales;if(!arr[i])return;
-  const old={...arr[i]};
-  const cash=+document.getElementById('ed_cash')?.value||0;
-  const upi=+document.getElementById('ed_upi')?.value||0;
-  const bank=+document.getElementById('ed_bank')?.value||0;
-  const swipe=+document.getElementById('ed_swipe')?.value||0;
-  const exch=+document.getElementById('ed_exch')?.value||0;
-  const udhari=+document.getElementById('ed_udhari')?.value||0;
+  const old={...arr[i]};const cash=+document.getElementById('ed_cash')?.value||0;const upi=+document.getElementById('ed_upi')?.value||0;const bank=+document.getElementById('ed_bank')?.value||0;const swipe=+document.getElementById('ed_swipe')?.value||0;const exch=+document.getElementById('ed_exch')?.value||0;const udhari=+document.getElementById('ed_udhari')?.value||0;
   arr[i]={...arr[i],date:document.getElementById('ed_date')?.value||arr[i].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct:document.getElementById('ed_upi_acct')?.value||'',bank,bankAcct:document.getElementById('ed_bank_acct')?.value||'',swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari-exch,note:document.getElementById('ed_note')?.value?.trim()||''};
-  logChange('EDIT','Phone Sale',`${fmtDate(old.date)} ₹${fmt(old.total)} → ₹${fmt(arr[i].total)}`,shopId);
-  save();window._editing=null;toast('Updated!');renderSales();
+  logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[i].total),shopId);
+  save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);
 };
 window.delSale=function(shopId,i){
-  if(!isManager())return;
-  if(!confirm('Delete this sale entry?'))return;
+  if(!isManager())return;if(!confirm('Delete this sale entry?'))return;
   const e=data.shops[shopId].sales[i];
-  logChange('DELETE','Phone Sale',`${fmtDate(e?.date)} ₹${fmt(e?.total)}`,shopId);
+  logChange('DELETE','Phone Sale',fmtDate(e?.date)+' Rs.'+fmt(e?.total),shopId);
   data.shops[shopId].sales.splice(i,1);
-  save();window._editing=null;toast('Deleted!');renderSales();
+  save();window._editing=null;toast('Deleted!');renderSalesHistory(shopId);
 };
+
+
 
 // ── ACC/REP ───────────────────────────────────────────────────────────────────
 function renderAccRep(){
