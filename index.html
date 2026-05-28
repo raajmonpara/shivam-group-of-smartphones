@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_7.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_8.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -79,6 +79,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .change-row{background:#fff;border-left:3px solid #e74c3c;border-radius:8px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
 .saving-indicator{position:fixed;top:60px;right:12px;background:#1a7a4a;color:#fff;font-size:11px;padding:4px 10px;border-radius:10px;z-index:200;opacity:0;transition:opacity 0.3s}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 </style>
 </head>
 <body>
@@ -108,6 +111,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div id="pages">
     <div class="page active" id="page_sales"><div id="salesContent"></div></div>
+    <div class="page" id="page_accrep"><div id="accrepContent"></div></div>
     <div class="page" id="page_expense"><div class="shop-tabs" id="expTabs"></div><div id="expContent"></div></div>
     <div class="page" id="page_balance"><div class="shop-tabs" id="balTabs"></div><div id="balContent"></div></div>
     <div class="page" id="page_staff"><div class="shop-tabs" id="staffTabs"></div><div id="staffContent"></div></div>
@@ -196,7 +200,15 @@ async function initFirebase(){
           const remote = rows[0].payload;
           if(JSON.stringify(remote)!==_lastSaved){
             mergeData(remote); ensure();
-            if(session) renderPage(activePage);
+            if(session){
+              // Only auto-refresh dashboard and changes — never wipe active forms
+              if(activePage==='dashboard')renderDashboard();
+              else if(activePage==='changes')renderChanges();
+              // For other pages, just update the history/list part silently
+              else if(activePage==='sales'){const si=activeShops.sales||session.shopIdx;if(si)renderSalesHistory(si);}
+              else if(activePage==='accrep'){const si=activeShops.accrep||session.shopIdx;const sub=window._accTab||'acc';const arr=sub==='acc'?'accessories':'repairing';const pfx=sub==='acc'?'ac':'rp';if(si)renderARHistory(si,arr,pfx);}
+              else if(activePage==='expense'){const si=activeShops.expense||session.shopIdx;if(si)renderExpHistory(si);}
+            }
           }
         }
       }catch(e){}
@@ -230,6 +242,7 @@ function showSaving(){const el=document.getElementById('savingInd');if(el){el.st
 function hideSaving(){setTimeout(()=>{const el=document.getElementById('savingInd');if(el)el.style.opacity='0';},600);}
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
+window.setExpNote=function(t){const el=document.getElementById('exp_note');if(el)el.value=t;};
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function nowISO(){return new Date().toISOString();}
@@ -411,19 +424,44 @@ function renderSales(){
     pg.dataset.shopId=shopId;
     const ownerSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto" id="salesShopTabs">${SHOPS.filter(s=>s.hasSales).map(s=>`<button class="shop-tab${activeShops.sales===s.id?' active':''}" onclick="switchSalesShop('${s.id}')">${s.name}</button>`).join('')}</div>`:'';
     pg.innerHTML=ownerSel+`
-    <div class="sale-bar"><div><div style="font-size:11px;opacity:.8">Total Sale</div><div style="font-size:26px;font-weight:800">&#8377;<span id="saleTot">0</span></div></div><div style="font-size:11px;opacity:.7;text-align:right">Cash+UPI+Bank+Swipe+Udhari-Exchange</div></div>
-    <div class="card"><div class="card-title">+ Day-End Phone Sales</div>
-      <div class="two-col"><div class="field"><label>Date</label><input type="date" id="s_date" value="${todayISO()}"></div><div class="field"><label>Qty Sold</label><input type="number" id="s_qty" placeholder="0"></div></div>
-      <div class="two-col"><div class="field"><label>Cash (Rs.)</label><input type="number" id="s_cash" placeholder="0" oninput="calcST()"></div><div class="field"><label>UPI Amount</label><input type="number" id="s_upi" placeholder="0" oninput="calcST()"></div></div>
-      <div class="two-col"><div class="field"><label>UPI Account</label><select id="s_upi_acct"><option value="">-- None --</option>${upiOpts(shopId)}</select></div><div class="field"><label>Bank Amount</label><input type="number" id="s_bank" placeholder="0" oninput="calcST()"></div></div>
-      <div class="two-col"><div class="field"><label>Bank Account</label><select id="s_bank_acct"><option value="">-- None --</option>${bankOpts(shopId)}</select></div><div class="field"><label>Swipe Amount</label><input type="number" id="s_swipe" placeholder="0" oninput="calcST()"></div></div>
-      <div class="two-col"><div class="field"><label>Swipe Account</label><select id="s_swipe_acct"><option value="">-- None --</option>${bankOpts(shopId)}</select></div><div class="field"><label>Exchange (deducted)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div></div>
-      <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
-        <div style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px">UDHARI -- adds to sale total, does NOT affect cash/UPI balance</div>
-        <div class="two-col"><div class="field"><label>Udhari Amount (Rs.)</label><input type="number" id="s_udhari" placeholder="0" oninput="calcST()"></div><div class="field"><label>Customer Account</label><select id="s_udh_acct">${acctOpts(shopId,'-- No Account --')}</select></div></div>
+    <div class="sale-bar"><div><div style="font-size:11px;opacity:.8">Total Sale Amount</div><div style="font-size:28px;font-weight:800">&#8377;<span id="saleTot">0</span></div></div><div style="font-size:10px;opacity:.7;text-align:right">Auto calculated</div></div>
+    <div class="card"><div class="card-title">📱 Day-End Phone Sales</div>
+      <div class="two-col">
+        <div class="field"><label>Date</label><input type="date" id="s_date" value="${todayISO()}"></div>
+        <div class="field"><label>Qty Sold</label><input type="number" id="s_qty" placeholder="0"></div>
       </div>
-      <div class="field"><label>Note</label><input type="text" id="s_note" placeholder="Any note"></div>
-      <button class="save-btn" onclick="addSale('${shopId}')">Save Sale</button>
+      <div class="field"><label>💵 Cash Received (Rs.)</label><input type="number" id="s_cash" placeholder="0" oninput="calcST()" style="font-size:16px;padding:12px 14px"></div>
+      <div class="field" style="background:#f0f8ff;border-radius:12px;padding:12px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:800;color:#2980b9;margin-bottom:8px;display:block">📲 UPI Payment</label>
+        <div class="two-col">
+          <div><select id="s_upi_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Select UPI --</option>${upiOpts(shopId)}</select></div>
+          <div><input type="number" id="s_upi" placeholder="Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="field" style="background:#f0fff4;border-radius:12px;padding:12px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:800;color:#1a7a4a;margin-bottom:8px;display:block">🏦 Bank Transfer</label>
+        <div class="two-col">
+          <div><select id="s_bank_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Select Bank --</option>${bankOpts(shopId)}</select></div>
+          <div><input type="number" id="s_bank" placeholder="Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="field" style="background:#fff8f0;border-radius:12px;padding:12px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:800;color:#e67e22;margin-bottom:8px;display:block">💳 Swipe / Card</label>
+        <div class="two-col">
+          <div><select id="s_swipe_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Select Machine --</option>${bankOpts(shopId)}</select></div>
+          <div><input type="number" id="s_swipe" placeholder="Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="field"><label>🔁 Exchange Amount (deducted from total)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div>
+      <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
+        <label style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px;display:block">📋 UDHARI — adds to sale value, customer pays later</label>
+        <div class="two-col">
+          <div><select id="s_udh_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff">${acctOpts(shopId,'-- Customer Account --')}</select></div>
+          <div><input type="number" id="s_udhari" placeholder="Udhari Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="field"><label>Note (optional)</label><input type="text" id="s_note" placeholder="Any note"></div>
+      <button class="save-btn" onclick="addSale('${shopId}')">💾 Save Sale</button>
     </div>
     <div id="salesHistory"></div>`;
   }
@@ -494,65 +532,98 @@ window.delSale=function(shopId,i){
 // ── ACC/REP ───────────────────────────────────────────────────────────────────
 function renderAccRep(){
   const shopId=isOwner()?(activeShops.accrep||SHOPS.find(s=>s.hasAccRep).id):(session?.shopIdx);
-  const ownerSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">${SHOPS.filter(s=>s.hasAccRep).map(s=>`<button class="shop-tab${activeShops.accrep===s.id?' active':''}" onclick="activeShops.accrep='${s.id}';renderAccRep()">${s.name}</button>`).join('')}</div>`:'';
+  const pg=document.getElementById('accrepContent');
   const sub=window._accTab||'acc';
-  const subTabs=['acc','rep'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._accTab='${t}';renderAccRep()">${{acc:'🔌 Accessories',rep:'🔧 Repairing'}[t]}</button>`).join('');
-  const upiS=`<option value="">— None —</option>${upiOpts(shopId)}`;
-  const bankS=`<option value="">— None —</option>${bankOpts(shopId)}`;
-  const pfx=sub==='acc'?'ac':'rp';
-  const arrKey=sub==='acc'?'accessories':'repairing';
-  const entries=(data.shops[shopId][arrKey]||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-  const rows=entries.map((e,i)=>{
-    if(window._editingAR===`${sub}_${i}_${shopId}`&&isManager()){
-      return `<div class="edit-row">
-        <div style="font-size:11px;font-weight:700;color:#856404;margin-bottom:8px">✏️ Editing ${fmtDate(e.date)}</div>
-        <div class="two-col"><div class="field"><label>Date</label><input type="date" id="ar_date" value="${e.date}"></div><div class="field"><label>Note</label><input type="text" id="ar_note" value="${e.note||''}"></div></div>
-        <div class="two-col"><div class="field"><label>💵 Cash</label><input type="number" id="ar_cash" value="${e.cash||0}"></div><div class="field"><label>📲 UPI</label><input type="number" id="ar_upi" value="${e.upi||0}"></div></div>
-        <div class="two-col"><div class="field"><label>UPI Acct</label><select id="ar_upi_acct"><option value="">—</option>${upiOpts(shopId)}</select></div><div class="field"><label>🏦 Bank</label><input type="number" id="ar_bank" value="${e.bank||0}"></div></div>
-        <div class="two-col"><div class="field"><label>Bank Acct</label><select id="ar_bank_acct"><option value="">—</option>${bankOpts(shopId)}</select></div><div class="field"><label>💳 Swipe</label><input type="number" id="ar_swipe" value="${e.swipe||0}"></div></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button onclick="saveAREdit('${shopId}','${arrKey}',${i})" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>
-          <button onclick="window._editingAR=null;renderAccRep()" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>
-          <button onclick="delAREntry('${shopId}','${arrKey}',${i})" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>
-        </div></div>`;
-    }
-    const parts=[e.cash?`💵₹${fmt(e.cash)}`:'',e.upi?`📲₹${fmt(e.upi)}`:'',e.bank?`🏦₹${fmt(e.bank)}`:'',e.swipe?`💳₹${fmt(e.swipe)}`:''].filter(Boolean).join(' ');
-    const click=isManager()?`onclick="window._editingAR='${sub}_${i}_${shopId}';renderAccRep()" style="cursor:pointer"`:'';
-    return `<div class="entry-row" ${click}><div><div class="entry-main g">₹${fmt(e.total||0)}${e.note?` <span style="font-size:11px;color:#aaa">${e.note}</span>`:''}</div><div class="entry-sub">${parts}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`;
-  }).join('');
-  const label=sub==='acc'?'Accessories':'Repairing';
-  const pg=document.getElementById('page_accrep');if(!pg)return;
-  pg.innerHTML=`${ownerSel}<div class="sub-tabs">${subTabs}</div>
-  <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">Total: <strong id="${pfx}Tot">₹0</strong></div>
-  <div class="card"><div class="card-title">➕ ${label} — Day Entry</div>
-    <div class="two-col"><div class="field"><label>Date</label><input type="date" id="${pfx}_date" value="${todayISO()}"></div><div class="field"><label>Note (optional)</label><input type="text" id="${pfx}_note" placeholder=""></div></div>
-    <div class="two-col"><div class="field"><label>💵 Cash</label><input type="number" id="${pfx}_cash" placeholder="0" oninput="calcARTot('${pfx}')"></div><div class="field"><label>📲 UPI</label><select id="${pfx}_upi_acct" style="margin-bottom:4px"><option value="">— None —</option>${upiOpts(shopId)}</select><input type="number" id="${pfx}_upi" placeholder="0" oninput="calcARTot('${pfx}')"></div></div>
-    <div class="two-col"><div class="field"><label>🏦 Bank</label><select id="${pfx}_bank_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankOpts(shopId)}</select><input type="number" id="${pfx}_bank" placeholder="0" oninput="calcARTot('${pfx}')"></div><div class="field"><label>💳 Swipe</label><select id="${pfx}_swipe_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankOpts(shopId)}</select><input type="number" id="${pfx}_swipe" placeholder="0" oninput="calcARTot('${pfx}')"></div></div>
-    <button class="save-btn" onclick="addAREntry('${shopId}','${arrKey}','${pfx}')">Save ${label}</button>
-  </div>
-  <div class="card"><div class="card-title">📋 ${label} History ${isManager()?'<span style="font-size:11px;color:#1a7a4a">— tap to edit</span>':''}</div>${rows||'<div class="empty">No entries</div>'}</div>`;
+  const stateKey=shopId+'_'+sub;
+  if(pg.dataset.stateKey!==stateKey){
+    pg.dataset.stateKey=stateKey;
+    const ownerSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">${SHOPS.filter(s=>s.hasAccRep).map(s=>`<button class="shop-tab${activeShops.accrep===s.id?' active':''}" onclick="switchARShop('${s.id}')">${s.name}</button>`).join('')}</div>`:'';
+    const subTabs=['acc','rep'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._accTab='${t}';renderAccRep()">${{acc:'Accessories',rep:'Repairing'}[t]}</button>`).join('');
+    const pfx=sub==='acc'?'ac':'rp';
+    const label=sub==='acc'?'Accessories':'Repairing';
+    pg.innerHTML=ownerSel+`<div class="sub-tabs">${subTabs}</div>
+    <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:14px;font-weight:700">Total: <span id="${pfx}Tot" style="color:#1a7a4a">Rs.0</span></div>
+    <div class="card"><div class="card-title">${label} — Day Entry</div>
+      <div class="two-col"><div class="field"><label>Date</label><input type="date" id="${pfx}_date" value="${todayISO()}"></div><div class="field"><label>Note (optional)</label><input type="text" id="${pfx}_note" placeholder=""></div></div>
+      <div class="field"><label>💵 Cash (Rs.)</label><input type="number" id="${pfx}_cash" placeholder="0" oninput="calcARTot('${pfx}')" style="font-size:15px;padding:11px 14px"></div>
+      <div class="field" style="background:#f0f8ff;border-radius:12px;padding:12px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:800;color:#2980b9;margin-bottom:8px;display:block">📲 UPI Payment</label>
+        <div class="two-col">
+          <div><select id="${pfx}_upi_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Select UPI --</option>${upiOpts(shopId)}</select></div>
+          <div><input type="number" id="${pfx}_upi" placeholder="Amount" oninput="calcARTot('${pfx}')" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="field" style="background:#f0fff4;border-radius:12px;padding:12px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:800;color:#1a7a4a;margin-bottom:8px;display:block">🏦 Bank Transfer</label>
+        <div class="two-col">
+          <div><select id="${pfx}_bank_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Select Bank --</option>${bankOpts(shopId)}</select></div>
+          <div><input type="number" id="${pfx}_bank" placeholder="Amount" oninput="calcARTot('${pfx}')" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="field" style="background:#fff8f0;border-radius:12px;padding:12px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:800;color:#e67e22;margin-bottom:8px;display:block">💳 Swipe / Card</label>
+        <div class="two-col">
+          <div><select id="${pfx}_swipe_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Select Machine --</option>${bankOpts(shopId)}</select></div>
+          <div><input type="number" id="${pfx}_swipe" placeholder="Amount" oninput="calcARTot('${pfx}')" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="addAREntry('${shopId}','${sub==='acc'?'accessories':'repairing'}','${pfx}')">💾 Save ${label}</button>
+    </div>
+    <div id="arHistory"></div>`;
+  }
+  renderARHistory(shopId, sub==='acc'?'accessories':'repairing', sub==='acc'?'ac':'rp');
 }
-window.calcARTot=function(pfx){const v=(+document.getElementById(`${pfx}_cash`)?.value||0)+(+document.getElementById(`${pfx}_upi`)?.value||0)+(+document.getElementById(`${pfx}_bank`)?.value||0)+(+document.getElementById(`${pfx}_swipe`)?.value||0);const el=document.getElementById(`${pfx}Tot`);if(el)el.textContent='₹'+fmt(v);};
+window.switchARShop=function(id){activeShops.accrep=id;document.getElementById('accrepContent').dataset.stateKey='';renderAccRep();};
+function renderARHistory(shopId,arrKey,pfx){
+  const entries=(data.shops[shopId][arrKey]||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const label=arrKey==='accessories'?'Accessories':'Repairing';
+  const rows=entries.map((e,i)=>{
+    const editKey=arrKey+'_'+i+'_'+shopId;
+    if(window._editingAR===editKey&&isManager()){
+      return '<div class="edit-row">'
+        +'<div style="font-size:11px;font-weight:700;color:#856404;margin-bottom:8px">Editing '+fmtDate(e.date)+'</div>'
+        +'<div class="two-col"><div class="field"><label>Date</label><input type="date" id="ar_date" value="'+e.date+'"></div><div class="field"><label>Note</label><input type="text" id="ar_note" value="'+(e.note||'')+'"></div></div>'
+        +'<div class="two-col"><div class="field"><label>Cash</label><input type="number" id="ar_cash" value="'+(e.cash||0)+'"></div><div class="field"><label>UPI</label><input type="number" id="ar_upi" value="'+(e.upi||0)+'"></div></div>'
+        +'<div class="two-col"><div class="field"><label>Bank</label><input type="number" id="ar_bank" value="'+(e.bank||0)+'"></div><div class="field"><label>Swipe</label><input type="number" id="ar_swipe" value="'+(e.swipe||0)+'"></div></div>'
+        +'<div style="display:flex;gap:8px;margin-top:8px">'
+        +'<button onclick="doSaveAR(this)" data-shop="'+shopId+'" data-arr="'+arrKey+'" data-i="'+i+'" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>'
+        +'<button onclick="doARCancel(this)" data-shop="'+shopId+'" data-arr="'+arrKey+'" data-pfx="'+pfx+'" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>'
+        +'<button onclick="doARDel(this)" data-shop="'+shopId+'" data-arr="'+arrKey+'" data-i="'+i+'" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>'
+        +'</div></div>';
+    }
+    const parts=[e.cash?'Cash:'+fmt(e.cash):'',e.upi?'UPI:'+fmt(e.upi):'',e.bank?'Bank:'+fmt(e.bank):'',e.swipe?'Swipe:'+fmt(e.swipe):''].filter(Boolean).join(' | ');
+    const click=isManager()?'onclick="doAREdit(this)" data-key="'+editKey+'" data-shop="'+shopId+'" data-arr="'+arrKey+'" data-pfx="'+pfx+'" style="cursor:pointer"':'';
+    return '<div class="entry-row" '+click+'><div><div class="entry-main g">Rs.'+fmt(e.total||0)+(e.note?' <span style="font-size:11px;color:#aaa">'+e.note+'</span>':'')+'</div><div class="entry-sub">'+parts+'</div></div><span class="entry-date">'+fmtDate(e.date)+'</span></div>';
+  }).join('');
+  const hist=document.getElementById('arHistory');
+  if(hist)hist.innerHTML='<div class="card"><div class="card-title">'+label+' History'+(isManager()?' -- tap to edit':'')+'</div>'+(rows||'<div class="empty">No entries</div>')+'</div>';
+}
+window.calcARTot=function(pfx){const v=(+document.getElementById(pfx+'_cash')?.value||0)+(+document.getElementById(pfx+'_upi')?.value||0)+(+document.getElementById(pfx+'_bank')?.value||0)+(+document.getElementById(pfx+'_swipe')?.value||0);const el=document.getElementById(pfx+'Tot');if(el)el.textContent='Rs.'+fmt(v);};
 window.addAREntry=function(shopId,arrKey,pfx){
-  const cash=+document.getElementById(`${pfx}_cash`)?.value||0;const upi=+document.getElementById(`${pfx}_upi`)?.value||0;const bank=+document.getElementById(`${pfx}_bank`)?.value||0;const swipe=+document.getElementById(`${pfx}_swipe`)?.value||0;const total=cash+upi+bank+swipe;
+  const cash=+document.getElementById(pfx+'_cash')?.value||0;const upi=+document.getElementById(pfx+'_upi')?.value||0;const bank=+document.getElementById(pfx+'_bank')?.value||0;const swipe=+document.getElementById(pfx+'_swipe')?.value||0;const total=cash+upi+bank+swipe;
   if(!total){toast('Enter at least one amount');return;}
-  const upiAcct=document.getElementById(`${pfx}_upi_acct`)?.value||'';const bankAcct=document.getElementById(`${pfx}_bank_acct`)?.value||'';const swipeAcct=document.getElementById(`${pfx}_swipe_acct`)?.value||'';
-  const e={id:uid(),date:document.getElementById(`${pfx}_date`)?.value||todayISO(),cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,total,note:document.getElementById(`${pfx}_note`)?.value?.trim()||''};
+  const upiAcct=document.getElementById(pfx+'_upi_acct')?.value||'';const bankAcct=document.getElementById(pfx+'_bank_acct')?.value||'';const swipeAcct=document.getElementById(pfx+'_swipe_acct')?.value||'';
+  const e={id:uid(),date:document.getElementById(pfx+'_date')?.value||todayISO(),cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,total,note:document.getElementById(pfx+'_note')?.value?.trim()||''};
   data.shops[shopId][arrKey].push(e);
   if(cash>0)credit(shopId,'cash',cash);
   if(upi>0&&upiAcct)credit(shopId,upiAcct,upi);else if(upi>0)credit(shopId,'cash',upi);
   if(bank>0&&bankAcct)credit(shopId,bankAcct,bank);else if(bank>0)credit(shopId,'cash',bank);
   if(swipe>0&&swipeAcct)credit(shopId,swipeAcct,swipe);else if(swipe>0)credit(shopId,'cash',swipe);
-  save();toast('Saved!');renderAccRep();
+  save();toast('Saved!');renderARHistory(shopId,arrKey,pfx);
 };
+window.doAREdit=function(btn){window._editingAR=btn.dataset.key;renderARHistory(btn.dataset.shop,btn.dataset.arr,btn.dataset.pfx);};
+window.doARCancel=function(btn){window._editingAR=null;renderARHistory(btn.dataset.shop,btn.dataset.arr,btn.dataset.pfx);};
+window.doARDel=function(btn){delAREntry(btn.dataset.shop,btn.dataset.arr,+btn.dataset.i);};
+window.doSaveAR=function(btn){const s=btn.dataset.shop,a=btn.dataset.arr,i=+btn.dataset.i;saveAREdit(s,a,i);};
 window.saveAREdit=function(shopId,arrKey,i){
   const arr=data.shops[shopId][arrKey];if(!arr[i])return;
   const old={...arr[i]};const cash=+document.getElementById('ar_cash')?.value||0;const upi=+document.getElementById('ar_upi')?.value||0;const bank=+document.getElementById('ar_bank')?.value||0;const swipe=+document.getElementById('ar_swipe')?.value||0;
   arr[i]={...arr[i],date:document.getElementById('ar_date')?.value||arr[i].date,cash,upi,bank,swipe,total:cash+upi+bank+swipe,note:document.getElementById('ar_note')?.value?.trim()||''};
-  logChange('EDIT',arrKey,`${fmtDate(old.date)} ₹${fmt(old.total)} → ₹${fmt(arr[i].total)}`,shopId);
+  logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[i].total),shopId);
   save();window._editingAR=null;toast('Updated!');renderAccRep();
 };
-window.delAREntry=function(shopId,arrKey,i){if(!confirm('Delete?'))return;const e=data.shops[shopId][arrKey][i];logChange('DELETE',arrKey,`${fmtDate(e?.date)} ₹${fmt(e?.total)}`,shopId);data.shops[shopId][arrKey].splice(i,1);save();window._editingAR=null;toast('Deleted!');renderAccRep();};
+window.delAREntry=function(shopId,arrKey,i){if(!confirm('Delete?'))return;const e=data.shops[shopId][arrKey][i];logChange('DELETE',arrKey,fmtDate(e?.date)+' Rs.'+fmt(e?.total),shopId);data.shops[shopId][arrKey].splice(i,1);save();window._editingAR=null;toast('Deleted!');renderAccRep();};
+
 
 // ── RECHARGE ──────────────────────────────────────────────────────────────────
 // Recharge is added as a sub-section within the sales page for sales shops, and within acc/rep page for acc shops
@@ -564,28 +635,38 @@ window.delAREntry=function(shopId,arrKey,i){if(!confirm('Delete?'))return;const 
 function renderExpense(){
   shopTabs('expTabs','expense');
   const shopId=activeShops.expense;
+  const pg=document.getElementById('expContent');
+  if(pg.dataset.shopId!==shopId){
+    pg.dataset.shopId=shopId;
+    const tags=data.shops[shopId].expTags||[];
+    const tagBtns=tags.map(t=>'<button onclick="document.getElementById(\'exp_note\').value=\''+t+'\'" style="padding:5px 10px;background:#f0ede8;border:none;border-radius:8px;font-size:12px;cursor:pointer">'+t+'</button>').join('');
+    pg.innerHTML=`<div class="card"><div class="card-title">💸 Add Expense</div>
+      <div class="two-col">
+        <div class="field"><label>Amount (Rs.)</label><input type="number" id="exp_amt" placeholder="0" style="font-size:16px;padding:12px 14px"></div>
+        <div class="field"><label>Date</label><input type="date" id="exp_date" value="${todayISO()}"></div>
+      </div>
+      <div class="field"><label>Note / Description</label><input type="text" id="exp_note" placeholder="e.g. Light bill, Salary..."></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">${tagBtns}</div>
+      <div class="field"><label>Paid From</label><select id="exp_from">${balOpts(shopId)}</select></div>
+      <div class="field" style="background:#fef9f0;border-radius:12px;padding:12px">
+        <label style="font-size:11px;font-weight:800;color:#856404;margin-bottom:6px;display:block">Account Link (for salary, dealer payment — creates ledger entry)</label>
+        <select id="exp_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Direct Expense (no ledger) --</option>${acctOpts(shopId)}</select>
+      </div>
+      <button class="save-btn" onclick="addExpense('${shopId}')">💾 Save Expense</button>
+    </div>
+    <div class="card"><div class="card-title">🏷 Quick Tags</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagBtns||'<span style="color:#bbb;font-size:12px">No tags yet</span>'}</div>
+      <div style="display:flex;gap:8px"><input type="text" id="expTagIn" placeholder="Add new tag" style="flex:1;padding:8px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addExpTag('${shopId}')" style="padding:8px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700">Add</button></div>
+    </div>
+    <div id="expHistory"></div>`;
+  }
+  renderExpHistory(shopId);
+}
+function renderExpHistory(shopId){
   const expenses=(data.shops[shopId].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
-  const tags=data.shops[shopId].expTags||[];
-  const tagBtns=tags.map(t=>`<button onclick="document.getElementById('exp_note').value='${t}'" style="padding:5px 10px;background:#f0ede8;border:none;border-radius:8px;font-size:12px;cursor:pointer">${t}</button>`).join('');
-  const rows=expenses.map((e,i)=>`<div class="entry-row">
-    <div><div class="entry-main r">₹${fmt(e.amount)}</div>
-    <div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopId,e.paidFrom||'cash')}${e.accountId?` → <span style="color:#2980b9">${acctName(e.accountId)}</span>`:''}</div></div>
-    <div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>
-    ${isManager()?`<button onclick="delExpense('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}</div></div>`).join('');
-  document.getElementById('expContent').innerHTML=`
-  <div class="card"><div class="card-title">➕ Add Expense</div>
-    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="exp_amt" placeholder="0"></div><div class="field"><label>Date</label><input type="date" id="exp_date" value="${todayISO()}"></div></div>
-    <div class="field"><label>Note</label><input type="text" id="exp_note" placeholder="e.g. Light bill, Salary..."></div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">${tagBtns}</div>
-    <div class="field"><label>Paid From</label><select id="exp_from">${balOpts(shopId)}</select></div>
-    <div class="field"><label>Account (for salary/dealer — hits ledger)</label><select id="exp_acct"><option value="">— Direct Expense —</option>${acctOpts(shopId)}</select></div>
-    <button class="save-btn" onclick="addExpense('${shopId}')">Save</button>
-  </div>
-  <div class="card"><div class="card-title">🏷 Quick Tags</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagBtns||'<span style="color:#bbb;font-size:12px">No tags</span>'}</div>
-    <div style="display:flex;gap:8px"><input type="text" id="expTagIn" placeholder="New tag" style="flex:1;padding:8px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addExpTag('${shopId}')" style="padding:8px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;cursor:pointer">Add</button></div>
-  </div>
-  <div class="card"><div class="card-title">📋 Recent Expenses</div>${rows||'<div class="empty">No expenses</div>'}</div>`;
+  const rows=expenses.map((e,i)=>`<div class="entry-row"><div><div class="entry-main r">Rs.${fmt(e.amount)}</div><div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopId,e.paidFrom||'cash')}${e.accountId?' to '+acctName(e.accountId):''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delExpense('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
+  const hist=document.getElementById('expHistory');
+  if(hist)hist.innerHTML='<div class="card"><div class="card-title">Recent Expenses</div>'+(rows||'<div class="empty">No expenses</div>')+'</div>';
 }
 window.addExpense=function(shopId){
   const amt=+document.getElementById('exp_amt')?.value||0;if(!amt){toast('Enter amount');return;}
@@ -598,66 +679,69 @@ window.addExpense=function(shopId){
   if(accountId)addLedger(accountId,date,'cr',amt,note||'Payment','expense',shopId);
   save();toast('Saved!');
   document.getElementById('exp_amt').value='';document.getElementById('exp_note').value='';
-  renderExpense();
+  renderExpHistory(shopId);
 };
 window.delExpense=function(shopId,i){
   if(!isManager())return;if(!confirm('Delete expense?'))return;
   const e=data.shops[shopId].expenses[i];
-  logChange('DELETE','Expense',`₹${fmt(e?.amount)} ${e?.note||''}`,shopId);
-  data.shops[shopId].expenses.splice(i,1);save();toast('Deleted!');renderExpense();
+  logChange('DELETE','Expense','Rs.'+fmt(e?.amount)+' '+(e?.note||''),shopId);
+  data.shops[shopId].expenses.splice(i,1);save();toast('Deleted!');renderExpHistory(shopId);
 };
-window.addExpTag=function(shopId){const v=document.getElementById('expTagIn')?.value?.trim();if(!v)return;data.shops[shopId].expTags.push(v);save();renderExpense();};
+window.addExpTag=function(shopId){const v=document.getElementById('expTagIn')?.value?.trim();if(!v)return;data.shops[shopId].expTags.push(v);save();document.getElementById('expContent').dataset.shopId='';renderExpense();};
 
 // ── BALANCE ───────────────────────────────────────────────────────────────────
 function renderBalance(){
   shopTabs('balTabs','balance');
   const shopId=activeShops.balance;
-  const b=data.shops[shopId].balanceAccounts;
+  const pg=document.getElementById('balContent');
   const sub=window._balTab||'cash';
-  const subTabs=['cash','upi','bank'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank'}[t]}</button>`).join('');
+  const stateKey=shopId+'_'+sub;
+  // Always rebuild balance — it's read-only display with simple inline inputs
+  // But update balances without rebuilding UPI/bank input fields
+  const b=data.shops[shopId].balanceAccounts;
+  const subTabs=['cash','upi','bank'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'Cash',upi:'UPI',bank:'Bank'}[t]}</button>`).join('');
   let body='';
   if(sub==='cash'){
-    const rows=(b.cash.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delCashE('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}</div></div>`).join('');
-    body=`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Cash Balance</div><div class="metric-value g">₹${fmt(b.cash.balance)}</div></div></div>
-    <div class="card"><div class="card-title">➕ Manual Cash Entry</div>
-      <div class="two-col"><div class="field"><label>Amount (+in / -out)</label><input type="number" id="cash_amt" placeholder="500 or -200"></div><div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="Reason"></div></div>
+    const rows=(b.cash.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delCashE('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
+    body=`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Cash Balance</div><div class="metric-value g">Rs.${fmt(b.cash.balance)}</div></div></div>
+    <div class="card"><div class="card-title">Manual Cash Entry</div>
+      <div class="two-col"><div class="field"><label>Amount (type positive to add, negative to deduct)</label><input type="number" id="cash_amt" placeholder="e.g. 5000 or -2000"></div><div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="Reason"></div></div>
       <button class="save-btn" onclick="addCash('${shopId}')">Save</button></div>
-    <div class="card"><div class="card-title">📋 Cash Entries</div>${rows||'<div class="empty">No entries</div>'}</div>`;
+    <div class="card"><div class="card-title">Cash Entries</div>${rows||'<div class="empty">No entries</div>'}</div>`;
   } else if(sub==='upi'){
     const cards=(b.upi||[]).map((u,i)=>{
-      const rows=(u.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delUpiE('${shopId}',${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
-      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${u.name}</div><div style="font-size:11px;color:#888">${u.number||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(u.balance)}</div></div>
-      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_a_${i}" placeholder="+/- amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="upi_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addUpiE('${shopId}',${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">+</button></div>${rows}</div>`;
+      const rows=(u.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delUpiE('${shopId}',${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`).join('');
+      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${u.name}</div><div style="font-size:11px;color:#888">${u.number||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">Rs.${fmt(u.balance)}</div></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_a_${i}" placeholder="Amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="upi_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addUpiE('${shopId}',${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">+</button></div>${rows}</div>`;
     }).join('');
     body=`${cards||'<div class="card"><div class="empty">No UPI accounts</div></div>'}
-    <div class="card"><div class="card-title">➕ Add UPI Account</div>
+    <div class="card"><div class="card-title">Add UPI Account</div>
       <div class="two-col"><div class="field"><label>Name</label><input type="text" id="upi_name" placeholder="GPay/PhonePe"></div><div class="field"><label>Number</label><input type="text" id="upi_num" placeholder="Mobile no."></div></div>
-      <div class="field"><label>Opening Balance (₹)</label><input type="number" id="upi_bal" placeholder="0"></div>
+      <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="upi_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addUpiAcct('${shopId}')">Add</button></div>`;
   } else {
     const cards=(b.bank||[]).map((bk,i)=>{
-      const rows=(bk.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delBankE('${shopId}',${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
-      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${bk.name}</div><div style="font-size:11px;color:#888">${bk.accountNo||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(bk.balance)}</div></div>
-      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_a_${i}" placeholder="+/- amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="bank_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addBankE('${shopId}',${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">+</button></div>${rows}</div>`;
+      const rows=(bk.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delBankE('${shopId}',${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`).join('');
+      return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${bk.name}</div><div style="font-size:11px;color:#888">${bk.accountNo||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">Rs.${fmt(bk.balance)}</div></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_a_${i}" placeholder="Amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="bank_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addBankE('${shopId}',${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">+</button></div>${rows}</div>`;
     }).join('');
     body=`${cards||'<div class="card"><div class="empty">No bank accounts</div></div>'}
-    <div class="card"><div class="card-title">➕ Add Bank Account</div>
+    <div class="card"><div class="card-title">Add Bank Account</div>
       <div class="two-col"><div class="field"><label>Bank Name</label><input type="text" id="bank_name" placeholder="SBI/HDFC"></div><div class="field"><label>Acct No.</label><input type="text" id="bank_no" placeholder="Last 4 digits"></div></div>
-      <div class="field"><label>Opening Balance (₹)</label><input type="number" id="bank_bal" placeholder="0"></div>
+      <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="bank_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addBankAcct('${shopId}')">Add</button></div>`;
   }
-  document.getElementById('balContent').innerHTML=`<div class="sub-tabs">${subTabs}</div>${body}`;
+  pg.innerHTML=`<div class="sub-tabs">${subTabs}</div>${body}`;
 }
-window.addCash=function(si){const amt=+document.getElementById('cash_amt')?.value||0;if(!amt)return;const s=data.shops[si].balanceAccounts.cash;s.balance=+(s.balance||0)+ +amt;s.entries.push({date:todayISO(),amount:amt,note:document.getElementById('cash_note')?.value?.trim()||''});save();toast('Saved!');renderBalance();};
-window.addUpiE=function(si,i){const amt=+document.getElementById(`upi_a_${i}`)?.value||0;if(!amt)return;const u=data.shops[si].balanceAccounts.upi[i];u.balance=+(u.balance||0)+ +amt;if(!u.entries)u.entries=[];u.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`upi_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
-window.addBankE=function(si,i){const amt=+document.getElementById(`bank_a_${i}`)?.value||0;if(!amt)return;const bk=data.shops[si].balanceAccounts.bank[i];bk.balance=+(bk.balance||0)+ +amt;if(!bk.entries)bk.entries=[];bk.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`bank_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
-window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name)return;data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:+document.getElementById('upi_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
-window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name)return;data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_no')?.value?.trim()||'',balance:+document.getElementById('bank_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
-window.delCashE=function(si,i){if(!confirm('Delete?'))return;const entries=data.shops[si].balanceAccounts.cash.entries;const amt=entries[i]?.amount||0;data.shops[si].balanceAccounts.cash.balance-=amt;entries.splice(i,1);save();renderBalance();};
+window.addCash=function(si){const amt=+document.getElementById('cash_amt')?.value||0;if(!amt){toast('Enter amount');return;}const s=data.shops[si].balanceAccounts.cash;s.balance=+(s.balance||0)+ +amt;s.entries.push({date:todayISO(),amount:amt,note:document.getElementById('cash_note')?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addUpiE=function(si,i){const amt=+document.getElementById(`upi_a_${i}`)?.value||0;if(!amt){toast('Enter amount');return;}const u=data.shops[si].balanceAccounts.upi[i];u.balance=+(u.balance||0)+ +amt;if(!u.entries)u.entries=[];u.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`upi_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addBankE=function(si,i){const amt=+document.getElementById(`bank_a_${i}`)?.value||0;if(!amt){toast('Enter amount');return;}const bk=data.shops[si].balanceAccounts.bank[i];bk.balance=+(bk.balance||0)+ +amt;if(!bk.entries)bk.entries=[];bk.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`bank_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:+document.getElementById('upi_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
+window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_no')?.value?.trim()||'',balance:+document.getElementById('bank_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
+window.delCashE=function(si,i){if(!confirm('Delete?'))return;const entries=data.shops[si].balanceAccounts.cash.entries;data.shops[si].balanceAccounts.cash.balance-=(entries[i]?.amount||0);entries.splice(i,1);save();renderBalance();};
 window.delUpiE=function(si,ai,i){if(!confirm('Delete?'))return;const u=data.shops[si].balanceAccounts.upi[ai];u.balance-=(u.entries[i]?.amount||0);u.entries.splice(i,1);save();renderBalance();};
 window.delBankE=function(si,ai,i){if(!confirm('Delete?'))return;const bk=data.shops[si].balanceAccounts.bank[ai];bk.balance-=(bk.entries[i]?.amount||0);bk.entries.splice(i,1);save();renderBalance();};
 
-// ── STAFF ─────────────────────────────────────────────────────────────────────
 function renderStaff(){
   shopTabs('staffTabs','staff');
   const shopId=activeShops.staff;
