@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_3.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_4.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -316,11 +316,11 @@ function renderSales(){
       </div>
       <div class="two-col">
         <div class="field"><label>💵 Cash (₹)</label><input type="number" id="s_cash" placeholder="0" oninput="calcST()"></div>
-        <div class="field"><label>📲 UPI (₹)</label><input type="number" id="s_upi" placeholder="0" oninput="calcST()"></div>
+        <div class="field"><label>📲 UPI — which account?</label><select id="s_upi_acct" onchange="calcST()" style="margin-bottom:4px"><option value="">— None —</option>${(data.shops[shopIdx].balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">${u.name}</option>`).join('')}</select><input type="number" id="s_upi" placeholder="UPI Amount" oninput="calcST()"></div>
       </div>
       <div class="two-col">
-        <div class="field"><label>🏦 Bank (₹)</label><input type="number" id="s_bank" placeholder="0" oninput="calcST()"></div>
-        <div class="field"><label>💳 Swipe (₹)</label><input type="number" id="s_swipe" placeholder="0" oninput="calcST()"></div>
+        <div class="field"><label>🏦 Bank — which account?</label><select id="s_bank_acct" onchange="calcST()" style="margin-bottom:4px"><option value="">— None —</option>${(data.shops[shopIdx].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name}</option>`).join('')}</select><input type="number" id="s_bank" placeholder="Bank Amount" oninput="calcST()"></div>
+        <div class="field"><label>💳 Swipe — which machine?</label><select id="s_swipe_acct" onchange="calcST()" style="margin-bottom:4px"><option value="">— None —</option>${(data.shops[shopIdx].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name} machine</option>`).join('')}</select><input type="number" id="s_swipe" placeholder="Swipe Amount" oninput="calcST()"></div>
       </div>
       <div class="field"><label>🔁 Exchange (₹ — deducted from total)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div>
       <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
@@ -340,23 +340,28 @@ function renderSales(){
     <div class="card"><div class="card-title">📋 Sales History ${isManager()?'<span style="font-size:11px;color:#1a7a4a;font-weight:600;margin-left:8px">Tap to edit</span>':''}</div>
     ${entries.map((e,i)=>renderSaleRow(e,i,shopIdx,'sales')).join('')||'<div class="empty">No entries</div>'}</div>`;
 
+
   } else if(tab==='accessories'){
     const accEntries=(data.shops[shopIdx].accessories||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
     const repEntries=(data.shops[shopIdx].repairing||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const upiSel=(pfx)=>(data.shops[shopIdx].balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">${u.name}</option>`).join('');
+    const bankSel=(pfx)=>(data.shops[shopIdx].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name}</option>`).join('');
+    const payFields=(pfx,calcFn)=>`
+      <div class="two-col">
+        <div class="field"><label>💵 Cash (₹)</label><input type="number" id="${pfx}_cash" placeholder="0" oninput="${calcFn}()"></div>
+        <div class="field"><label>📲 UPI (₹)</label><select id="${pfx}_upi_acct" style="margin-bottom:4px"><option value="">— None —</option>${upiSel()}</select><input type="number" id="${pfx}_upi" placeholder="0" oninput="${calcFn}()"></div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label>🏦 Bank (₹)</label><select id="${pfx}_bank_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankSel()}</select><input type="number" id="${pfx}_bank" placeholder="0" oninput="${calcFn}()"></div>
+        <div class="field"><label>💳 Swipe (₹)</label><select id="${pfx}_swipe_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankSel()}</select><input type="number" id="${pfx}_swipe" placeholder="0" oninput="${calcFn}()"></div>
+      </div>`;
     body=`
     <div class="card"><div class="card-title">🔌 Accessories — Day Entry</div>
       <div class="two-col">
         <div class="field"><label>Date</label><input type="date" id="ac_date" value="${todayISO()}"></div>
         <div class="field"><label>Note (optional)</label><input type="text" id="ac_note" placeholder=""></div>
       </div>
-      <div class="two-col">
-        <div class="field"><label>💵 Cash (₹)</label><input type="number" id="ac_cash" placeholder="0" oninput="calcAT()"></div>
-        <div class="field"><label>📲 UPI (₹)</label><input type="number" id="ac_upi" placeholder="0" oninput="calcAT()"></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>🏦 Bank (₹)</label><input type="number" id="ac_bank" placeholder="0" oninput="calcAT()"></div>
-        <div class="field"><label>💳 Swipe (₹)</label><input type="number" id="ac_swipe" placeholder="0" oninput="calcAT()"></div>
-      </div>
+      ${payFields('ac','calcAT')}
       <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">Total: <strong id="acTot">₹0</strong></div>
       <button class="save-btn" onclick="addAccEntry(${shopIdx})">Save Accessories</button>
     </div>
@@ -365,14 +370,7 @@ function renderSales(){
         <div class="field"><label>Date</label><input type="date" id="rp_date" value="${todayISO()}"></div>
         <div class="field"><label>Note (optional)</label><input type="text" id="rp_note" placeholder=""></div>
       </div>
-      <div class="two-col">
-        <div class="field"><label>💵 Cash (₹)</label><input type="number" id="rp_cash" placeholder="0" oninput="calcRT()"></div>
-        <div class="field"><label>📲 UPI (₹)</label><input type="number" id="rp_upi" placeholder="0" oninput="calcRT()"></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>🏦 Bank (₹)</label><input type="number" id="rp_bank" placeholder="0" oninput="calcRT()"></div>
-        <div class="field"><label>💳 Swipe (₹)</label><input type="number" id="rp_swipe" placeholder="0" oninput="calcRT()"></div>
-      </div>
+      ${payFields('rp','calcRT')}
       <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">Total: <strong id="rpTot">₹0</strong></div>
       <button class="save-btn" onclick="addRepEntry(${shopIdx})">Save Repairing</button>
     </div>
@@ -381,6 +379,8 @@ function renderSales(){
 
   } else if(tab==='recharge'){
     const rEntries=(data.shops[shopIdx].recharge||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const upiSel2=(data.shops[shopIdx].balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">${u.name}</option>`).join('');
+    const bankSel2=(data.shops[shopIdx].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name}</option>`).join('');
     body=`
     <div class="card"><div class="card-title">📶 Recharge — Day Entry</div>
       <div class="two-col">
@@ -389,11 +389,11 @@ function renderSales(){
       </div>
       <div class="two-col">
         <div class="field"><label>💵 Cash (₹)</label><input type="number" id="rc_cash" placeholder="0" oninput="calcRCT()"></div>
-        <div class="field"><label>📲 UPI (₹)</label><input type="number" id="rc_upi" placeholder="0" oninput="calcRCT()"></div>
+        <div class="field"><label>📲 UPI (₹)</label><select id="rc_upi_acct" style="margin-bottom:4px"><option value="">— None —</option>${upiSel2}</select><input type="number" id="rc_upi" placeholder="0" oninput="calcRCT()"></div>
       </div>
       <div class="two-col">
-        <div class="field"><label>🏦 Bank (₹)</label><input type="number" id="rc_bank" placeholder="0" oninput="calcRCT()"></div>
-        <div class="field"><label>💳 Swipe (₹)</label><input type="number" id="rc_swipe" placeholder="0" oninput="calcRCT()"></div>
+        <div class="field"><label>🏦 Bank (₹)</label><select id="rc_bank_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankSel2}</select><input type="number" id="rc_bank" placeholder="0" oninput="calcRCT()"></div>
+        <div class="field"><label>💳 Swipe (₹)</label><select id="rc_swipe_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankSel2}</select><input type="number" id="rc_swipe" placeholder="0" oninput="calcRCT()"></div>
       </div>
       <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">Total: <strong id="rcTot">₹0</strong></div>
       <button class="save-btn" onclick="addRcEntry(${shopIdx})">Save Recharge</button>
@@ -446,9 +446,17 @@ function makeDayEntry(prefix,type,shopIdx){
   const swipe=+document.getElementById(`${prefix}_swipe`)?.value||0;
   const total=cash+upi+bank+swipe;
   if(!total){toast('Enter at least one amount');return null;}
+  const upiAcct=document.getElementById(`${prefix}_upi_acct`)?.value||'';
+  const bankAcct=document.getElementById(`${prefix}_bank_acct`)?.value||'';
+  const swipeAcct=document.getElementById(`${prefix}_swipe_acct`)?.value||'';
   const date=document.getElementById(`${prefix}_date`)?.value||todayISO();
   const note=document.getElementById(`${prefix}_note`)?.value?.trim()||'';
-  return {id:uid(),date,cash,upi,bank,swipe,total,note};
+  // credit balances
+  if(cash>0)credit(shopIdx,'cash',cash);
+  if(upi>0&&upiAcct)credit(shopIdx,upiAcct,upi);else if(upi>0)credit(shopIdx,'cash',upi);
+  if(bank>0&&bankAcct)credit(shopIdx,bankAcct,bank);else if(bank>0)credit(shopIdx,'cash',bank);
+  if(swipe>0&&swipeAcct)credit(shopIdx,swipeAcct,swipe);else if(swipe>0)credit(shopIdx,'cash',swipe);
+  return {id:uid(),date,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,total,note};
 }
 window.addSale=function(si){
   const cash=+document.getElementById('s_cash')?.value||0;
@@ -458,16 +466,20 @@ window.addSale=function(si){
   const exch=+document.getElementById('s_exch')?.value||0;
   const udhari=+document.getElementById('s_udhari')?.value||0;
   const bakijama=+document.getElementById('s_bakijama')?.value||0;
+  const upiAcct=document.getElementById('s_upi_acct')?.value||'';
+  const bankAcct=document.getElementById('s_bank_acct')?.value||'';
+  const swipeAcct=document.getElementById('s_swipe_acct')?.value||'';
   const total=cash+upi+bank+swipe+bakijama-udhari-exch;
   if(!cash&&!upi&&!bank&&!swipe&&!udhari&&!bakijama){toast('Enter at least one amount');return;}
   const date=document.getElementById('s_date')?.value||todayISO();
   const udhAcct=document.getElementById('s_udhAcct')?.value||'';
   const bakiTo=document.getElementById('s_bakiTo')?.value||'';
-  const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,bank,swipe,exchange:exch,udhari,bakijama,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||''};
+  const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,bakijama,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||''};
   data.shops[si].sales.push(e);
   if(cash>0)credit(si,'cash',cash);
-  if(upi>0){const u=data.shops[si].balanceAccounts.upi||[];u.length?credit(si,'upi_0',upi):credit(si,'cash',upi);}
-  if(bank>0){const b=data.shops[si].balanceAccounts.bank||[];b.length?credit(si,'bank_0',bank):credit(si,'cash',bank);}
+  if(upi>0&&upiAcct)credit(si,upiAcct,upi);else if(upi>0)credit(si,'cash',upi);
+  if(bank>0&&bankAcct)credit(si,bankAcct,bank);else if(bank>0)credit(si,'cash',bank);
+  if(swipe>0&&swipeAcct)credit(si,swipeAcct,swipe);else if(swipe>0)credit(si,'cash',swipe);
   if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,'Udhari - phone sale','sale',si);
   if(bakijama>0&&udhAcct)addLedger(udhAcct,date,'cr',bakijama,'Baki Jama received','sale',si);
   if(bakijama>0&&bakiTo)credit(si,bakiTo,bakijama);
@@ -512,10 +524,13 @@ function renderExpense(){
   const expenses=(data.shops[shopIdx].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
   const tags=data.shops[shopIdx].expTags||[];
   const tagBtns=tags.map(t=>`<button onclick="document.getElementById('exp_note').value='${t}'" style="padding:5px 10px;background:#f0ede8;border:none;border-radius:8px;font-size:12px;cursor:pointer">${t}</button>`).join('');
-  const rows=expenses.map(e=>`<div class="entry-row">
+  const rows=expenses.map((e,i)=>`<div class="entry-row">
     <div><div class="entry-main r">₹${fmt(e.amount)}</div>
     <div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopIdx,e.paidFrom||'cash')}${e.accountId?` → <span style="color:#2980b9">${acctName(e.accountId)}</span>`:''}</div></div>
-    <span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="entry-date">${fmtDate(e.date)}</span>
+      ${isManager()?`<button onclick="delExpense(${shopIdx},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px;line-height:1;padding:0 2px">✕</button>`:''}
+    </div></div>`).join('');
   document.getElementById('expContent').innerHTML=`
   <div class="card"><div class="card-title">➕ Add Expense</div>
     <div class="two-col">
@@ -549,6 +564,7 @@ window.addExpense=function(si){
   renderExpense();
 };
 window.addExpTag=function(si){const v=document.getElementById('expTagIn')?.value?.trim();if(!v)return;data.shops[si].expTags.push(v);save();renderExpense();};
+window.delExpense=function(si,i){if(!isManager())return;if(!confirm('Delete this expense?'))return;data.shops[si].expenses.splice(i,1);save();toast('Deleted!');renderExpense();};
 
 // ── BALANCE ───────────────────────────────────────────────────────────────────
 function renderBalance(){
@@ -740,7 +756,10 @@ function renderAccounts(){
         <div class="field"><label>Type</label><select id="lt_type"><option value="dr">DR — They owe you</option><option value="cr">CR — You paid them</option></select></div>
         <div class="field"><label>Amount (₹)</label><input type="number" id="lt_amt" placeholder="0"></div>
       </div>
-      <div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div>
+      <div class="two-col">
+        <div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div>
+        <div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div>
+      </div>
       <div class="field"><label>Also affect balance (optional)</label><select id="lt_bal"><option value="">— No balance change —</option>${balOpts(shopIdx)}</select></div>
       <button class="save-btn" onclick="addManualLedger('${selId}',${shopIdx})">Save</button>
     </div>
@@ -773,7 +792,7 @@ function renderAccounts(){
   ${sections||'<div class="card"><div class="empty">No accounts yet</div></div>'}`;
 }
 window.addAccount=function(si){const name=document.getElementById('acct_name')?.value?.trim();if(!name){toast('Enter name');return;}if(data.accounts.find(a=>a.name===name&&a.shopIdx===si)){toast('Already exists');return;}data.accounts.push({id:uid(),name,type:document.getElementById('acct_type')?.value||'Custom',phone:document.getElementById('acct_phone')?.value?.trim()||'',shopIdx:si,notes:document.getElementById('acct_notes')?.value?.trim()||''});save();toast('Added!');renderAccounts();};
-window.addManualLedger=function(accountId,si){const txnType=document.getElementById('lt_type')?.value||'dr';const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}const note=document.getElementById('lt_note')?.value?.trim()||'';const balKey=document.getElementById('lt_bal')?.value||'';addLedger(accountId,todayISO(),txnType,amt,note,'manual',si);if(balKey){txnType==='cr'?debit(si,balKey,amt):credit(si,balKey,amt);}save();toast('Saved!');renderAccounts();};
+window.addManualLedger=function(accountId,si){const txnType=document.getElementById('lt_type')?.value||'dr';const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}const note=document.getElementById('lt_note')?.value?.trim()||'';const balKey=document.getElementById('lt_bal')?.value||'';const date=document.getElementById('lt_date')?.value||todayISO();addLedger(accountId,date,txnType,amt,note,'manual',si);if(balKey){txnType==='cr'?debit(si,balKey,amt):credit(si,balKey,amt);}save();toast('Saved!');renderAccounts();};
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard(){
@@ -834,9 +853,25 @@ function renderDashboard(){
   </div>
   ${isOwner()?`<div class="card"><div class="card-title">⚖️ Set Adjustment</div>
     <div class="field"><input type="number" id="adj_v" value="${adj}" placeholder="0 or negative for short"></div>
-    <button class="save-btn" onclick="saveAdj(${shopIdx})">Save</button></div>`:''}`;
+    <button class="save-btn" onclick="saveAdj(${shopIdx})">Save</button></div>
+  <div class="card" style="border:2px solid #c0392b">
+    <div class="card-title" style="color:#c0392b">🗑️ Clear All Data (Testing Only)</div>
+    <div style="font-size:12px;color:#888;margin-bottom:10px">Wipes everything — all entries, balances, accounts, staff. Cannot be undone.</div>
+    <button class="save-btn red" onclick="clearAllData()">Clear All Data</button>
+  </div>`:''}`;
 }
 window.saveAdj=function(si){data.shops[si].adjustment=+document.getElementById('adj_v')?.value||0;save();toast('Saved!');renderDashboard();};
+window.clearAllData=function(){
+  if(!isOwner()){toast('Owner only');return;}
+  if(!confirm('This will delete ALL data from all 4 branches. Are you sure?'))return;
+  if(!confirm('FINAL WARNING — this cannot be undone. Delete everything?'))return;
+  localStorage.removeItem(SK);
+  localStorage.removeItem('shopapp_v8');
+  localStorage.removeItem('shopapp_v7');
+  localStorage.removeItem('shopapp_v6');
+  data={shops:[defShop(),defShop(),defShop(),defShop()],staff:[[],[],[],[]],transfers:[],accounts:[],ledger:[]};
+  save();toast('All data cleared!');renderDashboard();
+};
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 load();
