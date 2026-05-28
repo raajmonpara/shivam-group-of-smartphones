@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_4.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_5.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -575,7 +575,7 @@ function renderBalance(){
   const subTabs=['cash','upi','bank'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank'}[t]}</button>`).join('');
   let body='';
   if(sub==='cash'){
-    const rows=(b.cash.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map(e=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+    const rows=(b.cash.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delCashEntry(${shopIdx},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}</div></div>`).join('');
     body=`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Cash Balance</div><div class="metric-value g">₹${fmt(b.cash.balance)}</div></div></div>
     <div class="card"><div class="card-title">➕ Manual Cash Entry</div>
       <div class="two-col"><div class="field"><label>Amount (+in / -out)</label><input type="number" id="cash_amt" placeholder="e.g. 500 or -200"></div><div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="Reason"></div></div>
@@ -583,7 +583,7 @@ function renderBalance(){
     <div class="card"><div class="card-title">📋 Cash Entries</div>${rows||'<div class="empty">No entries</div>'}</div>`;
   } else if(sub==='upi'){
     const cards=(b.upi||[]).map((u,i)=>{
-      const rows=(u.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,5).map(e=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+      const rows=(u.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,5).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delUpiEntry(${shopIdx},${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
       return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${u.name}</div><div style="font-size:11px;color:#888">${u.number||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(u.balance)}</div></div>
       <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_a_${i}" placeholder="+/- amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="upi_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addUpiE(${shopIdx},${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">Add</button></div>${rows}</div>`;
     }).join('');
@@ -594,7 +594,7 @@ function renderBalance(){
       <button class="save-btn" onclick="addUpiAcct(${shopIdx})">Add</button></div>`;
   } else {
     const cards=(b.bank||[]).map((bk,i)=>{
-      const rows=(bk.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,5).map(e=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+      const rows=(bk.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,5).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delBankEntry(${shopIdx},${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
       return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${bk.name}</div><div style="font-size:11px;color:#888">${bk.accountNo||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(bk.balance)}</div></div>
       <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_a_${i}" placeholder="+/- amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="bank_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addBankE(${shopIdx},${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">Add</button></div>${rows}</div>`;
     }).join('');
@@ -611,6 +611,9 @@ window.addUpiE=function(si,i){const amt=+document.getElementById(`upi_a_${i}`)?.
 window.addBankE=function(si,i){const amt=+document.getElementById(`bank_a_${i}`)?.value||0;if(!amt)return;const bk=data.shops[si].balanceAccounts.bank[i];bk.balance=+(bk.balance||0)+ +amt;if(!bk.entries)bk.entries=[];bk.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`bank_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
 window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:+document.getElementById('upi_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
 window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_no')?.value?.trim()||'',balance:+document.getElementById('bank_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
+window.delCashEntry=function(si,i){if(!isManager())return;if(!confirm('Delete this entry?'))return;const entries=data.shops[si].balanceAccounts.cash.entries;const amt=entries[i]?.amount||0;data.shops[si].balanceAccounts.cash.balance-=amt;entries.splice(i,1);save();toast('Deleted!');renderBalance();};
+window.delUpiEntry=function(si,ai,i){if(!isManager())return;if(!confirm('Delete?'))return;const u=data.shops[si].balanceAccounts.upi[ai];const amt=u.entries[i]?.amount||0;u.balance-=amt;u.entries.splice(i,1);save();toast('Deleted!');renderBalance();};
+window.delBankEntry=function(si,ai,i){if(!isManager())return;if(!confirm('Delete?'))return;const bk=data.shops[si].balanceAccounts.bank[ai];const amt=bk.entries[i]?.amount||0;bk.balance-=amt;bk.entries.splice(i,1);save();toast('Deleted!');renderBalance();};
 
 // ── STAFF ─────────────────────────────────────────────────────────────────────
 function renderStaff(){
@@ -737,10 +740,12 @@ function renderAccounts(){
     const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
     const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
     const bal=dr-cr;
-    const rows=txns.map(t=>`<div class="txn-row">
-      <div><div class="entry-main">${t.type==='dr'?'<span class="badge badge-dr">DR</span>':'<span class="badge badge-cr">CR</span>'} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 6px;border-radius:6px;color:#666">${t.source||''}</span></div>
-      <div class="entry-sub">${t.note||''}</div></div>
-      <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
+    const rows=txns.map((t,ti)=>`<div class="txn-row">
+      <div style="flex:1"><div class="entry-main">${t.type==='dr'?'<span class="badge badge-dr">DR</span>':'<span class="badge badge-cr">CR</span>'} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 6px;border-radius:6px;color:#666">${t.source||''}</span></div>
+      <div class="entry-sub">${t.note||''} | ${fmtDate(t.date)}</div></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        ${isManager()?`<button onclick="delLedgerTxn('${t.id}',${shopIdx})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px;padding:0 4px">✕</button>`:''}
+      </div></div>`).join('');
     document.getElementById('acctContent').innerHTML=`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <button onclick="window._selAcct=null;renderAccounts()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a">←</button>
@@ -793,6 +798,14 @@ function renderAccounts(){
 }
 window.addAccount=function(si){const name=document.getElementById('acct_name')?.value?.trim();if(!name){toast('Enter name');return;}if(data.accounts.find(a=>a.name===name&&a.shopIdx===si)){toast('Already exists');return;}data.accounts.push({id:uid(),name,type:document.getElementById('acct_type')?.value||'Custom',phone:document.getElementById('acct_phone')?.value?.trim()||'',shopIdx:si,notes:document.getElementById('acct_notes')?.value?.trim()||''});save();toast('Added!');renderAccounts();};
 window.addManualLedger=function(accountId,si){const txnType=document.getElementById('lt_type')?.value||'dr';const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}const note=document.getElementById('lt_note')?.value?.trim()||'';const balKey=document.getElementById('lt_bal')?.value||'';const date=document.getElementById('lt_date')?.value||todayISO();addLedger(accountId,date,txnType,amt,note,'manual',si);if(balKey){txnType==='cr'?debit(si,balKey,amt):credit(si,balKey,amt);}save();toast('Saved!');renderAccounts();};
+window.delLedgerTxn=function(txnId,si){
+  if(!isManager())return;
+  if(!confirm('Delete this transaction?'))return;
+  const idx=data.ledger.findIndex(t=>t.id===txnId);
+  if(idx===-1)return;
+  data.ledger.splice(idx,1);
+  save();toast('Deleted!');renderAccounts();
+};
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard(){
@@ -803,7 +816,7 @@ function renderDashboard(){
   const sales=shop.sales||[];const expenses=shop.expenses||[];
   const acc=shop.accessories||[];const rep=shop.repairing||[];const rch=shop.recharge||[];
   // today
-  const tSales=sales.filter(e=>e.date===today&&!e.udhari&&!e.bakijama);
+  const tSales=sales.filter(e=>e.date===today&&(e.cash||e.upi||e.bank||e.swipe||e.exchange));
   const tSaleAmt=tSales.reduce((s,e)=>s+(e.total||0),0);
   const tQty=tSales.reduce((s,e)=>s+(e.qty||0),0);
   const tExp=expenses.filter(e=>e.date===today).reduce((s,e)=>s+e.amount,0);
@@ -811,7 +824,7 @@ function renderDashboard(){
   const tRep=rep.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
   const tRch=rch.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
   // month
-  const mSaleAmt=sales.filter(e=>e.date.startsWith(ym)&&!e.udhari&&!e.bakijama).reduce((s,e)=>s+(e.total||0),0);
+  const mSaleAmt=sales.filter(e=>e.date.startsWith(ym)&&(e.cash||e.upi||e.bank||e.swipe||e.exchange)).reduce((s,e)=>s+(e.total||0),0);
   const mExp=expenses.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+e.amount,0);
   const mAcc=acc.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
   const mRep=rep.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
