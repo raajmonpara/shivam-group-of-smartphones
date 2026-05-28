@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_5.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_6.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager</title>
+<title>Shivam Group</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0ede8;min-height:100vh;color:#1a1a1a}
@@ -12,8 +12,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .login-title{color:#fff;font-size:22px;font-weight:800;margin-bottom:4px}
 .login-sub{color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:32px}
 .login-card{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
-.role-tabs{display:flex;gap:8px;margin-bottom:20px}
-.role-tab{flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;border-radius:10px;cursor:pointer;background:#f5f5f0;color:#555;transition:all 0.2s}
+.role-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.role-tab{flex:1;min-width:80px;padding:10px 4px;font-size:12px;font-weight:700;border:none;border-radius:10px;cursor:pointer;background:#f5f5f0;color:#555;transition:all 0.2s}
 .role-tab.active{background:#1a7a4a;color:#fff}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
@@ -21,26 +21,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .field select:focus,.field input:focus{border-color:#1a7a4a}
 .login-btn{width:100%;padding:14px;background:#1a7a4a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
 .err{color:#c0392b;font-size:12px;text-align:center;margin-top:10px;min-height:18px}
+#syncStatus{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.8);margin-bottom:16px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#f39c12;flex-shrink:0}
+.sync-dot.connected{background:#2ecc71}
+.sync-dot.error{background:#e74c3c}
 #app{display:none;max-width:480px;margin:0 auto;padding-bottom:80px}
-.top-bar{background:#1a7a4a;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
-.top-bar-title{font-size:15px;font-weight:800}
-.top-bar-sub{font-size:11px;opacity:0.8}
+.top-bar{background:#1a7a4a;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.15)}
+.top-bar-title{font-size:14px;font-weight:800}
+.top-bar-sub{font-size:10px;opacity:0.8}
+.top-bar-right{display:flex;gap:8px;align-items:center}
+.sync-indicator{font-size:10px;background:rgba(255,255,255,0.15);padding:3px 8px;border-radius:10px}
 .logout-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #e8e8e4;display:flex;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.08);overflow-x:auto}
-.nav-item{flex:1;min-width:52px;display:flex;flex-direction:column;align-items:center;padding:8px 2px 10px;cursor:pointer;border:none;background:none;color:#999;font-size:9px;font-weight:600;gap:3px}
-.nav-item .icon{font-size:19px;line-height:1}
+.nav-item{flex:1;min-width:48px;display:flex;flex-direction:column;align-items:center;padding:7px 2px 9px;cursor:pointer;border:none;background:none;color:#999;font-size:8.5px;font-weight:600;gap:2px}
+.nav-item .icon{font-size:18px;line-height:1}
 .nav-item.active{color:#1a7a4a}
 .page{display:none;padding:12px}
 .page.active{display:block}
 .shop-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
-.shop-tab{padding:7px 14px;font-size:12px;font-weight:700;border:none;border-radius:20px;cursor:pointer;background:#e8e8e4;color:#666;white-space:nowrap}
+.shop-tab{padding:7px 12px;font-size:11px;font-weight:700;border:none;border-radius:20px;cursor:pointer;background:#e8e8e4;color:#666;white-space:nowrap}
 .shop-tab.active{background:#1a7a4a;color:#fff}
-.sec-hdr{font-size:12px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:0.5px;padding:8px 0 6px}
+.sec-hdr{font-size:11px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:0.5px;padding:8px 0 6px}
 .card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
 .card-title{font-size:13px;font-weight:800;color:#333;margin-bottom:12px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.four-col{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px}
 .save-btn{width:100%;padding:13px;background:#1a7a4a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
 .save-btn.red{background:#c0392b}
 .entry-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f0ede8}
@@ -54,11 +58,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .metric-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
 .metric-value{font-size:18px;font-weight:800}
 .g{color:#1a7a4a}.r{color:#c0392b}
-.sub-tabs{display:flex;gap:6px;margin-bottom:12px}
-.sub-tab{flex:1;padding:8px 4px;font-size:12px;font-weight:700;border:none;border-radius:10px;cursor:pointer;background:#f0ede8;color:#666}
+.sub-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.sub-tab{flex:1;min-width:70px;padding:8px 4px;font-size:11px;font-weight:700;border:none;border-radius:10px;cursor:pointer;background:#f0ede8;color:#666}
 .sub-tab.active{background:#1a7a4a;color:#fff}
 .dealer-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
-.txn-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f5f5f0}
+.txn-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f0}
 .txn-row:last-child{border-bottom:none}
 .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
 .badge-dr{background:#fde8e8;color:#c0392b}
@@ -72,8 +76,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .type-Customer{background:#fde8e8;color:#c0392b}
 .type-Custom{background:#f0ede8;color:#555}
 .edit-row{background:#fffbf0;border:1.5px solid #f0c040;border-radius:12px;padding:12px;margin-bottom:8px}
+.change-row{background:#fff;border-left:3px solid #e74c3c;border-radius:8px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
-input[type=number]::-webkit-inner-spin-button{opacity:1}
+.saving-indicator{position:fixed;top:60px;right:12px;background:#1a7a4a;color:#fff;font-size:11px;padding:4px 10px;border-radius:10px;z-index:200;opacity:0;transition:opacity 0.3s}
 </style>
 </head>
 <body>
@@ -81,29 +86,25 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
   <div class="login-logo">🏪</div>
   <div class="login-title">Shivam Group</div>
   <div class="login-sub">of Smartphones</div>
+  <div id="syncStatus"><div class="sync-dot connected" id="syncDot"></div><span id="syncTxt">Connected — live sync active</span></div>
   <div class="login-card">
-    <div class="role-tabs">
-      <button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button>
-      <button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button>
-      <button class="role-tab" onclick="setRole(&#39;staff&#39;)">🧑‍🏭 Staff</button>
-    </div>
+    <div class="role-tabs" id="roleTabs"><button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button><button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button><button class="role-tab" onclick="setRole(&#39;staff&#39;)">🧑‍🏭 Staff</button></div>
     <div id="shopFieldWrap" class="field" style="display:none">
       <label>Branch</label>
-      <select id="loginShop">
-        <option value="0">POOJARA</option><option value="1">RAMDEV</option>
-        <option value="2">SHIVAM (KOSAD)</option><option value="3">SHIVAM (KHODIYAR)</option>
-      </select>
+      <select id="loginShop"><option value="poojara">POOJARA</option><option value="ramdev">RAMDEV</option><option value="kosad">SHIVAM (KOSAD)</option><option value="khodiyar">SHIVAM (KHODIYAR)</option><option value="pacc">P ACC</option><option value="rdacc">RD ACC</option></select>
     </div>
     <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()"></div>
     <button class="login-btn" onclick="doLogin()">Login →</button>
     <div class="err" id="loginErr"></div>
   </div>
 </div>
-
 <div id="app">
   <div class="top-bar">
     <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
-    <button class="logout-btn" onclick="doLogout()">Logout</button>
+    <div class="top-bar-right">
+      <span class="sync-indicator" id="appSyncDot">🟢</span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
   </div>
   <div id="pages">
     <div class="page active" id="page_sales"><div id="salesContent"></div></div>
@@ -113,625 +114,635 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
     <div class="page" id="page_transfer"><div id="transferContent"></div></div>
     <div class="page" id="page_accounts"><div class="shop-tabs" id="acctTabs"></div><div id="acctContent"></div></div>
     <div class="page" id="page_dashboard"><div class="shop-tabs" id="dashTabs"></div><div id="dashContent"></div></div>
+    <div class="page" id="page_changes"><div id="changesContent"></div></div>
   </div>
   <div class="bottom-nav" id="bottomNav"></div>
 </div>
 <div class="toast" id="toast"></div>
+<div class="saving-indicator" id="savingInd">Saving...</div>
 <script>
-// ── CONSTANTS ─────────────────────────────────────────────────────────────────
-const SHOPS=[
-  {name:'POOJARA',  manager:'NIKUNJ',  pass:'poojara123'},
-  {name:'RAMDEV',   manager:'PUNIT',   pass:'ramdev123'},
-  {name:'SHIVAM (KOSAD)',   manager:'KISHAN',  pass:'shivam1123'},
-  {name:'SHIVAM (KHODIYAR)',manager:'RAJVEER', pass:'shivam2123'}
+// ── SUPABASE CONFIG ───────────────────────────────────────────────────────────
+const SB_URL = 'https://zdvjqczstintklvnyyjh.supabase.co';
+const SB_KEY = 'sb_publishable_YaDUN3wo7_wvJjSId0TFHg_n7iPYZin';
+const USE_SYNC = true;
+let _pollInterval = null;
+
+// ── SHOPS CONFIG ──────────────────────────────────────────────────────────────
+const SHOPS = [
+  {id:'poojara',   name:'POOJARA',          pass:'poojara123',   manager:'NIKUNJ',  hasSales:true,  hasAccRep:false},
+  {id:'ramdev',    name:'RAMDEV',            pass:'ramdev123',    manager:'PUNIT',   hasSales:true,  hasAccRep:false},
+  {id:'kosad',     name:'SHIVAM (KOSAD)',    pass:'shivam1123',   manager:'KISHAN',  hasSales:true,  hasAccRep:true},
+  {id:'khodiyar',  name:'SHIVAM (KHODIYAR)',pass:'shivam2123',   manager:'RAJVEER', hasSales:true,  hasAccRep:true},
+  {id:'pacc',      name:'P ACC',             pass:'pacc123',      manager:'P-MGR',   hasSales:false, hasAccRep:true},
+  {id:'rdacc',     name:'RD ACC',            pass:'rdacc123',     manager:'RD-MGR',  hasSales:false, hasAccRep:true},
 ];
-const OWNER_PASS='owner@123', STAFF_PASS='staff123';
-const ACCT_TYPES=['Dealer','Franchise','Staff','Owner','Customer','Custom'];
-const PAY_TYPES=['cash','upi','bank','swipe'];
-const PAY_LABELS={cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank',swipe:'💳 Swipe'};
-const SK='shopapp_v9';
+const OWNER_PASS = 'owner@123';
+const STAFF_PASS = 'staff123';
+const ACCT_TYPES = ['Dealer','Franchise','Staff','Owner','Customer','Custom'];
 
-let session=null, activePage='dashboard';
-let activeShops={sales:0,expense:0,balance:0,staff:0,accounts:0,dashboard:0};
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let session = null, activePage = 'dashboard';
+let activeShops = {expense:0,balance:0,staff:0,accounts:0,dashboard:0};
+let fbDb = null, _lastSaved = null;
 
-// ── DATA ──────────────────────────────────────────────────────────────────────
-const defShop=()=>({
-  sales:[],      // [{id,date,qty,cash,upi,bank,swipe,total,note}]
-  accessories:[], // [{id,date,cash,upi,bank,swipe,total,note}]
-  repairing:[],   // [{id,date,cash,upi,bank,swipe,total,note}]
-  recharge:[],    // [{id,date,cash,upi,bank,swipe,total,note}]
-  expenses:[],
-  expTags:[],
+// ── DATA TEMPLATE ─────────────────────────────────────────────────────────────
+const defShop = () => ({
+  sales:[], accessories:[], repairing:[], recharge:[], expenses:[], expTags:[],
   balanceAccounts:{cash:{balance:0,entries:[]},upi:[],bank:[]},
   adjustment:0
 });
-let data={
-  shops:[defShop(),defShop(),defShop(),defShop()],
-  staff:[[],[],[],[]],
-  transfers:[],
-  accounts:[],
-  ledger:[]
+let data = {
+  shops: Object.fromEntries(SHOPS.map(s=>[s.id, defShop()])),
+  staff: Object.fromEntries(SHOPS.map(s=>[s.id, []])),
+  transfers:[], accounts:[], ledger:[], changes:[]
 };
 
-// ── PERSIST ───────────────────────────────────────────────────────────────────
-function save(){try{localStorage.setItem(SK,JSON.stringify(data));}catch(e){toast('Save error!');}}
-function load(){
+// ── SUPABASE SYNC ─────────────────────────────────────────────────────────────
+async function sbFetch(method, body){
+  const res = await fetch(`${SB_URL}/rest/v1/appdata?id=eq.main`, {
+    method, headers: {
+      'Content-Type':'application/json',
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Prefer': method==='PATCH'?'return=minimal':'return=representation'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if(!res.ok) throw new Error(await res.text());
+  return method==='PATCH' ? null : res.json();
+}
+async function initFirebase(){
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncTxt');
+  if(!USE_SYNC){
+    dot.className='sync-dot error';
+    txt.textContent='Offline mode (Supabase not configured)';
+    loadLocal(); return;
+  }
   try{
-    const raw=localStorage.getItem(SK);
-    if(raw){merge(data,JSON.parse(raw));return;}
-    // migrate from v8
-    const old=localStorage.getItem('shopapp_v8')||localStorage.getItem('shopapp_v7');
-    if(old){
-      const od=JSON.parse(old);
-      if(od.shops)od.shops.forEach((s,i)=>{if(data.shops[i])merge(data.shops[i],s);});
-      if(od.staff)data.staff=od.staff;
-      if(od.transfers)data.transfers=od.transfers;
-      if(od.accounts)data.accounts=od.accounts;
-      if(od.ledger)data.ledger=od.ledger;
-    }
-  }catch(e){console.warn(e);}
+    const rows = await sbFetch('GET');
+    if(rows && rows[0]?.payload){
+      mergeData(rows[0].payload);
+      ensure();
+    } else { loadLocal(); }
+    dot.className='sync-dot connected';
+    txt.textContent='Connected — live sync active';
+    document.getElementById('appSyncDot').textContent='🟢';
+    // Poll every 8 seconds for updates from other devices
+    _pollInterval = setInterval(async ()=>{
+      try{
+        const rows = await sbFetch('GET');
+        if(rows && rows[0]?.payload){
+          const remote = rows[0].payload;
+          if(JSON.stringify(remote)!==_lastSaved){
+            mergeData(remote); ensure();
+            if(session) renderPage(activePage);
+          }
+        }
+      }catch(e){}
+    }, 8000);
+  }catch(e){
+    dot.className='sync-dot error';
+    txt.textContent='Sync error — offline mode';
+    loadLocal();
+  }
+}
+async function save(){
+  showSaving();
+  const d = JSON.parse(JSON.stringify(data));
+  _lastSaved = JSON.stringify(d);
+  if(USE_SYNC){
+    try{
+      await sbFetch('PATCH', {payload: d, updated_at: new Date().toISOString()});
+    }catch(e){ saveLocal(d); }
+  } else { saveLocal(d); }
+  hideSaving();
+}
+function saveLocal(d){ try{localStorage.setItem('shopapp_v9',JSON.stringify(d||data));}catch(e){} }
+function loadLocal(){
+  try{
+    const raw=localStorage.getItem('shopapp_v9');
+    if(raw){mergeData(JSON.parse(raw));}
+  }catch(e){}
   ensure();
 }
-function merge(t,s){Object.keys(s).forEach(k=>{if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k])&&t[k]&&typeof t[k]==='object'&&!Array.isArray(t[k]))merge(t[k],s[k]);else t[k]=s[k];});}
-function ensure(){
-  while(data.shops.length<4)data.shops.push(defShop());
-  while(data.staff.length<4)data.staff.push([]);
-  data.shops.forEach(s=>{
-    if(!s.sales)s.sales=[];
-    if(!s.accessories)s.accessories=[];
-    if(!s.repairing)s.repairing=[];
-    if(!s.recharge)s.recharge=[];
-    if(!s.expenses)s.expenses=[];
-    if(!s.expTags)s.expTags=[];
-    if(!s.balanceAccounts)s.balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
-    if(!s.balanceAccounts.cash)s.balanceAccounts.cash={balance:0,entries:[]};
-    if(!s.balanceAccounts.upi)s.balanceAccounts.upi=[];
-    if(!s.balanceAccounts.bank)s.balanceAccounts.bank=[];
-  });
-  if(!data.accounts)data.accounts=[];
-  if(!data.ledger)data.ledger=[];
-  if(!data.transfers)data.transfers=[];
-}
+function showSaving(){const el=document.getElementById('savingInd');if(el){el.style.opacity='1';}}
+function hideSaving(){setTimeout(()=>{const el=document.getElementById('savingInd');if(el)el.style.opacity='0';},600);}
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
 function todayISO(){return new Date().toISOString().slice(0,10);}
+function nowISO(){return new Date().toISOString();}
 function fmt(n){return Number(n||0).toLocaleString('en-IN');}
 function fmtDate(d){if(!d)return '';const p=d.split('-');return p.length<3?d:`${p[2]}/${p[1]}/${p[0].slice(2)}`;}
+function fmtDT(iso){if(!iso)return '';const d=new Date(iso);return d.toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2200);}
 function isOwner(){return session?.role==='owner';}
 function isManager(){return session?.role==='owner'||session?.role==='manager';}
-function si(key){return key?activeShops[key]:session?.shopIdx??0;}
-function shopSI(){return isOwner()?null:session?.shopIdx;}
+function curShop(key){return key?activeShops[key]:session?.shopIdx??SHOPS[0].id;}
+function shopObj(id){return SHOPS.find(s=>s.id===id)||SHOPS[0];}
+
+function mergeData(src){
+  if(!src)return;
+  // shops
+  if(src.shops){
+    SHOPS.forEach(s=>{
+      if(src.shops[s.id]){
+        if(!data.shops[s.id])data.shops[s.id]=defShop();
+        Object.assign(data.shops[s.id],src.shops[s.id]);
+        if(!data.shops[s.id].balanceAccounts)data.shops[s.id].balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
+      }
+    });
+  }
+  if(src.staff){Object.keys(src.staff).forEach(k=>data.staff[k]=src.staff[k]);}
+  if(src.transfers)data.transfers=src.transfers;
+  if(src.accounts)data.accounts=src.accounts;
+  if(src.ledger)data.ledger=src.ledger;
+  if(src.changes)data.changes=src.changes;
+}
+function ensure(){
+  SHOPS.forEach(s=>{
+    if(!data.shops[s.id])data.shops[s.id]=defShop();
+    const sh=data.shops[s.id];
+    ['sales','accessories','repairing','recharge','expenses','expTags'].forEach(k=>{if(!sh[k])sh[k]=[];});
+    if(!sh.balanceAccounts)sh.balanceAccounts={cash:{balance:0,entries:[]},upi:[],bank:[]};
+    if(!sh.balanceAccounts.cash)sh.balanceAccounts.cash={balance:0,entries:[]};
+    if(!sh.balanceAccounts.upi)sh.balanceAccounts.upi=[];
+    if(!sh.balanceAccounts.bank)sh.balanceAccounts.bank=[];
+    if(!data.staff[s.id])data.staff[s.id]=[];
+  });
+  if(!data.accounts)data.accounts=[];
+  if(!data.ledger)data.ledger=[];
+  if(!data.transfers)data.transfers=[];
+  if(!data.changes)data.changes=[];
+}
+
+// ── CHANGE LOG ────────────────────────────────────────────────────────────────
+function logChange(action, section, detail, shopId){
+  data.changes.unshift({
+    id:uid(), ts:nowISO(), user:session?.name||session?.role||'?',
+    shopId:shopId||session?.shopIdx||'', action, section, detail
+  });
+  if(data.changes.length>200)data.changes=data.changes.slice(0,200);
+}
 
 // ── BALANCE HELPERS ───────────────────────────────────────────────────────────
-function balOpts(shopIdx){
-  const s=data.shops[shopIdx];
+function balOpts(shopId){
+  const sh=data.shops[shopId];
   return `<option value="cash">💵 Cash</option>`+
-    (s.balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">📲 ${u.name}</option>`).join('')+
-    (s.balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">🏦 ${b.name}</option>`).join('');
+    (sh.balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">📲 ${u.name}</option>`).join('')+
+    (sh.balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">🏦 ${b.name}</option>`).join('');
 }
-function debit(shopIdx,key,amt){adjBal(shopIdx,key,-Math.abs(amt));}
-function credit(shopIdx,key,amt){adjBal(shopIdx,key,Math.abs(amt));}
-function adjBal(shopIdx,key,amt){
-  const s=data.shops[shopIdx].balanceAccounts;
+function upiOpts(shopId){return (data.shops[shopId].balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">${u.name}</option>`).join('');}
+function bankOpts(shopId){return (data.shops[shopId].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name}</option>`).join('');}
+function debit(shopId,key,amt){adjBal(shopId,key,-Math.abs(+amt));}
+function credit(shopId,key,amt){adjBal(shopId,key,+Math.abs(+amt));}
+function adjBal(shopId,key,amt){
+  const s=data.shops[shopId].balanceAccounts;
   if(key==='cash')s.cash.balance=+(s.cash.balance||0)+ +amt;
   else if(key?.startsWith('upi_')){const i=+key.slice(4);if(s.upi[i])s.upi[i].balance=+(s.upi[i].balance||0)+ +amt;}
   else if(key?.startsWith('bank_')){const i=+key.slice(5);if(s.bank[i])s.bank[i].balance=+(s.bank[i].balance||0)+ +amt;}
 }
-function balLabel(shopIdx,key){
-  const s=data.shops[shopIdx].balanceAccounts;
-  if(key==='cash')return 'Cash';
-  if(key?.startsWith('upi_'))return s.upi[+key.slice(4)]?.name||'UPI';
-  if(key?.startsWith('bank_'))return s.bank[+key.slice(5)]?.name||'Bank';
-  return key||'';
+function balLabel(shopId,key){
+  const s=data.shops[shopId].balanceAccounts;
+  if(!key||key==='cash')return 'Cash';
+  if(key.startsWith('upi_'))return s.upi[+key.slice(4)]?.name||'UPI';
+  if(key.startsWith('bank_'))return s.bank[+key.slice(5)]?.name||'Bank';
+  return key;
 }
-
-// ── ACCOUNT HELPERS ───────────────────────────────────────────────────────────
-function acctOpts(shopIdx,placeholder='— No Account —'){
-  return `<option value="">${placeholder}</option>`+
-    data.accounts.filter(a=>a.shopIdx===shopIdx).map(a=>`<option value="${a.id}">[${a.type}] ${a.name}</option>`).join('');
+function acctOpts(shopId,ph='— Select Account —'){
+  return `<option value="">${ph}</option>`+
+    data.accounts.filter(a=>a.shopIdx===shopId).map(a=>`<option value="${a.id}">[${a.type}] ${a.name}</option>`).join('');
 }
 function acctName(id){return data.accounts.find(a=>a.id===id)?.name||'';}
-function addLedger(accountId,date,type,amount,note,source,shopIdx){
+function addLedger(accountId,date,type,amount,note,source,shopId){
   if(!accountId||!amount)return;
-  data.ledger.push({id:uid(),accountId,date:date||todayISO(),type,amount:+amount,note:note||'',source:source||'manual',shopIdx});
+  data.ledger.push({id:uid(),accountId,date:date||todayISO(),type,amount:+amount,note:note||'',source:source||'manual',shopId});
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 let _role='owner';
+function buildLoginRoles(){
+  const tabs=['owner','manager','staff'];
+  document.getElementById('roleTabs').innerHTML=tabs.map(r=>`<button class="role-tab${_role===r?' active':''}" onclick="setRole('${r}')">${{owner:'👑 Owner',manager:'🧑‍💼 Manager',staff:'🧑‍🏭 Staff'}[r]}</button>`).join('');
+  document.getElementById('loginShop').innerHTML=SHOPS.map((s,i)=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
 function setRole(r){
   _role=r;
-  document.querySelectorAll('.role-tab').forEach((b,i)=>b.classList.toggle('active',['owner','manager','staff'][i]===r));
+  buildLoginRoles();
   document.getElementById('shopFieldWrap').style.display=r==='owner'?'none':'block';
 }
 function doLogin(){
   const pass=document.getElementById('loginPass').value.trim();
-  const shopIdx=+document.getElementById('loginShop').value;
-  let ok=false,sess={};
-  if(_role==='owner'&&pass===OWNER_PASS){ok=true;sess={role:'owner',shopIdx:null};}
-  else if(_role==='manager'){if(pass===SHOPS[shopIdx].pass){ok=true;sess={role:'manager',shopIdx};}}
-  else if(_role==='staff'&&pass===STAFF_PASS){ok=true;sess={role:'staff',shopIdx};}
+  const shopId=document.getElementById('loginShop').value;
+  let ok=false, sess={};
+  if(_role==='owner'&&pass===OWNER_PASS){ok=true;sess={role:'owner',shopIdx:null,name:'Owner'};}
+  else if(_role==='manager'){
+    const s=SHOPS.find(x=>x.id===shopId);
+    if(s&&pass===s.pass){ok=true;sess={role:'manager',shopIdx:shopId,name:s.manager};}
+  }
+  else if(_role==='staff'&&pass===STAFF_PASS){
+    const s=SHOPS.find(x=>x.id===shopId);
+    ok=true;sess={role:'staff',shopIdx:shopId,name:'Staff'};
+  }
   if(ok){
     session=sess;
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='block';
     document.getElementById('loginErr').textContent='';
     document.getElementById('loginPass').value='';
-    if(sess.shopIdx!==null)Object.keys(activeShops).forEach(k=>activeShops[k]=sess.shopIdx);
+    const si=sess.shopIdx;
+    if(si)Object.keys(activeShops).forEach(k=>activeShops[k]=si);
+    else Object.keys(activeShops).forEach(k=>activeShops[k]=SHOPS[0].id);
+    document.getElementById('barTitle').textContent='🏪 '+(si?shopObj(si).name:'All Branches');
+    document.getElementById('barSub').textContent=sess.role==='owner'?'Owner':sess.role==='manager'?'Manager — '+sess.name:'Staff';
     buildNav();switchPage('dashboard');
-    document.getElementById('barTitle').textContent='🏪 '+(sess.shopIdx!==null?SHOPS[sess.shopIdx].name:'All Branches — Owner');
-    document.getElementById('barSub').textContent=sess.role==='owner'?'Owner View':sess.role==='manager'?'Manager — '+SHOPS[sess.shopIdx].manager:'Staff';
   }else{document.getElementById('loginErr').textContent='Incorrect password.';}
 }
-function doLogout(){session=null;document.getElementById('loginScreen').style.display='flex';document.getElementById('app').style.display='none';}
+function doLogout(){
+  session=null;
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginPass').value='';
+}
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
-const NAV=[
-  {id:'sales',icon:'📱',label:'Sales'},
-  {id:'expense',icon:'💸',label:'Expense'},
-  {id:'balance',icon:'💰',label:'Balance'},
-  {id:'staff',icon:'👤',label:'Staff'},
-  {id:'transfer',icon:'🔄',label:'Transfer'},
-  {id:'accounts',icon:'📒',label:'Accounts'},
-  {id:'dashboard',icon:'📊',label:'Dashboard'},
-];
+function getNav(){
+  const shopId=session?.shopIdx;
+  const shop=shopId?shopObj(shopId):null;
+  const nav=[{id:'dashboard',icon:'📊',label:'Dashboard'}];
+  if(!shop||shop.hasSales)nav.push({id:'sales',icon:'📱',label:'Sales'});
+  if(!shop||shop.hasAccRep)nav.push({id:'accrep',icon:'🔌',label:'Acc/Rep'});
+  nav.push({id:'expense',icon:'💸',label:'Expense'});
+  nav.push({id:'balance',icon:'💰',label:'Balance'});
+  nav.push({id:'staff',icon:'👤',label:'Staff'});
+  if(isOwner())nav.push({id:'transfer',icon:'🔄',label:'Transfer'});
+  nav.push({id:'accounts',icon:'📒',label:'Accounts'});
+  if(isOwner())nav.push({id:'changes',icon:'🔔',label:'Changes'});
+  return nav;
+}
 function buildNav(){
-  document.getElementById('bottomNav').innerHTML=NAV.map(n=>`<button class="nav-item${activePage===n.id?' active':''}" onclick="switchPage('${n.id}')"><span class="icon">${n.icon}</span>${n.label}</button>`).join('');
+  document.getElementById('bottomNav').innerHTML=getNav().map(n=>`<button class="nav-item${activePage===n.id?' active':''}" onclick="switchPage('${n.id}')"><span class="icon">${n.icon}</span>${n.label}</button>`).join('');
 }
 function switchPage(p){
   activePage=p;
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
-  document.getElementById('page_'+p)?.classList.add('active');
+  const pg=document.getElementById('page_'+p);
+  if(pg)pg.classList.add('active');
   buildNav();renderPage(p);
 }
 function renderPage(p){
-  ({sales:renderSales,expense:renderExpense,balance:renderBalance,staff:renderStaff,transfer:renderTransfer,accounts:renderAccounts,dashboard:renderDashboard}[p]||function(){})();
+  const map={sales:renderSales,accrep:renderAccRep,expense:renderExpense,balance:renderBalance,staff:renderStaff,transfer:renderTransfer,accounts:renderAccounts,dashboard:renderDashboard,changes:renderChanges};
+  if(map[p])map[p]();
 }
 function shopTabs(containerId,key){
   const c=document.getElementById(containerId);if(!c)return;
   if(!isOwner()){c.innerHTML='';return;}
-  c.innerHTML=SHOPS.map((s,i)=>`<button class="shop-tab${activeShops[key]===i?' active':''}" onclick="activeShops['${key}']=${i};renderPage('${key}')">${s.name}</button>`).join('');
+  c.innerHTML=SHOPS.map(s=>`<button class="shop-tab${activeShops[key]===s.id?' active':''}" onclick="activeShops['${key}']='${s.id}';renderPage('${key}')">${s.name}</button>`).join('');
 }
+function visShops(){return isOwner()?SHOPS:[shopObj(session?.shopIdx||SHOPS[0].id)];}
+
 
 // ── SALES ─────────────────────────────────────────────────────────────────────
-// Sales page: no shop tabs (each user sees their own shop only)
-// Owner sees a shop selector at top
 function renderSales(){
-  const shopIdx=isOwner()?(activeShops.sales??0):(session?.shopIdx??0);
-  if(!data.shops[shopIdx]){ensure();}
-  const tab=window._salesTab||'phones';
-  const tabs=['phones','accessories','recharge'].map(t=>`<button class="sub-tab${tab===t?' active':''}" onclick="window._salesTab='${t}';renderSales()">${{phones:'📱 Phones',accessories:'🔌 Acc/Rep',recharge:'📶 Recharge'}[t]}</button>`).join('');
-  const ownerShopSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">${SHOPS.map((s,i)=>`<button class="shop-tab${activeShops.sales===i?' active':''}" onclick="activeShops.sales=${i};renderSales()">${s.name}</button>`).join('')}</div>`:'';
-  let body='';
-
-  if(tab==='phones'){
-    const entries=(data.shops[shopIdx].sales||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-    body=`
-    <div id="saleBar" class="sale-bar"><div><div style="font-size:11px;opacity:0.8">Total Sale</div><div style="font-size:26px;font-weight:800">₹<span id="saleTot">0</span></div></div><div style="text-align:right;font-size:12px;opacity:0.8">Cash+UPI+Bank+Swipe+Baki−Udhari−Exchange</div></div>
-    <div class="card"><div class="card-title">➕ Day-End Phone Sales</div>
-      <div class="two-col">
-        <div class="field"><label>Date</label><input type="date" id="s_date" value="${todayISO()}"></div>
-        <div class="field"><label>Qty Sold</label><input type="number" id="s_qty" placeholder="0" min="0"></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>💵 Cash (₹)</label><input type="number" id="s_cash" placeholder="0" oninput="calcST()"></div>
-        <div class="field"><label>📲 UPI — which account?</label><select id="s_upi_acct" onchange="calcST()" style="margin-bottom:4px"><option value="">— None —</option>${(data.shops[shopIdx].balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">${u.name}</option>`).join('')}</select><input type="number" id="s_upi" placeholder="UPI Amount" oninput="calcST()"></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>🏦 Bank — which account?</label><select id="s_bank_acct" onchange="calcST()" style="margin-bottom:4px"><option value="">— None —</option>${(data.shops[shopIdx].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name}</option>`).join('')}</select><input type="number" id="s_bank" placeholder="Bank Amount" oninput="calcST()"></div>
-        <div class="field"><label>💳 Swipe — which machine?</label><select id="s_swipe_acct" onchange="calcST()" style="margin-bottom:4px"><option value="">— None —</option>${(data.shops[shopIdx].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name} machine</option>`).join('')}</select><input type="number" id="s_swipe" placeholder="Swipe Amount" oninput="calcST()"></div>
-      </div>
-      <div class="field"><label>🔁 Exchange (₹ — deducted from total)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div>
-      <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
-        <div style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Udhari / Baki Jama (optional)</div>
-        <div class="two-col">
-          <div class="field"><label>Udhari (₹ — customer owes)</label><input type="number" id="s_udhari" placeholder="0" oninput="calcST()"></div>
-          <div class="field"><label>Baki Jama (₹ — received back)</label><input type="number" id="s_bakijama" placeholder="0" oninput="calcST()"></div>
-        </div>
-        <div class="two-col">
-          <div class="field"><label>Customer Account</label><select id="s_udhAcct">${acctOpts(shopIdx,'— Select Account —')}</select></div>
-          <div class="field"><label>Baki Received In</label><select id="s_bakiTo"><option value="">— N/A —</option>${balOpts(shopIdx)}</select></div>
-        </div>
-      </div>
-      <div class="field"><label>Note (optional)</label><input type="text" id="s_note" placeholder="Any note"></div>
-      <button class="save-btn" onclick="addSale(${shopIdx})">Save</button>
+  const shopId=isOwner()?(activeShops.sales||SHOPS.find(s=>s.hasSales).id):(session?.shopIdx);
+  const shop=shopObj(shopId);
+  const ownerSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">${SHOPS.filter(s=>s.hasSales).map(s=>`<button class="shop-tab${activeShops.sales===s.id?' active':''}" onclick="activeShops.sales='${s.id}';renderSales()">${s.name}</button>`).join('')}</div>`:'';
+  const entries=(data.shops[shopId].sales||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const upiS=`<option value="">— None —</option>${upiOpts(shopId)}`;
+  const bankS=`<option value="">— None —</option>${bankOpts(shopId)}`;
+  const rows=entries.map((e,i)=>{
+    if(window._editing===`sale_${i}_${shopId}`&&isManager()){
+      return `<div class="edit-row">
+        <div style="font-size:11px;font-weight:700;color:#856404;margin-bottom:8px">✏️ Editing — ${fmtDate(e.date)}</div>
+        <div class="two-col"><div class="field"><label>Date</label><input type="date" id="ed_date" value="${e.date}"></div><div class="field"><label>Qty</label><input type="number" id="ed_qty" value="${e.qty||0}"></div></div>
+        <div class="two-col"><div class="field"><label>💵 Cash</label><input type="number" id="ed_cash" value="${e.cash||0}"></div><div class="field"><label>📲 UPI Amt</label><input type="number" id="ed_upi" value="${e.upi||0}"></div></div>
+        <div class="two-col"><div class="field"><label>UPI Account</label><select id="ed_upi_acct"><option value="">—</option>${upiOpts(shopId)}</select></div><div class="field"><label>🏦 Bank Amt</label><input type="number" id="ed_bank" value="${e.bank||0}"></div></div>
+        <div class="two-col"><div class="field"><label>Bank Acct</label><select id="ed_bank_acct"><option value="">—</option>${bankOpts(shopId)}</select></div><div class="field"><label>💳 Swipe</label><input type="number" id="ed_swipe" value="${e.swipe||0}"></div></div>
+        <div class="two-col"><div class="field"><label>🔁 Exchange (deducted)</label><input type="number" id="ed_exch" value="${e.exchange||0}"></div><div class="field"><label>Udhari (not in balance)</label><input type="number" id="ed_udhari" value="${e.udhari||0}"></div></div>
+        <div class="two-col"><div class="field"><label>Udhari Account</label><select id="ed_udh_acct"><option value="">—</option>${acctOpts(shopId)}</select></div><div class="field"><label>Note</label><input type="text" id="ed_note" value="${e.note||''}"></div></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button onclick="saveSaleEdit('${shopId}',${i})" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>
+          <button onclick="window._editing=null;renderSales()" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>
+          <button onclick="delSale('${shopId}',${i})" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>
+        </div></div>`;
+    }
+    const parts=[e.cash?`💵₹${fmt(e.cash)}`:'',e.upi?`📲₹${fmt(e.upi)}`:'',e.bank?`🏦₹${fmt(e.bank)}`:'',e.swipe?`💳₹${fmt(e.swipe)}`:'',e.exchange?`🔁-₹${fmt(e.exchange)}`:'',e.udhari?`Udhari+₹${fmt(e.udhari)}`:''].filter(Boolean).join(' ');
+    const click=isManager()?`onclick="window._editing='sale_${i}_${shopId}';renderSales()" style="cursor:pointer"`:'';
+    return `<div class="entry-row" ${click}><div><div class="entry-main g">₹${fmt(e.total||0)} <span style="font-size:11px;color:#888">×${e.qty||0}</span>${e.note?` <span style="font-size:11px;color:#aaa">${e.note}</span>`:''}</div><div class="entry-sub">${parts}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`;
+  }).join('');
+  document.getElementById('salesContent').innerHTML=`
+  ${ownerSel}
+  <div class="sale-bar"><div><div style="font-size:11px;opacity:.8">Total Sale</div><div style="font-size:26px;font-weight:800">₹<span id="saleTot">0</span></div></div><div style="font-size:11px;opacity:.7;text-align:right">Cash+UPI+Bank+Swipe+Udhari−Exchange</div></div>
+  <div class="card"><div class="card-title">➕ Day-End Phone Sales</div>
+    <div class="two-col"><div class="field"><label>Date</label><input type="date" id="s_date" value="${todayISO()}"></div><div class="field"><label>Qty Sold</label><input type="number" id="s_qty" placeholder="0"></div></div>
+    <div class="two-col"><div class="field"><label>💵 Cash (₹)</label><input type="number" id="s_cash" placeholder="0" oninput="calcST()"></div><div class="field"><label>📲 UPI Amount</label><input type="number" id="s_upi" placeholder="0" oninput="calcST()"></div></div>
+    <div class="two-col"><div class="field"><label>UPI Account</label><select id="s_upi_acct"><option value="">— None —</option>${upiOpts(shopId)}</select></div><div class="field"><label>🏦 Bank Amount</label><input type="number" id="s_bank" placeholder="0" oninput="calcST()"></div></div>
+    <div class="two-col"><div class="field"><label>Bank Account</label><select id="s_bank_acct"><option value="">— None —</option>${bankOpts(shopId)}</select></div><div class="field"><label>💳 Swipe Amount</label><input type="number" id="s_swipe" placeholder="0" oninput="calcST()"></div></div>
+    <div class="two-col"><div class="field"><label>Swipe Account</label><select id="s_swipe_acct"><option value="">— None —</option>${bankOpts(shopId)}</select></div><div class="field"><label>🔁 Exchange (deducted)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div></div>
+    <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
+      <div style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px">UDHARI — adds to sale, does NOT affect balance</div>
+      <div class="two-col"><div class="field"><label>Udhari Amount (₹)</label><input type="number" id="s_udhari" placeholder="0" oninput="calcST()"></div><div class="field"><label>Customer Account</label><select id="s_udh_acct">${acctOpts(shopId,'— No Account —')}</select></div></div>
     </div>
-    <div class="card"><div class="card-title">📋 Sales History ${isManager()?'<span style="font-size:11px;color:#1a7a4a;font-weight:600;margin-left:8px">Tap to edit</span>':''}</div>
-    ${entries.map((e,i)=>renderSaleRow(e,i,shopIdx,'sales')).join('')||'<div class="empty">No entries</div>'}</div>`;
-
-
-  } else if(tab==='accessories'){
-    const accEntries=(data.shops[shopIdx].accessories||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-    const repEntries=(data.shops[shopIdx].repairing||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-    const upiSel=(pfx)=>(data.shops[shopIdx].balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">${u.name}</option>`).join('');
-    const bankSel=(pfx)=>(data.shops[shopIdx].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name}</option>`).join('');
-    const payFields=(pfx,calcFn)=>`
-      <div class="two-col">
-        <div class="field"><label>💵 Cash (₹)</label><input type="number" id="${pfx}_cash" placeholder="0" oninput="${calcFn}()"></div>
-        <div class="field"><label>📲 UPI (₹)</label><select id="${pfx}_upi_acct" style="margin-bottom:4px"><option value="">— None —</option>${upiSel()}</select><input type="number" id="${pfx}_upi" placeholder="0" oninput="${calcFn}()"></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>🏦 Bank (₹)</label><select id="${pfx}_bank_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankSel()}</select><input type="number" id="${pfx}_bank" placeholder="0" oninput="${calcFn}()"></div>
-        <div class="field"><label>💳 Swipe (₹)</label><select id="${pfx}_swipe_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankSel()}</select><input type="number" id="${pfx}_swipe" placeholder="0" oninput="${calcFn}()"></div>
-      </div>`;
-    body=`
-    <div class="card"><div class="card-title">🔌 Accessories — Day Entry</div>
-      <div class="two-col">
-        <div class="field"><label>Date</label><input type="date" id="ac_date" value="${todayISO()}"></div>
-        <div class="field"><label>Note (optional)</label><input type="text" id="ac_note" placeholder=""></div>
-      </div>
-      ${payFields('ac','calcAT')}
-      <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">Total: <strong id="acTot">₹0</strong></div>
-      <button class="save-btn" onclick="addAccEntry(${shopIdx})">Save Accessories</button>
-    </div>
-    <div class="card"><div class="card-title">🔧 Repairing — Day Entry</div>
-      <div class="two-col">
-        <div class="field"><label>Date</label><input type="date" id="rp_date" value="${todayISO()}"></div>
-        <div class="field"><label>Note (optional)</label><input type="text" id="rp_note" placeholder=""></div>
-      </div>
-      ${payFields('rp','calcRT')}
-      <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">Total: <strong id="rpTot">₹0</strong></div>
-      <button class="save-btn" onclick="addRepEntry(${shopIdx})">Save Repairing</button>
-    </div>
-    <div class="card"><div class="card-title">🔌 Accessories History</div>${accEntries.map((e,i)=>renderSaleRow(e,i,shopIdx,'accessories')).join('')||'<div class="empty">No entries</div>'}</div>
-    <div class="card"><div class="card-title">🔧 Repairing History</div>${repEntries.map((e,i)=>renderSaleRow(e,i,shopIdx,'repairing')).join('')||'<div class="empty">No entries</div>'}</div>`;
-
-  } else if(tab==='recharge'){
-    const rEntries=(data.shops[shopIdx].recharge||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-    const upiSel2=(data.shops[shopIdx].balanceAccounts.upi||[]).map((u,i)=>`<option value="upi_${i}">${u.name}</option>`).join('');
-    const bankSel2=(data.shops[shopIdx].balanceAccounts.bank||[]).map((b,i)=>`<option value="bank_${i}">${b.name}</option>`).join('');
-    body=`
-    <div class="card"><div class="card-title">📶 Recharge — Day Entry</div>
-      <div class="two-col">
-        <div class="field"><label>Date</label><input type="date" id="rc_date" value="${todayISO()}"></div>
-        <div class="field"><label>Note (optional)</label><input type="text" id="rc_note" placeholder=""></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>💵 Cash (₹)</label><input type="number" id="rc_cash" placeholder="0" oninput="calcRCT()"></div>
-        <div class="field"><label>📲 UPI (₹)</label><select id="rc_upi_acct" style="margin-bottom:4px"><option value="">— None —</option>${upiSel2}</select><input type="number" id="rc_upi" placeholder="0" oninput="calcRCT()"></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>🏦 Bank (₹)</label><select id="rc_bank_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankSel2}</select><input type="number" id="rc_bank" placeholder="0" oninput="calcRCT()"></div>
-        <div class="field"><label>💳 Swipe (₹)</label><select id="rc_swipe_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankSel2}</select><input type="number" id="rc_swipe" placeholder="0" oninput="calcRCT()"></div>
-      </div>
-      <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">Total: <strong id="rcTot">₹0</strong></div>
-      <button class="save-btn" onclick="addRcEntry(${shopIdx})">Save Recharge</button>
-    </div>
-    <div class="card"><div class="card-title">📶 Recharge History</div>${rEntries.map((e,i)=>renderSaleRow(e,i,shopIdx,'recharge')).join('')||'<div class="empty">No entries</div>'}</div>`;
-
-  }
-  document.getElementById('salesContent').innerHTML=ownerShopSel+`<div class="sub-tabs">${tabs}</div>`+body;
+    <div class="field"><label>Note</label><input type="text" id="s_note" placeholder="Any note"></div>
+    <button class="save-btn" onclick="addSale('${shopId}')">Save Sale</button>
+  </div>
+  <div class="card"><div class="card-title">📋 Sales History ${isManager()?'<span style="font-size:11px;color:#1a7a4a">— tap to edit</span>':''}</div>${rows||'<div class="empty">No sales</div>'}</div>`;
 }
-
-function renderSaleRow(e,i,shopIdx,type){
-  const editId=`edit_${type}_${i}`;
-  const isEdit=window._editing===editId;
-  if(isEdit&&isManager()){
-    const qtyOrNote=type==='sales'
-      ?'<div class="field"><label>Qty</label><input type="number" id="ed_qty" value="'+(e.qty||0)+'"></div>'
-      :'<div class="field"><label>Note</label><input type="text" id="ed_note" value="'+(e.note||'')+'"></div>';
-    const noteField=type==='sales'?'<div class="field"><label>Note</label><input type="text" id="ed_note" value="'+(e.note||'')+'"></div>':'';
-    return '<div class="edit-row">'
-      +'<div style="font-size:12px;font-weight:700;color:#856404;margin-bottom:8px">✏️ Editing '+fmtDate(e.date)+'</div>'
-      +'<div class="two-col"><div class="field"><label>Date</label><input type="date" id="ed_date" value="'+e.date+'"></div>'+qtyOrNote+'</div>'
-      +'<div class="two-col"><div class="field"><label>💵 Cash</label><input type="number" id="ed_cash" value="'+(e.cash||0)+'"></div><div class="field"><label>📲 UPI</label><input type="number" id="ed_upi" value="'+(e.upi||0)+'"></div></div>'
-      +'<div class="two-col"><div class="field"><label>🏦 Bank</label><input type="number" id="ed_bank" value="'+(e.bank||0)+'"></div><div class="field"><label>💳 Swipe</label><input type="number" id="ed_swipe" value="'+(e.swipe||0)+'"></div></div>'
-      +noteField
-      +'<div style="display:flex;gap:8px;margin-top:8px">'
-      +'<button onclick="saveEdit('+shopIdx+',\''+type+'\','+i+')" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>'
-      +'<button onclick="window._editing=null;renderSales()" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>'
-      +'<button onclick="delEntry('+shopIdx+',\''+type+'\','+i+')" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>'
-      +'</div></div>';
-  }
-  const payParts=[e.cash?`💵₹${fmt(e.cash)}`:'',e.upi?`📲₹${fmt(e.upi)}`:'',e.bank?`🏦₹${fmt(e.bank)}`:'',e.swipe?`💳₹${fmt(e.swipe)}`:'',e.exchange?`🔁-₹${fmt(e.exchange)}`:'',e.udhari?`Udhari-₹${fmt(e.udhari)}`:'',e.bakijama?`Baki+₹${fmt(e.bakijama)}`:''].filter(Boolean).join(' ');
-  const clickAttr=isManager()?'onclick="window._editing=\''+editId+'\';renderSales()" style="cursor:pointer"':'';
-  const qtySpan=(type==='sales'&&e.qty)?'<span style="font-size:11px;color:#888">× '+e.qty+'</span>':'';
-  const noteSpan=e.note?'<span style="font-size:11px;color:#aaa;margin-left:4px">'+e.note+'</span>':'';
-  return '<div class="entry-row" '+clickAttr+'><div><div class="entry-main g">₹'+fmt(e.total||e.amount||0)+' '+qtySpan+noteSpan+'</div><div class="entry-sub">'+payParts+'</div></div><span class="entry-date">'+fmtDate(e.date)+'</span></div>';
-}
-
-function calcST(){
-  const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_bakijama')?.value||0)-(+document.getElementById('s_udhari')?.value||0)-(+document.getElementById('s_exch')?.value||0);
+window.calcST=function(){
+  const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)-(+document.getElementById('s_exch')?.value||0);
   const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));
-}
-function calcAT(){const v=(+document.getElementById('ac_cash')?.value||0)+(+document.getElementById('ac_upi')?.value||0)+(+document.getElementById('ac_bank')?.value||0)+(+document.getElementById('ac_swipe')?.value||0);const el=document.getElementById('acTot');if(el)el.textContent='₹'+fmt(v);}
-function calcRT(){const v=(+document.getElementById('rp_cash')?.value||0)+(+document.getElementById('rp_upi')?.value||0)+(+document.getElementById('rp_bank')?.value||0)+(+document.getElementById('rp_swipe')?.value||0);const el=document.getElementById('rpTot');if(el)el.textContent='₹'+fmt(v);}
-function calcRCT(){const v=(+document.getElementById('rc_cash')?.value||0)+(+document.getElementById('rc_upi')?.value||0)+(+document.getElementById('rc_bank')?.value||0)+(+document.getElementById('rc_swipe')?.value||0);const el=document.getElementById('rcTot');if(el)el.textContent='₹'+fmt(v);}
-
-function makeDayEntry(prefix,type,shopIdx){
-  const cash=+document.getElementById(`${prefix}_cash`)?.value||0;
-  const upi=+document.getElementById(`${prefix}_upi`)?.value||0;
-  const bank=+document.getElementById(`${prefix}_bank`)?.value||0;
-  const swipe=+document.getElementById(`${prefix}_swipe`)?.value||0;
-  const total=cash+upi+bank+swipe;
-  if(!total){toast('Enter at least one amount');return null;}
-  const upiAcct=document.getElementById(`${prefix}_upi_acct`)?.value||'';
-  const bankAcct=document.getElementById(`${prefix}_bank_acct`)?.value||'';
-  const swipeAcct=document.getElementById(`${prefix}_swipe_acct`)?.value||'';
-  const date=document.getElementById(`${prefix}_date`)?.value||todayISO();
-  const note=document.getElementById(`${prefix}_note`)?.value?.trim()||'';
-  // credit balances
-  if(cash>0)credit(shopIdx,'cash',cash);
-  if(upi>0&&upiAcct)credit(shopIdx,upiAcct,upi);else if(upi>0)credit(shopIdx,'cash',upi);
-  if(bank>0&&bankAcct)credit(shopIdx,bankAcct,bank);else if(bank>0)credit(shopIdx,'cash',bank);
-  if(swipe>0&&swipeAcct)credit(shopIdx,swipeAcct,swipe);else if(swipe>0)credit(shopIdx,'cash',swipe);
-  return {id:uid(),date,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,total,note};
-}
-window.addSale=function(si){
+};
+window.addSale=function(shopId){
   const cash=+document.getElementById('s_cash')?.value||0;
   const upi=+document.getElementById('s_upi')?.value||0;
   const bank=+document.getElementById('s_bank')?.value||0;
   const swipe=+document.getElementById('s_swipe')?.value||0;
   const exch=+document.getElementById('s_exch')?.value||0;
   const udhari=+document.getElementById('s_udhari')?.value||0;
-  const bakijama=+document.getElementById('s_bakijama')?.value||0;
   const upiAcct=document.getElementById('s_upi_acct')?.value||'';
   const bankAcct=document.getElementById('s_bank_acct')?.value||'';
   const swipeAcct=document.getElementById('s_swipe_acct')?.value||'';
-  const total=cash+upi+bank+swipe+bakijama-udhari-exch;
-  if(!cash&&!upi&&!bank&&!swipe&&!udhari&&!bakijama){toast('Enter at least one amount');return;}
+  const udhAcct=document.getElementById('s_udh_acct')?.value||'';
+  // total = cash+upi+bank+swipe+udhari-exchange (udhari is sale value but not received)
+  const total=cash+upi+bank+swipe+udhari-exch;
+  if(!cash&&!upi&&!bank&&!swipe&&!udhari){toast('Enter at least one amount');return;}
   const date=document.getElementById('s_date')?.value||todayISO();
-  const udhAcct=document.getElementById('s_udhAcct')?.value||'';
-  const bakiTo=document.getElementById('s_bakiTo')?.value||'';
-  const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,bakijama,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||''};
-  data.shops[si].sales.push(e);
-  if(cash>0)credit(si,'cash',cash);
-  if(upi>0&&upiAcct)credit(si,upiAcct,upi);else if(upi>0)credit(si,'cash',upi);
-  if(bank>0&&bankAcct)credit(si,bankAcct,bank);else if(bank>0)credit(si,'cash',bank);
-  if(swipe>0&&swipeAcct)credit(si,swipeAcct,swipe);else if(swipe>0)credit(si,'cash',swipe);
-  if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,'Udhari - phone sale','sale',si);
-  if(bakijama>0&&udhAcct)addLedger(udhAcct,date,'cr',bakijama,'Baki Jama received','sale',si);
-  if(bakijama>0&&bakiTo)credit(si,bakiTo,bakijama);
+  const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||''};
+  data.shops[shopId].sales.push(e);
+  // only credit received amounts to balance
+  if(cash>0)credit(shopId,'cash',cash);
+  if(upi>0&&upiAcct)credit(shopId,upiAcct,upi);else if(upi>0)credit(shopId,'cash',upi);
+  if(bank>0&&bankAcct)credit(shopId,bankAcct,bank);else if(bank>0)credit(shopId,'cash',bank);
+  if(swipe>0&&swipeAcct)credit(shopId,swipeAcct,swipe);else if(swipe>0)credit(shopId,'cash',swipe);
+  // udhari → DR on customer ledger only, no balance change
+  if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,'Udhari - phone sale','sale',shopId);
   save();toast('Sale saved!');
-  ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_bakijama','s_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  if(document.getElementById('s_udhAcct'))document.getElementById('s_udhAcct').value='';
-  calcST();renderSales();
+  ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  window.calcST();renderSales();
 };
-window.addAccEntry=function(si){const e=makeDayEntry('ac','accessories',si);if(!e)return;data.shops[si].accessories.push(e);save();toast('Saved!');renderSales();};
-window.addRepEntry=function(si){const e=makeDayEntry('rp','repairing',si);if(!e)return;data.shops[si].repairing.push(e);save();toast('Saved!');renderSales();};
-window.addRcEntry=function(si){const e=makeDayEntry('rc','recharge',si);if(!e)return;data.shops[si].recharge.push(e);save();toast('Saved!');renderSales();};
-window.addUdhari=function(si){
-  const udhAmt=+document.getElementById('udh_amt')?.value||0;
-  const bakiAmt=+document.getElementById('baki_amt')?.value||0;
-  if(!udhAmt&&!bakiAmt){toast('Enter an amount');return;}
-  const acctId=document.getElementById('udh_acct')?.value||'';
-  const bakiTo=document.getElementById('baki_to')?.value||'';
-  const date=document.getElementById('udh_date')?.value||todayISO();
-  const note=document.getElementById('udh_note')?.value?.trim()||'';
-  const e={id:uid(),date,udhari:udhAmt,bakijama:bakiAmt,udhAcct:acctId,udhNote:note,total:bakiAmt-udhAmt};
-  data.shops[si].sales.push(e);
-  if(udhAmt&&acctId)addLedger(acctId,date,'dr',udhAmt,note||'Udhari','sale',si);
-  if(bakiAmt&&acctId)addLedger(acctId,date,'cr',bakiAmt,note||'Baki Jama received','sale',si);
-  if(bakiAmt&&bakiTo)credit(si,bakiTo,bakiAmt);
-  save();toast('Saved!');renderSales();
-};
-window.saveEdit=function(si,type,i){
-  const arr=data.shops[si][type];if(!arr||!arr[i])return;
+window.saveSaleEdit=function(shopId,i){
+  const arr=data.shops[shopId].sales;if(!arr[i])return;
+  const old={...arr[i]};
   const cash=+document.getElementById('ed_cash')?.value||0;
   const upi=+document.getElementById('ed_upi')?.value||0;
   const bank=+document.getElementById('ed_bank')?.value||0;
   const swipe=+document.getElementById('ed_swipe')?.value||0;
-  arr[i]={...arr[i],date:document.getElementById('ed_date')?.value||arr[i].date,cash,upi,bank,swipe,total:cash+upi+bank+swipe,qty:+document.getElementById('ed_qty')?.value||arr[i].qty||0,note:document.getElementById('ed_note')?.value?.trim()||arr[i].note||''};
+  const exch=+document.getElementById('ed_exch')?.value||0;
+  const udhari=+document.getElementById('ed_udhari')?.value||0;
+  arr[i]={...arr[i],date:document.getElementById('ed_date')?.value||arr[i].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct:document.getElementById('ed_upi_acct')?.value||'',bank,bankAcct:document.getElementById('ed_bank_acct')?.value||'',swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari-exch,note:document.getElementById('ed_note')?.value?.trim()||''};
+  logChange('EDIT','Phone Sale',`${fmtDate(old.date)} ₹${fmt(old.total)} → ₹${fmt(arr[i].total)}`,shopId);
   save();window._editing=null;toast('Updated!');renderSales();
 };
-window.delEntry=function(si,type,i){if(!confirm('Delete this entry?'))return;data.shops[si][type].splice(i,1);save();window._editing=null;toast('Deleted!');renderSales();};
+window.delSale=function(shopId,i){
+  if(!isManager())return;
+  if(!confirm('Delete this sale entry?'))return;
+  const e=data.shops[shopId].sales[i];
+  logChange('DELETE','Phone Sale',`${fmtDate(e?.date)} ₹${fmt(e?.total)}`,shopId);
+  data.shops[shopId].sales.splice(i,1);
+  save();window._editing=null;toast('Deleted!');renderSales();
+};
+
+// ── ACC/REP ───────────────────────────────────────────────────────────────────
+function renderAccRep(){
+  const shopId=isOwner()?(activeShops.accrep||SHOPS.find(s=>s.hasAccRep).id):(session?.shopIdx);
+  const ownerSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">${SHOPS.filter(s=>s.hasAccRep).map(s=>`<button class="shop-tab${activeShops.accrep===s.id?' active':''}" onclick="activeShops.accrep='${s.id}';renderAccRep()">${s.name}</button>`).join('')}</div>`:'';
+  const sub=window._accTab||'acc';
+  const subTabs=['acc','rep'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._accTab='${t}';renderAccRep()">${{acc:'🔌 Accessories',rep:'🔧 Repairing'}[t]}</button>`).join('');
+  const upiS=`<option value="">— None —</option>${upiOpts(shopId)}`;
+  const bankS=`<option value="">— None —</option>${bankOpts(shopId)}`;
+  const pfx=sub==='acc'?'ac':'rp';
+  const arrKey=sub==='acc'?'accessories':'repairing';
+  const entries=(data.shops[shopId][arrKey]||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const rows=entries.map((e,i)=>{
+    if(window._editingAR===`${sub}_${i}_${shopId}`&&isManager()){
+      return `<div class="edit-row">
+        <div style="font-size:11px;font-weight:700;color:#856404;margin-bottom:8px">✏️ Editing ${fmtDate(e.date)}</div>
+        <div class="two-col"><div class="field"><label>Date</label><input type="date" id="ar_date" value="${e.date}"></div><div class="field"><label>Note</label><input type="text" id="ar_note" value="${e.note||''}"></div></div>
+        <div class="two-col"><div class="field"><label>💵 Cash</label><input type="number" id="ar_cash" value="${e.cash||0}"></div><div class="field"><label>📲 UPI</label><input type="number" id="ar_upi" value="${e.upi||0}"></div></div>
+        <div class="two-col"><div class="field"><label>UPI Acct</label><select id="ar_upi_acct"><option value="">—</option>${upiOpts(shopId)}</select></div><div class="field"><label>🏦 Bank</label><input type="number" id="ar_bank" value="${e.bank||0}"></div></div>
+        <div class="two-col"><div class="field"><label>Bank Acct</label><select id="ar_bank_acct"><option value="">—</option>${bankOpts(shopId)}</select></div><div class="field"><label>💳 Swipe</label><input type="number" id="ar_swipe" value="${e.swipe||0}"></div></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button onclick="saveAREdit('${shopId}','${arrKey}',${i})" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>
+          <button onclick="window._editingAR=null;renderAccRep()" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>
+          <button onclick="delAREntry('${shopId}','${arrKey}',${i})" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>
+        </div></div>`;
+    }
+    const parts=[e.cash?`💵₹${fmt(e.cash)}`:'',e.upi?`📲₹${fmt(e.upi)}`:'',e.bank?`🏦₹${fmt(e.bank)}`:'',e.swipe?`💳₹${fmt(e.swipe)}`:''].filter(Boolean).join(' ');
+    const click=isManager()?`onclick="window._editingAR='${sub}_${i}_${shopId}';renderAccRep()" style="cursor:pointer"`:'';
+    return `<div class="entry-row" ${click}><div><div class="entry-main g">₹${fmt(e.total||0)}${e.note?` <span style="font-size:11px;color:#aaa">${e.note}</span>`:''}</div><div class="entry-sub">${parts}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`;
+  }).join('');
+  const label=sub==='acc'?'Accessories':'Repairing';
+  const pg=document.getElementById('page_accrep');if(!pg)return;
+  pg.innerHTML=`${ownerSel}<div class="sub-tabs">${subTabs}</div>
+  <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">Total: <strong id="${pfx}Tot">₹0</strong></div>
+  <div class="card"><div class="card-title">➕ ${label} — Day Entry</div>
+    <div class="two-col"><div class="field"><label>Date</label><input type="date" id="${pfx}_date" value="${todayISO()}"></div><div class="field"><label>Note (optional)</label><input type="text" id="${pfx}_note" placeholder=""></div></div>
+    <div class="two-col"><div class="field"><label>💵 Cash</label><input type="number" id="${pfx}_cash" placeholder="0" oninput="calcARTot('${pfx}')"></div><div class="field"><label>📲 UPI</label><select id="${pfx}_upi_acct" style="margin-bottom:4px"><option value="">— None —</option>${upiOpts(shopId)}</select><input type="number" id="${pfx}_upi" placeholder="0" oninput="calcARTot('${pfx}')"></div></div>
+    <div class="two-col"><div class="field"><label>🏦 Bank</label><select id="${pfx}_bank_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankOpts(shopId)}</select><input type="number" id="${pfx}_bank" placeholder="0" oninput="calcARTot('${pfx}')"></div><div class="field"><label>💳 Swipe</label><select id="${pfx}_swipe_acct" style="margin-bottom:4px"><option value="">— None —</option>${bankOpts(shopId)}</select><input type="number" id="${pfx}_swipe" placeholder="0" oninput="calcARTot('${pfx}')"></div></div>
+    <button class="save-btn" onclick="addAREntry('${shopId}','${arrKey}','${pfx}')">Save ${label}</button>
+  </div>
+  <div class="card"><div class="card-title">📋 ${label} History ${isManager()?'<span style="font-size:11px;color:#1a7a4a">— tap to edit</span>':''}</div>${rows||'<div class="empty">No entries</div>'}</div>`;
+}
+window.calcARTot=function(pfx){const v=(+document.getElementById(`${pfx}_cash`)?.value||0)+(+document.getElementById(`${pfx}_upi`)?.value||0)+(+document.getElementById(`${pfx}_bank`)?.value||0)+(+document.getElementById(`${pfx}_swipe`)?.value||0);const el=document.getElementById(`${pfx}Tot`);if(el)el.textContent='₹'+fmt(v);};
+window.addAREntry=function(shopId,arrKey,pfx){
+  const cash=+document.getElementById(`${pfx}_cash`)?.value||0;const upi=+document.getElementById(`${pfx}_upi`)?.value||0;const bank=+document.getElementById(`${pfx}_bank`)?.value||0;const swipe=+document.getElementById(`${pfx}_swipe`)?.value||0;const total=cash+upi+bank+swipe;
+  if(!total){toast('Enter at least one amount');return;}
+  const upiAcct=document.getElementById(`${pfx}_upi_acct`)?.value||'';const bankAcct=document.getElementById(`${pfx}_bank_acct`)?.value||'';const swipeAcct=document.getElementById(`${pfx}_swipe_acct`)?.value||'';
+  const e={id:uid(),date:document.getElementById(`${pfx}_date`)?.value||todayISO(),cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,total,note:document.getElementById(`${pfx}_note`)?.value?.trim()||''};
+  data.shops[shopId][arrKey].push(e);
+  if(cash>0)credit(shopId,'cash',cash);
+  if(upi>0&&upiAcct)credit(shopId,upiAcct,upi);else if(upi>0)credit(shopId,'cash',upi);
+  if(bank>0&&bankAcct)credit(shopId,bankAcct,bank);else if(bank>0)credit(shopId,'cash',bank);
+  if(swipe>0&&swipeAcct)credit(shopId,swipeAcct,swipe);else if(swipe>0)credit(shopId,'cash',swipe);
+  save();toast('Saved!');renderAccRep();
+};
+window.saveAREdit=function(shopId,arrKey,i){
+  const arr=data.shops[shopId][arrKey];if(!arr[i])return;
+  const old={...arr[i]};const cash=+document.getElementById('ar_cash')?.value||0;const upi=+document.getElementById('ar_upi')?.value||0;const bank=+document.getElementById('ar_bank')?.value||0;const swipe=+document.getElementById('ar_swipe')?.value||0;
+  arr[i]={...arr[i],date:document.getElementById('ar_date')?.value||arr[i].date,cash,upi,bank,swipe,total:cash+upi+bank+swipe,note:document.getElementById('ar_note')?.value?.trim()||''};
+  logChange('EDIT',arrKey,`${fmtDate(old.date)} ₹${fmt(old.total)} → ₹${fmt(arr[i].total)}`,shopId);
+  save();window._editingAR=null;toast('Updated!');renderAccRep();
+};
+window.delAREntry=function(shopId,arrKey,i){if(!confirm('Delete?'))return;const e=data.shops[shopId][arrKey][i];logChange('DELETE',arrKey,`${fmtDate(e?.date)} ₹${fmt(e?.total)}`,shopId);data.shops[shopId][arrKey].splice(i,1);save();window._editingAR=null;toast('Deleted!');renderAccRep();};
+
+// ── RECHARGE ──────────────────────────────────────────────────────────────────
+// Recharge is added as a sub-section within the sales page for sales shops, and within acc/rep page for acc shops
+// We'll add it to the sales nav page under a tab
+// Actually, keep as its own sub-tab within sales for hasSales shops, and we'll add a separate page approach
+// For simplicity: recharge entries go under the sales page for all shops via a separate card at bottom
 
 // ── EXPENSE ───────────────────────────────────────────────────────────────────
 function renderExpense(){
   shopTabs('expTabs','expense');
-  const shopIdx=activeShops.expense;
-  const expenses=(data.shops[shopIdx].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
-  const tags=data.shops[shopIdx].expTags||[];
+  const shopId=activeShops.expense;
+  const expenses=(data.shops[shopId].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
+  const tags=data.shops[shopId].expTags||[];
   const tagBtns=tags.map(t=>`<button onclick="document.getElementById('exp_note').value='${t}'" style="padding:5px 10px;background:#f0ede8;border:none;border-radius:8px;font-size:12px;cursor:pointer">${t}</button>`).join('');
   const rows=expenses.map((e,i)=>`<div class="entry-row">
     <div><div class="entry-main r">₹${fmt(e.amount)}</div>
-    <div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopIdx,e.paidFrom||'cash')}${e.accountId?` → <span style="color:#2980b9">${acctName(e.accountId)}</span>`:''}</div></div>
-    <div style="display:flex;align-items:center;gap:6px">
-      <span class="entry-date">${fmtDate(e.date)}</span>
-      ${isManager()?`<button onclick="delExpense(${shopIdx},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px;line-height:1;padding:0 2px">✕</button>`:''}
-    </div></div>`).join('');
+    <div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopId,e.paidFrom||'cash')}${e.accountId?` → <span style="color:#2980b9">${acctName(e.accountId)}</span>`:''}</div></div>
+    <div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>
+    ${isManager()?`<button onclick="delExpense('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}</div></div>`).join('');
   document.getElementById('expContent').innerHTML=`
   <div class="card"><div class="card-title">➕ Add Expense</div>
-    <div class="two-col">
-      <div class="field"><label>Amount (₹)</label><input type="number" id="exp_amt" placeholder="0"></div>
-      <div class="field"><label>Date</label><input type="date" id="exp_date" value="${todayISO()}"></div>
-    </div>
+    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="exp_amt" placeholder="0"></div><div class="field"><label>Date</label><input type="date" id="exp_date" value="${todayISO()}"></div></div>
     <div class="field"><label>Note</label><input type="text" id="exp_note" placeholder="e.g. Light bill, Salary..."></div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">${tagBtns}</div>
-    <div class="field"><label>Paid From</label><select id="exp_from">${balOpts(shopIdx)}</select></div>
-    <div class="field"><label>Account (for salary / dealer payment — affects ledger)</label><select id="exp_acct"><option value="">— Direct Expense —</option>${acctOpts(shopIdx)}</select></div>
-    <button class="save-btn" onclick="addExpense(${shopIdx})">Save</button>
+    <div class="field"><label>Paid From</label><select id="exp_from">${balOpts(shopId)}</select></div>
+    <div class="field"><label>Account (for salary/dealer — hits ledger)</label><select id="exp_acct"><option value="">— Direct Expense —</option>${acctOpts(shopId)}</select></div>
+    <button class="save-btn" onclick="addExpense('${shopId}')">Save</button>
   </div>
   <div class="card"><div class="card-title">🏷 Quick Tags</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagBtns||'<span style="color:#bbb;font-size:12px">No tags</span>'}</div>
-    <div style="display:flex;gap:8px"><input type="text" id="expTagIn" placeholder="New tag" style="flex:1;padding:8px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addExpTag(${shopIdx})" style="padding:8px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;cursor:pointer">Add</button></div>
+    <div style="display:flex;gap:8px"><input type="text" id="expTagIn" placeholder="New tag" style="flex:1;padding:8px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addExpTag('${shopId}')" style="padding:8px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;cursor:pointer">Add</button></div>
   </div>
   <div class="card"><div class="card-title">📋 Recent Expenses</div>${rows||'<div class="empty">No expenses</div>'}</div>`;
 }
-window.addExpense=function(si){
-  const amt=+document.getElementById('exp_amt')?.value||0;
-  if(!amt){toast('Enter amount');return;}
+window.addExpense=function(shopId){
+  const amt=+document.getElementById('exp_amt')?.value||0;if(!amt){toast('Enter amount');return;}
   const note=document.getElementById('exp_note')?.value?.trim()||'';
   const paidFrom=document.getElementById('exp_from')?.value||'cash';
   const accountId=document.getElementById('exp_acct')?.value||'';
   const date=document.getElementById('exp_date')?.value||todayISO();
-  data.shops[si].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId});
-  debit(si,paidFrom,amt);
-  if(accountId)addLedger(accountId,date,'cr',amt,note||'Payment','expense',si);
+  data.shops[shopId].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId});
+  debit(shopId,paidFrom,amt);
+  if(accountId)addLedger(accountId,date,'cr',amt,note||'Payment','expense',shopId);
   save();toast('Saved!');
   document.getElementById('exp_amt').value='';document.getElementById('exp_note').value='';
   renderExpense();
 };
-window.addExpTag=function(si){const v=document.getElementById('expTagIn')?.value?.trim();if(!v)return;data.shops[si].expTags.push(v);save();renderExpense();};
-window.delExpense=function(si,i){if(!isManager())return;if(!confirm('Delete this expense?'))return;data.shops[si].expenses.splice(i,1);save();toast('Deleted!');renderExpense();};
+window.delExpense=function(shopId,i){
+  if(!isManager())return;if(!confirm('Delete expense?'))return;
+  const e=data.shops[shopId].expenses[i];
+  logChange('DELETE','Expense',`₹${fmt(e?.amount)} ${e?.note||''}`,shopId);
+  data.shops[shopId].expenses.splice(i,1);save();toast('Deleted!');renderExpense();
+};
+window.addExpTag=function(shopId){const v=document.getElementById('expTagIn')?.value?.trim();if(!v)return;data.shops[shopId].expTags.push(v);save();renderExpense();};
 
 // ── BALANCE ───────────────────────────────────────────────────────────────────
 function renderBalance(){
   shopTabs('balTabs','balance');
-  const shopIdx=activeShops.balance;
-  const b=data.shops[shopIdx].balanceAccounts;
+  const shopId=activeShops.balance;
+  const b=data.shops[shopId].balanceAccounts;
   const sub=window._balTab||'cash';
   const subTabs=['cash','upi','bank'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank'}[t]}</button>`).join('');
   let body='';
   if(sub==='cash'){
-    const rows=(b.cash.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delCashEntry(${shopIdx},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}</div></div>`).join('');
+    const rows=(b.cash.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delCashE('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}</div></div>`).join('');
     body=`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Cash Balance</div><div class="metric-value g">₹${fmt(b.cash.balance)}</div></div></div>
     <div class="card"><div class="card-title">➕ Manual Cash Entry</div>
-      <div class="two-col"><div class="field"><label>Amount (+in / -out)</label><input type="number" id="cash_amt" placeholder="e.g. 500 or -200"></div><div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="Reason"></div></div>
-      <button class="save-btn" onclick="addCash(${shopIdx})">Save</button></div>
+      <div class="two-col"><div class="field"><label>Amount (+in / -out)</label><input type="number" id="cash_amt" placeholder="500 or -200"></div><div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="Reason"></div></div>
+      <button class="save-btn" onclick="addCash('${shopId}')">Save</button></div>
     <div class="card"><div class="card-title">📋 Cash Entries</div>${rows||'<div class="empty">No entries</div>'}</div>`;
   } else if(sub==='upi'){
     const cards=(b.upi||[]).map((u,i)=>{
-      const rows=(u.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,5).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delUpiEntry(${shopIdx},${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
+      const rows=(u.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delUpiE('${shopId}',${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
       return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${u.name}</div><div style="font-size:11px;color:#888">${u.number||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(u.balance)}</div></div>
-      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_a_${i}" placeholder="+/- amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="upi_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addUpiE(${shopIdx},${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">Add</button></div>${rows}</div>`;
+      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="upi_a_${i}" placeholder="+/- amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="upi_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addUpiE('${shopId}',${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">+</button></div>${rows}</div>`;
     }).join('');
     body=`${cards||'<div class="card"><div class="empty">No UPI accounts</div></div>'}
     <div class="card"><div class="card-title">➕ Add UPI Account</div>
-      <div class="two-col"><div class="field"><label>Name</label><input type="text" id="upi_name" placeholder="GPay / PhonePe"></div><div class="field"><label>Number</label><input type="text" id="upi_num" placeholder="Mobile no."></div></div>
+      <div class="two-col"><div class="field"><label>Name</label><input type="text" id="upi_name" placeholder="GPay/PhonePe"></div><div class="field"><label>Number</label><input type="text" id="upi_num" placeholder="Mobile no."></div></div>
       <div class="field"><label>Opening Balance (₹)</label><input type="number" id="upi_bal" placeholder="0"></div>
-      <button class="save-btn" onclick="addUpiAcct(${shopIdx})">Add</button></div>`;
+      <button class="save-btn" onclick="addUpiAcct('${shopId}')">Add</button></div>`;
   } else {
     const cards=(b.bank||[]).map((bk,i)=>{
-      const rows=(bk.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,5).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delBankEntry(${shopIdx},${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
+      const rows=(bk.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}₹${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delBankE('${shopId}',${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
       return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${bk.name}</div><div style="font-size:11px;color:#888">${bk.accountNo||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">₹${fmt(bk.balance)}</div></div>
-      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_a_${i}" placeholder="+/- amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="bank_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addBankE(${shopIdx},${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">Add</button></div>${rows}</div>`;
+      <div style="display:flex;gap:6px;margin-bottom:8px"><input type="number" id="bank_a_${i}" placeholder="+/- amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="bank_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><button onclick="addBankE('${shopId}',${i})" style="padding:8px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer">+</button></div>${rows}</div>`;
     }).join('');
     body=`${cards||'<div class="card"><div class="empty">No bank accounts</div></div>'}
     <div class="card"><div class="card-title">➕ Add Bank Account</div>
-      <div class="two-col"><div class="field"><label>Bank Name</label><input type="text" id="bank_name" placeholder="SBI / HDFC"></div><div class="field"><label>Account No.</label><input type="text" id="bank_no" placeholder="Last 4 digits"></div></div>
+      <div class="two-col"><div class="field"><label>Bank Name</label><input type="text" id="bank_name" placeholder="SBI/HDFC"></div><div class="field"><label>Acct No.</label><input type="text" id="bank_no" placeholder="Last 4 digits"></div></div>
       <div class="field"><label>Opening Balance (₹)</label><input type="number" id="bank_bal" placeholder="0"></div>
-      <button class="save-btn" onclick="addBankAcct(${shopIdx})">Add</button></div>`;
+      <button class="save-btn" onclick="addBankAcct('${shopId}')">Add</button></div>`;
   }
   document.getElementById('balContent').innerHTML=`<div class="sub-tabs">${subTabs}</div>${body}`;
 }
-window.addCash=function(si){const amt=+document.getElementById('cash_amt')?.value||0;if(!amt){toast('Enter amount');return;}const s=data.shops[si].balanceAccounts.cash;s.balance=+(s.balance||0)+ +amt;s.entries.push({date:todayISO(),amount:amt,note:document.getElementById('cash_note')?.value?.trim()||''});save();toast('Saved!');renderBalance();};
+window.addCash=function(si){const amt=+document.getElementById('cash_amt')?.value||0;if(!amt)return;const s=data.shops[si].balanceAccounts.cash;s.balance=+(s.balance||0)+ +amt;s.entries.push({date:todayISO(),amount:amt,note:document.getElementById('cash_note')?.value?.trim()||''});save();toast('Saved!');renderBalance();};
 window.addUpiE=function(si,i){const amt=+document.getElementById(`upi_a_${i}`)?.value||0;if(!amt)return;const u=data.shops[si].balanceAccounts.upi[i];u.balance=+(u.balance||0)+ +amt;if(!u.entries)u.entries=[];u.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`upi_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
 window.addBankE=function(si,i){const amt=+document.getElementById(`bank_a_${i}`)?.value||0;if(!amt)return;const bk=data.shops[si].balanceAccounts.bank[i];bk.balance=+(bk.balance||0)+ +amt;if(!bk.entries)bk.entries=[];bk.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`bank_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
-window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:+document.getElementById('upi_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
-window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_no')?.value?.trim()||'',balance:+document.getElementById('bank_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
-window.delCashEntry=function(si,i){if(!isManager())return;if(!confirm('Delete this entry?'))return;const entries=data.shops[si].balanceAccounts.cash.entries;const amt=entries[i]?.amount||0;data.shops[si].balanceAccounts.cash.balance-=amt;entries.splice(i,1);save();toast('Deleted!');renderBalance();};
-window.delUpiEntry=function(si,ai,i){if(!isManager())return;if(!confirm('Delete?'))return;const u=data.shops[si].balanceAccounts.upi[ai];const amt=u.entries[i]?.amount||0;u.balance-=amt;u.entries.splice(i,1);save();toast('Deleted!');renderBalance();};
-window.delBankEntry=function(si,ai,i){if(!isManager())return;if(!confirm('Delete?'))return;const bk=data.shops[si].balanceAccounts.bank[ai];const amt=bk.entries[i]?.amount||0;bk.balance-=amt;bk.entries.splice(i,1);save();toast('Deleted!');renderBalance();};
+window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name)return;data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:+document.getElementById('upi_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
+window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name)return;data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_no')?.value?.trim()||'',balance:+document.getElementById('bank_bal')?.value||0,entries:[]});save();toast('Added!');renderBalance();};
+window.delCashE=function(si,i){if(!confirm('Delete?'))return;const entries=data.shops[si].balanceAccounts.cash.entries;const amt=entries[i]?.amount||0;data.shops[si].balanceAccounts.cash.balance-=amt;entries.splice(i,1);save();renderBalance();};
+window.delUpiE=function(si,ai,i){if(!confirm('Delete?'))return;const u=data.shops[si].balanceAccounts.upi[ai];u.balance-=(u.entries[i]?.amount||0);u.entries.splice(i,1);save();renderBalance();};
+window.delBankE=function(si,ai,i){if(!confirm('Delete?'))return;const bk=data.shops[si].balanceAccounts.bank[ai];bk.balance-=(bk.entries[i]?.amount||0);bk.entries.splice(i,1);save();renderBalance();};
 
 // ── STAFF ─────────────────────────────────────────────────────────────────────
 function renderStaff(){
   shopTabs('staffTabs','staff');
-  const shopIdx=activeShops.staff;
-  const staffList=data.staff[shopIdx]||[];
-  const selSt=window._selStaff;
-  if(selSt!=null){
-    const s=staffList[selSt];if(!s){window._selStaff=null;renderStaff();return;}
-    const leaves=s.leaves||[];
-    const leaveRows=leaves.slice().sort((a,b)=>b.date.localeCompare(a.date)).map((l,i)=>`<div class="entry-row">
-      <div><div class="entry-main">${l.type||'Full Day'}</div><div class="entry-sub">${l.note||''}</div></div>
-      <div style="display:flex;align-items:center;gap:8px"><span class="entry-date">${fmtDate(l.date)}</span>
-      <button onclick="delLeave(${shopIdx},${selSt},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:14px">✕</button></div></div>`).join('');
+  const shopId=activeShops.staff;
+  const staffList=data.staff[shopId]||[];
+  const sel=window._selStaff;
+  if(sel!=null){
+    const s=staffList[sel];if(!s){window._selStaff=null;renderStaff();return;}
+    const rows=(s.leaves||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).map((l,i)=>`<div class="entry-row"><div><div class="entry-main">${l.type}</div><div class="entry-sub">${l.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(l.date)}</span><button onclick="delLeave('${shopId}',${sel},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button></div></div>`).join('');
     document.getElementById('staffContent').innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-      <button onclick="window._selStaff=null;renderStaff()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a">←</button>
-      <div><div style="font-size:16px;font-weight:800">${s.name}</div><div style="font-size:12px;color:#888">${s.role} | Joined ${fmtDate(s.joined||'')} | Total leaves: ${leaves.length}</div></div>
-    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><button onclick="window._selStaff=null;renderStaff()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a">←</button><div><div style="font-size:16px;font-weight:800">${s.name}</div><div style="font-size:12px;color:#888">${s.role} | Leaves: ${(s.leaves||[]).length}</div></div></div>
     <div class="card"><div class="card-title">➕ Mark Leave</div>
-      <div class="two-col">
-        <div class="field"><label>Date</label><input type="date" id="lv_date" value="${todayISO()}"></div>
-        <div class="field"><label>Type</label><select id="lv_type"><option>Full Day</option><option>Half Day</option><option>Absent</option></select></div>
-      </div>
-      <div class="field"><label>Note (optional)</label><input type="text" id="lv_note" placeholder="Reason"></div>
-      <button class="save-btn" onclick="addLeave(${shopIdx},${selSt})">Save</button>
-    </div>
-    <div class="card"><div class="card-title">🗓 Leave History</div>${leaveRows||'<div class="empty">No leaves</div>'}</div>`;
+      <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lv_date" value="${todayISO()}"></div><div class="field"><label>Type</label><select id="lv_type"><option>Full Day</option><option>Half Day</option><option>Absent</option></select></div></div>
+      <div class="field"><label>Note</label><input type="text" id="lv_note" placeholder="Reason"></div>
+      <button class="save-btn" onclick="addLeave('${shopId}',${sel})">Save</button></div>
+    <div class="card"><div class="card-title">🗓 Leave History</div>${rows||'<div class="empty">No leaves</div>'}</div>
+    <div class="card" style="background:#e8f5ee;border:1px solid #c3e6cb"><div style="font-size:12px;color:#155724;font-weight:600">💡 Salary → Expense section → select this staff account</div></div>`;
     return;
   }
-  const rows=staffList.map((s,i)=>`<div class="entry-row" onclick="window._selStaff=${i};renderStaff()" style="cursor:pointer">
-    <div><div class="entry-main">${s.name}</div><div class="entry-sub">${s.role} | Leaves: ${(s.leaves||[]).length} | Joined: ${fmtDate(s.joined||'')}</div></div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:12px;color:#1a7a4a">View →</span>
-      ${isOwner()?`<button onclick="event.stopPropagation();delStaff(${shopIdx},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:14px">✕</button>`:''}
-    </div></div>`).join('');
+  const rows=staffList.map((s,i)=>`<div class="entry-row" onclick="window._selStaff=${i};renderStaff()" style="cursor:pointer"><div><div class="entry-main">${s.name}</div><div class="entry-sub">${s.role} | Leaves: ${(s.leaves||[]).length} | Joined: ${fmtDate(s.joined||'')}</div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#1a7a4a">View →</span>${isOwner()?`<button onclick="event.stopPropagation();delStaff('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">✕</button>`:''}</div></div>`).join('');
   document.getElementById('staffContent').innerHTML=`
-  ${isOwner()||isManager()?`<div class="card"><div class="card-title">➕ Add Staff</div>
-    <div class="two-col"><div class="field"><label>Name</label><input type="text" id="st_name" placeholder="Name"></div><div class="field"><label>Role</label><input type="text" id="st_role" placeholder="Manager / Cashier"></div></div>
-    <div class="field"><label>Joined Date</label><input type="date" id="st_joined" value="${todayISO()}"></div>
-    <button class="save-btn" onclick="addStaff(${shopIdx})">Add Staff</button></div>`:''}
-  <div class="card"><div class="card-title">👥 Staff — ${SHOPS[shopIdx].name}</div>${rows||'<div class="empty">No staff</div>'}</div>
-  <div class="card" style="background:#e8f5ee;border:1px solid #c3e6cb"><div style="font-size:12px;color:#155724;font-weight:600">💡 Salary & advance payments → Expense section → select staff account</div></div>`;
+  ${isManager()?`<div class="card"><div class="card-title">➕ Add Staff</div>
+    <div class="two-col"><div class="field"><label>Name</label><input type="text" id="st_name" placeholder="Name"></div><div class="field"><label>Role</label><input type="text" id="st_role" placeholder="Cashier/Manager"></div></div>
+    <div class="field"><label>Joined</label><input type="date" id="st_joined" value="${todayISO()}"></div>
+    <button class="save-btn" onclick="addStaff('${shopId}')">Add</button></div>`:''}
+  <div class="card"><div class="card-title">👥 Staff — ${shopObj(shopId).name}</div>${rows||'<div class="empty">No staff</div>'}</div>`;
 }
-window.addStaff=function(si){
-  const name=document.getElementById('st_name')?.value?.trim();if(!name){toast('Enter name');return;}
-  if(!data.staff[si])data.staff[si]=[];
-  data.staff[si].push({id:uid(),name,role:document.getElementById('st_role')?.value?.trim()||'Staff',joined:document.getElementById('st_joined')?.value||todayISO(),leaves:[]});
-  if(!data.accounts.find(a=>a.name===name&&a.type==='Staff'&&a.shopIdx===si))
-    data.accounts.push({id:uid(),name,type:'Staff',phone:'',shopIdx:si,notes:'Auto-created'});
-  save();toast('Added + account created!');renderStaff();
-};
+window.addStaff=function(si){const name=document.getElementById('st_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.staff[si])data.staff[si]=[];data.staff[si].push({id:uid(),name,role:document.getElementById('st_role')?.value?.trim()||'Staff',joined:document.getElementById('st_joined')?.value||todayISO(),leaves:[]});if(!data.accounts.find(a=>a.name===name&&a.type==='Staff'&&a.shopIdx===si))data.accounts.push({id:uid(),name,type:'Staff',phone:'',shopIdx:si,notes:'Auto'});save();toast('Added!');renderStaff();};
 window.delStaff=function(si,i){if(!isOwner())return;if(confirm('Remove staff?')){data.staff[si].splice(i,1);save();renderStaff();}};
-window.addLeave=function(si,si2){
-  const s=data.staff[si][si2];if(!s)return;
-  if(!s.leaves)s.leaves=[];
-  s.leaves.push({date:document.getElementById('lv_date')?.value||todayISO(),type:document.getElementById('lv_type')?.value||'Full Day',note:document.getElementById('lv_note')?.value?.trim()||''});
-  save();toast('Leave marked!');renderStaff();
-};
+window.addLeave=function(si,i){const s=data.staff[si][i];if(!s)return;if(!s.leaves)s.leaves=[];s.leaves.push({date:document.getElementById('lv_date')?.value||todayISO(),type:document.getElementById('lv_type')?.value||'Full Day',note:document.getElementById('lv_note')?.value?.trim()||''});save();toast('Saved!');renderStaff();};
 window.delLeave=function(si,si2,li){data.staff[si][si2].leaves.splice(li,1);save();renderStaff();};
 
 // ── TRANSFER ──────────────────────────────────────────────────────────────────
 function renderTransfer(){
-  const transfers=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
-  const shopOpts=SHOPS.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');
-  const rows=transfers.slice(0,25).map(t=>`<div class="entry-row">
-    <div><div class="entry-main">₹${fmt(t.amount)} <span style="font-size:11px;color:#888">${t.balType==='cash'?'💵':'🏦'}</span></div>
-    <div class="entry-sub">${SHOPS[t.from].name} → ${SHOPS[t.to].name}${t.note?' | '+t.note:''}</div></div>
-    <span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
+  const shopOpts=SHOPS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  const rows=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25).map(t=>`<div class="entry-row"><div><div class="entry-main">₹${fmt(t.amount)} <span style="font-size:11px;color:#888">${t.balType==='cash'?'💵':'🏦'}</span></div><div class="entry-sub">${shopObj(t.from).name} → ${shopObj(t.to).name}${t.note?' | '+t.note:''}</div></div><span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
   document.getElementById('transferContent').innerHTML=`
   <div class="sec-hdr">🔄 Inter-Branch Transfer</div>
   <div class="card"><div class="card-title">➕ New Transfer</div>
-    <div class="two-col">
-      <div class="field"><label>From</label><select id="tr_from">${shopOpts}</select></div>
-      <div class="field"><label>To</label><select id="tr_to">${shopOpts}</select></div>
-    </div>
-    <div class="two-col">
-      <div class="field"><label>Amount (₹)</label><input type="number" id="tr_amt" placeholder="0"></div>
-      <div class="field"><label>Type</label><select id="tr_bal" onchange="trBalChange()"><option value="cash">💵 Cash</option><option value="bank">🏦 Bank</option></select></div>
-    </div>
-    <div id="tr_bank_wrap" class="field" style="display:none"><label>From Bank Account</label><select id="tr_bank_idx"></select></div>
+    <div class="two-col"><div class="field"><label>From</label><select id="tr_from">${shopOpts}</select></div><div class="field"><label>To</label><select id="tr_to">${shopOpts}</select></div></div>
+    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="tr_amt" placeholder="0"></div><div class="field"><label>Date</label><input type="date" id="tr_date" value="${todayISO()}"></div></div>
+    <div class="two-col"><div class="field"><label>Type</label><select id="tr_bal" onchange="trBalChange()"><option value="cash">💵 Cash</option><option value="bank">🏦 Bank</option></select></div><div class="field" id="tr_bank_wrap" style="display:none"><label>Bank Acct</label><select id="tr_bank_idx"></select></div></div>
     <div class="field"><label>Note (optional)</label><input type="text" id="tr_note" placeholder=""></div>
     <button class="save-btn" onclick="addTransfer()">Save Transfer</button>
   </div>
   <div class="card"><div class="card-title">📋 Transfers</div>${rows||'<div class="empty">No transfers</div>'}</div>`;
 }
-function trBalChange(){
-  const isBank=document.getElementById('tr_bal')?.value==='bank';
-  document.getElementById('tr_bank_wrap').style.display=isBank?'block':'none';
-  if(isBank){const fi=+document.getElementById('tr_from')?.value||0;const banks=data.shops[fi].balanceAccounts.bank||[];document.getElementById('tr_bank_idx').innerHTML=banks.map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')||'<option>No bank accounts</option>';}
-}
+window.trBalChange=function(){const isB=document.getElementById('tr_bal')?.value==='bank';document.getElementById('tr_bank_wrap').style.display=isB?'block':'none';if(isB){const fi=document.getElementById('tr_from')?.value||SHOPS[0].id;document.getElementById('tr_bank_idx').innerHTML=(data.shops[fi]?.balanceAccounts?.bank||[]).map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')||'<option>No accounts</option>';}};
 window.addTransfer=function(){
-  const from=+document.getElementById('tr_from')?.value||0;
-  const to=+document.getElementById('tr_to')?.value||0;
+  const from=document.getElementById('tr_from')?.value||SHOPS[0].id;
+  const to=document.getElementById('tr_to')?.value||SHOPS[1].id;
   const amt=+document.getElementById('tr_amt')?.value||0;
   const balType=document.getElementById('tr_bal')?.value||'cash';
+  const date=document.getElementById('tr_date')?.value||todayISO();
+  const note=document.getElementById('tr_note')?.value?.trim()||'';
   if(from===to){toast('From and To must differ');return;}
   if(!amt){toast('Enter amount');return;}
-  const note=document.getElementById('tr_note')?.value?.trim()||'';
-  const date=todayISO();
   data.transfers.push({id:uid(),date,from,to,amount:amt,balType,note});
   if(balType==='cash'){debit(from,'cash',amt);credit(to,'cash',amt);}
-  else{const bi=+document.getElementById('tr_bank_idx')?.value||0;debit(from,`bank_${bi}`,amt);const toBanks=data.shops[to].balanceAccounts.bank||[];toBanks.length?credit(to,'bank_0',amt):credit(to,'cash',amt);}
-  // ledger: to-branch account in from-shop shows DR (they received from us)
-  const fromName=SHOPS[from].name,toName=SHOPS[to].name;
-  let toAcct=data.accounts.find(a=>a.name===`Branch:${toName}`&&a.shopIdx===from);
-  if(!toAcct){toAcct={id:uid(),name:`Branch:${toName}`,type:'Custom',phone:'',shopIdx:from,notes:'Inter-branch'};data.accounts.push(toAcct);}
-  let fromAcct=data.accounts.find(a=>a.name===`Branch:${fromName}`&&a.shopIdx===to);
-  if(!fromAcct){fromAcct={id:uid(),name:`Branch:${fromName}`,type:'Custom',phone:'',shopIdx:to,notes:'Inter-branch'};data.accounts.push(fromAcct);}
-  addLedger(toAcct.id,date,'dr',amt,`Sent to ${toName}${note?' - '+note:''}`.trim(),'transfer',from);
-  addLedger(fromAcct.id,date,'cr',amt,`Received from ${fromName}${note?' - '+note:''}`.trim(),'transfer',to);
+  else{const bi=+document.getElementById('tr_bank_idx')?.value||0;debit(from,`bank_${bi}`,amt);const tb=data.shops[to].balanceAccounts.bank||[];tb.length?credit(to,'bank_0',amt):credit(to,'cash',amt);}
+  const fn=shopObj(from).name,tn=shopObj(to).name;
+  let toAcct=data.accounts.find(a=>a.name===`Branch:${tn}`&&a.shopIdx===from);
+  if(!toAcct){toAcct={id:uid(),name:`Branch:${tn}`,type:'Custom',phone:'',shopIdx:from,notes:'Inter-branch'};data.accounts.push(toAcct);}
+  let fromAcct=data.accounts.find(a=>a.name===`Branch:${fn}`&&a.shopIdx===to);
+  if(!fromAcct){fromAcct={id:uid(),name:`Branch:${fn}`,type:'Custom',phone:'',shopIdx:to,notes:'Inter-branch'};data.accounts.push(fromAcct);}
+  addLedger(toAcct.id,date,'dr',amt,`Sent to ${tn}${note?' - '+note:''}`.trim(),'transfer',from);
+  addLedger(fromAcct.id,date,'cr',amt,`Received from ${fn}${note?' - '+note:''}`.trim(),'transfer',to);
   save();toast('Transfer saved!');renderTransfer();
 };
 
 // ── ACCOUNTS ──────────────────────────────────────────────────────────────────
 function renderAccounts(){
   shopTabs('acctTabs','accounts');
-  const shopIdx=activeShops.accounts;
+  const shopId=activeShops.accounts;
   const selId=window._selAcct;
   if(selId){
     const acct=data.accounts.find(a=>a.id===selId);
@@ -741,42 +752,33 @@ function renderAccounts(){
     const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
     const bal=dr-cr;
     const rows=txns.map((t,ti)=>`<div class="txn-row">
-      <div style="flex:1"><div class="entry-main">${t.type==='dr'?'<span class="badge badge-dr">DR</span>':'<span class="badge badge-cr">CR</span>'} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 6px;border-radius:6px;color:#666">${t.source||''}</span></div>
+      <div style="flex:1"><div class="entry-main">${t.type==='dr'?'<span class="badge badge-dr">DR</span>':'<span class="badge badge-cr">CR</span>'} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 5px;border-radius:6px;color:#666">${t.source||''}</span></div>
       <div class="entry-sub">${t.note||''} | ${fmtDate(t.date)}</div></div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-        ${isManager()?`<button onclick="delLedgerTxn('${t.id}',${shopIdx})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px;padding:0 4px">✕</button>`:''}
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        ${isManager()?`<button onclick="delLedger('${t.id}','${shopId}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}
       </div></div>`).join('');
     document.getElementById('acctContent').innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-      <button onclick="window._selAcct=null;renderAccounts()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a">←</button>
-      <div><div style="font-size:16px;font-weight:800">${acct.name} <span class="acct-type-badge type-${acct.type}">${acct.type}</span></div>${acct.phone?`<div style="font-size:12px;color:#888">${acct.phone}</div>`:''}</div>
-    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><button onclick="window._selAcct=null;renderAccounts()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a">←</button>
+    <div><div style="font-size:16px;font-weight:800">${acct.name} <span class="acct-type-badge type-${acct.type}">${acct.type}</span></div>${acct.phone?`<div style="font-size:12px;color:#888">${acct.phone}</div>`:''}</div></div>
     <div class="metric-grid">
       <div class="metric"><div class="metric-label">Total DR</div><div class="metric-value r">₹${fmt(dr)}</div></div>
       <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(cr)}</div></div>
-      <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR − CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
+      <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
     </div>
-    <div class="card"><div class="card-title">➕ Manual Entry</div>
-      <div class="two-col">
-        <div class="field"><label>Type</label><select id="lt_type"><option value="dr">DR — They owe you</option><option value="cr">CR — You paid them</option></select></div>
-        <div class="field"><label>Amount (₹)</label><input type="number" id="lt_amt" placeholder="0"></div>
-      </div>
-      <div class="two-col">
-        <div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div>
-        <div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div>
-      </div>
-      <div class="field"><label>Also affect balance (optional)</label><select id="lt_bal"><option value="">— No balance change —</option>${balOpts(shopIdx)}</select></div>
-      <button class="save-btn" onclick="addManualLedger('${selId}',${shopIdx})">Save</button>
+    <div class="card"><div class="card-title">➕ Manual Entry / Baki Jama</div>
+      <div class="two-col"><div class="field"><label>Type</label><select id="lt_type"><option value="dr">DR — They owe you</option><option value="cr">CR — Payment / Baki Jama received</option></select></div><div class="field"><label>Amount (₹)</label><input type="number" id="lt_amt" placeholder="0"></div></div>
+      <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details / Baki Jama"></div></div>
+      <div class="field"><label>Also credit/debit balance (for Baki Jama received)</label><select id="lt_bal"><option value="">— No balance change —</option>${balOpts(shopId)}</select></div>
+      <button class="save-btn" onclick="addManualLedger('${selId}','${shopId}')">Save</button>
     </div>
     <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
     return;
   }
-  const accts=data.accounts.filter(a=>a.shopIdx===shopIdx);
+  const accts=data.accounts.filter(a=>a.shopIdx===shopId);
   const sections=ACCT_TYPES.map(type=>{
-    const list=accts.filter(a=>a.type===type);
-    if(!list.length)return '';
+    const list=accts.filter(a=>a.type===type);if(!list.length)return '';
     const icons={Dealer:'🏪',Franchise:'🤝',Staff:'👤',Owner:'👑',Customer:'🧑',Custom:'📂'};
-    const cards=list.map(a=>{
+    return `<div class="sec-hdr">${icons[type]||'📂'} ${type}s</div>`+list.map(a=>{
       const txns=data.ledger.filter(t=>t.accountId===a.id);
       const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
       const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
@@ -787,74 +789,64 @@ function renderAccounts(){
           <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${bal>0?'#c0392b':'#1a7a4a'}">₹${fmt(Math.abs(bal))}</div><div style="font-size:10px;color:#888">${bal>0?'Outstanding':'Clear'}</div></div>
         </div></div>`;
     }).join('');
-    return `<div class="sec-hdr">${icons[type]||'📂'} ${type}s</div>${cards}`;
   }).join('');
   document.getElementById('acctContent').innerHTML=`
   ${isManager()?`<div class="card"><div class="card-title">➕ Add Account</div>
     <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acct_name" placeholder="Name"></div><div class="field"><label>Type</label><select id="acct_type">${ACCT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
     <div class="two-col"><div class="field"><label>Phone</label><input type="text" id="acct_phone" placeholder="Optional"></div><div class="field"><label>Notes</label><input type="text" id="acct_notes" placeholder="Optional"></div></div>
-    <button class="save-btn" onclick="addAccount(${shopIdx})">Add</button></div>`:''}
+    <button class="save-btn" onclick="addAccount('${shopId}')">Add</button></div>`:''}
   ${sections||'<div class="card"><div class="empty">No accounts yet</div></div>'}`;
 }
 window.addAccount=function(si){const name=document.getElementById('acct_name')?.value?.trim();if(!name){toast('Enter name');return;}if(data.accounts.find(a=>a.name===name&&a.shopIdx===si)){toast('Already exists');return;}data.accounts.push({id:uid(),name,type:document.getElementById('acct_type')?.value||'Custom',phone:document.getElementById('acct_phone')?.value?.trim()||'',shopIdx:si,notes:document.getElementById('acct_notes')?.value?.trim()||''});save();toast('Added!');renderAccounts();};
-window.addManualLedger=function(accountId,si){const txnType=document.getElementById('lt_type')?.value||'dr';const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}const note=document.getElementById('lt_note')?.value?.trim()||'';const balKey=document.getElementById('lt_bal')?.value||'';const date=document.getElementById('lt_date')?.value||todayISO();addLedger(accountId,date,txnType,amt,note,'manual',si);if(balKey){txnType==='cr'?debit(si,balKey,amt):credit(si,balKey,amt);}save();toast('Saved!');renderAccounts();};
-window.delLedgerTxn=function(txnId,si){
-  if(!isManager())return;
-  if(!confirm('Delete this transaction?'))return;
-  const idx=data.ledger.findIndex(t=>t.id===txnId);
-  if(idx===-1)return;
-  data.ledger.splice(idx,1);
-  save();toast('Deleted!');renderAccounts();
+window.addManualLedger=function(accountId,shopId){
+  const txnType=document.getElementById('lt_type')?.value||'dr';const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}
+  const note=document.getElementById('lt_note')?.value?.trim()||'';const balKey=document.getElementById('lt_bal')?.value||'';const date=document.getElementById('lt_date')?.value||todayISO();
+  addLedger(accountId,date,txnType,amt,note,'manual',shopId);
+  if(balKey){txnType==='cr'?credit(shopId,balKey,amt):debit(shopId,balKey,amt);}
+  save();toast('Saved!');renderAccounts();
 };
+window.delLedger=function(txnId,shopId){if(!isManager())return;if(!confirm('Delete transaction?'))return;const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;const t=data.ledger[idx];logChange('DELETE','Ledger',`${t.type.toUpperCase()} ₹${fmt(t.amount)} ${t.note||''}`,shopId);data.ledger.splice(idx,1);save();toast('Deleted!');renderAccounts();};
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard(){
   shopTabs('dashTabs','dashboard');
-  const shopIdx=activeShops.dashboard;
-  const shop=data.shops[shopIdx];
+  const shopId=activeShops.dashboard;
+  const shop=data.shops[shopId];const shopDef=shopObj(shopId);
   const today=todayISO(),ym=today.slice(0,7);
-  const sales=shop.sales||[];const expenses=shop.expenses||[];
-  const acc=shop.accessories||[];const rep=shop.repairing||[];const rch=shop.recharge||[];
-  // today
-  const tSales=sales.filter(e=>e.date===today&&(e.cash||e.upi||e.bank||e.swipe||e.exchange));
+  const sales=shop.sales||[];const expenses=shop.expenses||[];const acc=shop.accessories||[];const rep=shop.repairing||[];const rch=shop.recharge||[];
+  const tSales=sales.filter(e=>e.date===today&&(e.cash||e.upi||e.bank||e.swipe||e.exchange||e.udhari));
   const tSaleAmt=tSales.reduce((s,e)=>s+(e.total||0),0);
   const tQty=tSales.reduce((s,e)=>s+(e.qty||0),0);
   const tExp=expenses.filter(e=>e.date===today).reduce((s,e)=>s+e.amount,0);
   const tAcc=acc.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
   const tRep=rep.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
   const tRch=rch.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
-  // month
-  const mSaleAmt=sales.filter(e=>e.date.startsWith(ym)&&(e.cash||e.upi||e.bank||e.swipe||e.exchange)).reduce((s,e)=>s+(e.total||0),0);
+  const mSaleAmt=sales.filter(e=>e.date.startsWith(ym)&&(e.cash||e.upi||e.bank||e.swipe||e.exchange||e.udhari)).reduce((s,e)=>s+(e.total||0),0);
   const mExp=expenses.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+e.amount,0);
   const mAcc=acc.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
   const mRep=rep.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
   const mRch=rch.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
-  // balances
   const b=shop.balanceAccounts||{};
   const cashBal=b.cash?.balance||0;
   const upiTot=(b.upi||[]).reduce((s,u)=>s+(u.balance||0),0);
   const bankTot=(b.bank||[]).reduce((s,u)=>s+(u.balance||0),0);
-  // outstanding
-  const shopAccts=data.accounts.filter(a=>a.shopIdx===shopIdx);
-  const outstanding=shopAccts.reduce((s,a)=>{const txns=data.ledger.filter(t=>t.accountId===a.id);const d=txns.filter(t=>t.type==='dr').reduce((x,t)=>x+t.amount,0);const c=txns.filter(t=>t.type==='cr').reduce((x,t)=>x+t.amount,0);return s+Math.max(0,d-c);},0);
+  const outstanding=data.accounts.filter(a=>a.shopIdx===shopId).reduce((s,a)=>{const txns=data.ledger.filter(t=>t.accountId===a.id);const d=txns.filter(t=>t.type==='dr').reduce((x,t)=>x+t.amount,0);const c=txns.filter(t=>t.type==='cr').reduce((x,t)=>x+t.amount,0);return s+Math.max(0,d-c);},0);
   const adj=shop.adjustment||0;
   document.getElementById('dashContent').innerHTML=`
-  <div style="font-size:11px;color:#888;margin-bottom:8px">📅 Today: ${fmtDate(today)} | ${SHOPS[shopIdx].name}</div>
+  <div style="font-size:11px;color:#888;margin-bottom:8px">📅 Today: ${fmtDate(today)} | ${shopDef.name}</div>
   <div class="sec-hdr">Today</div>
   <div class="metric-grid">
-    <div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">₹${fmt(tSaleAmt)}</div><div style="font-size:11px;color:#888;margin-top:2px">${tQty} phones</div></div>
+    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">₹${fmt(tSaleAmt)}</div><div style="font-size:11px;color:#888">${tQty} phones</div></div>`:''}
     <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">₹${fmt(tExp)}</div></div>
-    <div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">₹${fmt(tAcc)}</div></div>
-    <div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">₹${fmt(tRep)}</div></div>
+    ${shopDef.hasAccRep?`<div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">₹${fmt(tAcc)}</div></div><div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">₹${fmt(tRep)}</div></div>`:''}
     <div class="metric"><div class="metric-label">📶 Recharge</div><div class="metric-value">₹${fmt(tRch)}</div></div>
     <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483;font-size:15px">₹${fmt(Math.abs(adj))} ${adj<0?'↓ Short':adj>0?'↑ Excess':'✓'}</div></div>
   </div>
   <div class="sec-hdr">This Month</div>
   <div class="metric-grid">
-    <div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">₹${fmt(mSaleAmt)}</div></div>
+    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">₹${fmt(mSaleAmt)}</div></div>`:''}
     <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">₹${fmt(mExp)}</div></div>
-    <div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">₹${fmt(mAcc)}</div></div>
-    <div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">₹${fmt(mRep)}</div></div>
+    ${shopDef.hasAccRep?`<div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">₹${fmt(mAcc)}</div></div><div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">₹${fmt(mRep)}</div></div>`:''}
     <div class="metric"><div class="metric-label">📶 Recharge</div><div class="metric-value">₹${fmt(mRch)}</div></div>
     <div class="metric"><div class="metric-label">⚠️ Outstanding</div><div class="metric-value r">₹${fmt(outstanding)}</div></div>
   </div>
@@ -864,30 +856,32 @@ function renderDashboard(){
     <div class="metric"><div class="metric-label">📲 UPI Total</div><div class="metric-value">₹${fmt(upiTot)}</div></div>
     <div class="metric" style="grid-column:1/-1"><div class="metric-label">🏦 Bank Total</div><div class="metric-value">₹${fmt(bankTot)}</div></div>
   </div>
-  ${isOwner()?`<div class="card"><div class="card-title">⚖️ Set Adjustment</div>
-    <div class="field"><input type="number" id="adj_v" value="${adj}" placeholder="0 or negative for short"></div>
-    <button class="save-btn" onclick="saveAdj(${shopIdx})">Save</button></div>
-  <div class="card" style="border:2px solid #c0392b">
-    <div class="card-title" style="color:#c0392b">🗑️ Clear All Data (Testing Only)</div>
-    <div style="font-size:12px;color:#888;margin-bottom:10px">Wipes everything — all entries, balances, accounts, staff. Cannot be undone.</div>
-    <button class="save-btn red" onclick="clearAllData()">Clear All Data</button>
-  </div>`:''}`;
+  ${isOwner()?`<div class="card"><div class="card-title">⚖️ Set Adjustment</div><div class="field"><input type="number" id="adj_v" value="${adj}" placeholder="0"></div><button class="save-btn" onclick="saveAdj('${shopId}')">Save</button></div>
+  <div class="card" style="border:2px solid #c0392b"><div class="card-title" style="color:#c0392b">🗑️ Clear All Data</div><div style="font-size:12px;color:#888;margin-bottom:10px">Wipes everything. Cannot be undone.</div><button class="save-btn red" onclick="clearAll()">Clear All Data</button></div>`:''}`;
 }
 window.saveAdj=function(si){data.shops[si].adjustment=+document.getElementById('adj_v')?.value||0;save();toast('Saved!');renderDashboard();};
-window.clearAllData=function(){
-  if(!isOwner()){toast('Owner only');return;}
-  if(!confirm('This will delete ALL data from all 4 branches. Are you sure?'))return;
-  if(!confirm('FINAL WARNING — this cannot be undone. Delete everything?'))return;
-  localStorage.removeItem(SK);
-  localStorage.removeItem('shopapp_v8');
-  localStorage.removeItem('shopapp_v7');
-  localStorage.removeItem('shopapp_v6');
-  data={shops:[defShop(),defShop(),defShop(),defShop()],staff:[[],[],[],[]],transfers:[],accounts:[],ledger:[]};
-  save();toast('All data cleared!');renderDashboard();
-};
+window.clearAll=function(){if(!isOwner())return;if(!confirm('Delete ALL data from all shops?'))return;if(!confirm('FINAL WARNING — cannot be undone. Continue?'))return;data={shops:Object.fromEntries(SHOPS.map(s=>[s.id,defShop()])),staff:Object.fromEntries(SHOPS.map(s=>[s.id,[]])),transfers:[],accounts:[],ledger:[],changes:[]};['shopapp_v9','shopapp_v8','shopapp_v7'].forEach(k=>localStorage.removeItem(k));save();toast('Cleared!');renderDashboard();};
+
+// ── CHANGES LOG ───────────────────────────────────────────────────────────────
+function renderChanges(){
+  const changes=(data.changes||[]).slice(0,100);
+  const rows=changes.map(c=>`<div class="change-row">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+      <span style="font-size:12px;font-weight:700;color:#c0392b">${c.action}</span>
+      <span style="font-size:11px;color:#888">${fmtDT(c.ts)}</span>
+    </div>
+    <div style="font-size:13px;font-weight:600">${c.section} — ${shopObj(c.shopId||'')?.name||''}</div>
+    <div style="font-size:11px;color:#888;margin-top:2px">${c.detail||''} | By: ${c.user||'?'}</div>
+  </div>`).join('');
+  document.getElementById('changesContent').innerHTML=`
+  <div class="sec-hdr">🔔 Changes Log — Owner View</div>
+  <div style="font-size:12px;color:#888;margin-bottom:12px">All edits and deletes made by managers. Last 100 shown.</div>
+  ${rows||'<div class="card"><div class="empty">No changes logged yet</div></div>'}`;
+}
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
-load();
+buildLoginRoles();
+initFirebase();
 </script>
 
 
