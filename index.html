@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_8.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_9.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -112,6 +112,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div id="pages">
     <div class="page active" id="page_sales"><div id="salesContent"></div></div>
     <div class="page" id="page_accrep"><div id="accrepContent"></div></div>
+    <div class="page" id="page_recharge"><div id="rechargeContent"></div></div>
     <div class="page" id="page_expense"><div class="shop-tabs" id="expTabs"></div><div id="expContent"></div></div>
     <div class="page" id="page_balance"><div class="shop-tabs" id="balTabs"></div><div id="balContent"></div></div>
     <div class="page" id="page_staff"><div class="shop-tabs" id="staffTabs"></div><div id="staffContent"></div></div>
@@ -133,12 +134,12 @@ let _pollInterval = null;
 
 // ── SHOPS CONFIG ──────────────────────────────────────────────────────────────
 const SHOPS = [
-  {id:'poojara',   name:'POOJARA',          pass:'poojara123',   manager:'NIKUNJ',  hasSales:true,  hasAccRep:false},
-  {id:'ramdev',    name:'RAMDEV',            pass:'ramdev123',    manager:'PUNIT',   hasSales:true,  hasAccRep:false},
-  {id:'kosad',     name:'SHIVAM (KOSAD)',    pass:'shivam1123',   manager:'KISHAN',  hasSales:true,  hasAccRep:true},
-  {id:'khodiyar',  name:'SHIVAM (KHODIYAR)',pass:'shivam2123',   manager:'RAJVEER', hasSales:true,  hasAccRep:true},
-  {id:'pacc',      name:'P ACC',             pass:'pacc123',      manager:'P-MGR',   hasSales:false, hasAccRep:true},
-  {id:'rdacc',     name:'RD ACC',            pass:'rdacc123',     manager:'RD-MGR',  hasSales:false, hasAccRep:true},
+  {id:'poojara',   name:'POOJARA',          pass:'poojara123',   manager:'NIKUNJ',  hasSales:true,  hasAccRep:false, hasRecharge:true},
+  {id:'ramdev',    name:'RAMDEV',            pass:'ramdev123',    manager:'PUNIT',   hasSales:true,  hasAccRep:false, hasRecharge:true},
+  {id:'kosad',     name:'SHIVAM (KOSAD)',    pass:'shivam1123',   manager:'KISHAN',  hasSales:true,  hasAccRep:true, hasRecharge:true},
+  {id:'khodiyar',  name:'SHIVAM (KHODIYAR)',pass:'shivam2123',   manager:'RAJVEER', hasSales:true,  hasAccRep:true, hasRecharge:true},
+  {id:'pacc',      name:'P ACC',             pass:'pacc123',      manager:'P-MGR',   hasSales:false, hasAccRep:true, hasRecharge:false},
+  {id:'rdacc',     name:'RD ACC',            pass:'rdacc123',     manager:'RD-MGR',  hasSales:false, hasAccRep:true, hasRecharge:false},
 ];
 const OWNER_PASS = 'owner@123';
 const STAFF_PASS = 'staff123';
@@ -146,7 +147,7 @@ const ACCT_TYPES = ['Dealer','Franchise','Staff','Owner','Customer','Custom'];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let session = null, activePage = 'dashboard';
-let activeShops = {expense:0,balance:0,staff:0,accounts:0,dashboard:0};
+let activeShops = {expense:'poojara',balance:'poojara',staff:'poojara',accounts:'poojara',dashboard:'poojara',recharge:'poojara',sales:'poojara',accrep:'pacc'};
 let fbDb = null, _lastSaved = null;
 
 // ── DATA TEMPLATE ─────────────────────────────────────────────────────────────
@@ -208,6 +209,7 @@ async function initFirebase(){
               else if(activePage==='sales'){const si=activeShops.sales||session.shopIdx;if(si)renderSalesHistory(si);}
               else if(activePage==='accrep'){const si=activeShops.accrep||session.shopIdx;const sub=window._accTab||'acc';const arr=sub==='acc'?'accessories':'repairing';const pfx=sub==='acc'?'ac':'rp';if(si)renderARHistory(si,arr,pfx);}
               else if(activePage==='expense'){const si=activeShops.expense||session.shopIdx;if(si)renderExpHistory(si);}
+              else if(activePage==='recharge'){renderRecharge();}
             }
           }
         }
@@ -328,6 +330,26 @@ function acctOpts(shopId,ph='— Select Account —'){
     data.accounts.filter(a=>a.shopIdx===shopId).map(a=>`<option value="${a.id}">[${a.type}] ${a.name}</option>`).join('');
 }
 function acctName(id){return data.accounts.find(a=>a.id===id)?.name||'';}
+// ── BALANCE EFFECTS TRACKING ──────────────────────────────────────────────────
+function collectBalEffect(shopId, key, amount){
+  // returns an effect object for later reversal
+  adjBal(shopId, key, +amount);
+  return {key, amount: +amount};
+}
+function reverseEffects(shopId, effects){
+  (effects||[]).forEach(e=>adjBal(shopId, e.key, -e.amount));
+}
+function applyPayments(shopId, cash, upi, upiAcct, bank, bankAcct, swipe, swipeAcct){
+  const effects=[];
+  if(cash>0)effects.push(collectBalEffect(shopId,'cash',cash));
+  if(upi>0&&upiAcct)effects.push(collectBalEffect(shopId,upiAcct,upi));
+  else if(upi>0)effects.push(collectBalEffect(shopId,'cash',upi));
+  if(bank>0&&bankAcct)effects.push(collectBalEffect(shopId,bankAcct,bank));
+  else if(bank>0)effects.push(collectBalEffect(shopId,'cash',bank));
+  if(swipe>0&&swipeAcct)effects.push(collectBalEffect(shopId,swipeAcct,swipe));
+  else if(swipe>0)effects.push(collectBalEffect(shopId,'cash',swipe));
+  return effects;
+}
 function addLedger(accountId,date,type,amount,note,source,shopId){
   if(!accountId||!amount)return;
   data.ledger.push({id:uid(),accountId,date:date||todayISO(),type,amount:+amount,note:note||'',source:source||'manual',shopId});
@@ -386,6 +408,7 @@ function getNav(){
   const nav=[{id:'dashboard',icon:'📊',label:'Dashboard'}];
   if(!shop||shop.hasSales)nav.push({id:'sales',icon:'📱',label:'Sales'});
   if(!shop||shop.hasAccRep)nav.push({id:'accrep',icon:'🔌',label:'Acc/Rep'});
+  if(!shop||shop.hasRecharge!==false)nav.push({id:'recharge',icon:'📶',label:'Recharge'});
   nav.push({id:'expense',icon:'💸',label:'Expense'});
   nav.push({id:'balance',icon:'💰',label:'Balance'});
   nav.push({id:'staff',icon:'👤',label:'Staff'});
@@ -405,7 +428,7 @@ function switchPage(p){
   buildNav();renderPage(p);
 }
 function renderPage(p){
-  const map={sales:renderSales,accrep:renderAccRep,expense:renderExpense,balance:renderBalance,staff:renderStaff,transfer:renderTransfer,accounts:renderAccounts,dashboard:renderDashboard,changes:renderChanges};
+  const map={sales:renderSales,accrep:renderAccRep,recharge:renderRecharge,expense:renderExpense,balance:renderBalance,staff:renderStaff,transfer:renderTransfer,accounts:renderAccounts,dashboard:renderDashboard,changes:renderChanges};
   if(map[p])map[p]();
 }
 function shopTabs(containerId,key){
@@ -498,30 +521,34 @@ window.calcST=function(){const v=(+document.getElementById('s_cash')?.value||0)+
 window.addSale=function(shopId){
   const cash=+document.getElementById('s_cash')?.value||0;const upi=+document.getElementById('s_upi')?.value||0;const bank=+document.getElementById('s_bank')?.value||0;const swipe=+document.getElementById('s_swipe')?.value||0;const exch=+document.getElementById('s_exch')?.value||0;const udhari=+document.getElementById('s_udhari')?.value||0;
   const upiAcct=document.getElementById('s_upi_acct')?.value||'';const bankAcct=document.getElementById('s_bank_acct')?.value||'';const swipeAcct=document.getElementById('s_swipe_acct')?.value||'';const udhAcct=document.getElementById('s_udh_acct')?.value||'';
+  // total: cash+upi+bank+swipe+udhari-exchange. Exchange is just value deduction, NOT balance change.
   const total=cash+upi+bank+swipe+udhari-exch;
   if(!cash&&!upi&&!bank&&!swipe&&!udhari){toast('Enter at least one amount');return;}
   const date=document.getElementById('s_date')?.value||todayISO();
-  const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||''};
-  data.shops[shopId].sales.push(e);
-  if(cash>0)credit(shopId,'cash',cash);
-  if(upi>0&&upiAcct)credit(shopId,upiAcct,upi);else if(upi>0)credit(shopId,'cash',upi);
-  if(bank>0&&bankAcct)credit(shopId,bankAcct,bank);else if(bank>0)credit(shopId,'cash',bank);
-  if(swipe>0&&swipeAcct)credit(shopId,swipeAcct,swipe);else if(swipe>0)credit(shopId,'cash',swipe);
+  const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct);
   if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,'Udhari - phone sale','sale',shopId);
+  const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||'',_balEffects:effects};
+  data.shops[shopId].sales.push(e);
   save();toast('Sale saved!');
   ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   window.calcST();renderSalesHistory(shopId);
 };
 window.saveSaleEdit=function(shopId,i){
   const arr=data.shops[shopId].sales;if(!arr[i])return;
-  const old={...arr[i]};const cash=+document.getElementById('ed_cash')?.value||0;const upi=+document.getElementById('ed_upi')?.value||0;const bank=+document.getElementById('ed_bank')?.value||0;const swipe=+document.getElementById('ed_swipe')?.value||0;const exch=+document.getElementById('ed_exch')?.value||0;const udhari=+document.getElementById('ed_udhari')?.value||0;
-  arr[i]={...arr[i],date:document.getElementById('ed_date')?.value||arr[i].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct:document.getElementById('ed_upi_acct')?.value||'',bank,bankAcct:document.getElementById('ed_bank_acct')?.value||'',swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari-exch,note:document.getElementById('ed_note')?.value?.trim()||''};
-  logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[i].total),shopId);
+  const old={...arr[i]};
+  // Reverse old balance effects
+  reverseEffects(shopId,old._balEffects);
+  const cash=+document.getElementById('ed_cash')?.value||0;const upi=+document.getElementById('ed_upi')?.value||0;const bank=+document.getElementById('ed_bank')?.value||0;const swipe=+document.getElementById('ed_swipe')?.value||0;const exch=+document.getElementById('ed_exch')?.value||0;const udhari=+document.getElementById('ed_udhari')?.value||0;
+  const upiAcct=document.getElementById('ed_upi_acct')?.value||'';const bankAcct=document.getElementById('ed_bank_acct')?.value||'';
+  const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,0,'');
+  arr[i]={...arr[i],date:document.getElementById('ed_date')?.value||arr[i].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari-exch,note:document.getElementById('ed_note')?.value?.trim()||'',_balEffects:effects};
+  logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' → Rs.'+fmt(arr[i].total),shopId);
   save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);
 };
 window.delSale=function(shopId,i){
   if(!isManager())return;if(!confirm('Delete this sale entry?'))return;
   const e=data.shops[shopId].sales[i];
+  reverseEffects(shopId,e?._balEffects);
   logChange('DELETE','Phone Sale',fmtDate(e?.date)+' Rs.'+fmt(e?.total),shopId);
   data.shops[shopId].sales.splice(i,1);
   save();window._editing=null;toast('Deleted!');renderSalesHistory(shopId);
@@ -603,12 +630,9 @@ window.addAREntry=function(shopId,arrKey,pfx){
   const cash=+document.getElementById(pfx+'_cash')?.value||0;const upi=+document.getElementById(pfx+'_upi')?.value||0;const bank=+document.getElementById(pfx+'_bank')?.value||0;const swipe=+document.getElementById(pfx+'_swipe')?.value||0;const total=cash+upi+bank+swipe;
   if(!total){toast('Enter at least one amount');return;}
   const upiAcct=document.getElementById(pfx+'_upi_acct')?.value||'';const bankAcct=document.getElementById(pfx+'_bank_acct')?.value||'';const swipeAcct=document.getElementById(pfx+'_swipe_acct')?.value||'';
-  const e={id:uid(),date:document.getElementById(pfx+'_date')?.value||todayISO(),cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,total,note:document.getElementById(pfx+'_note')?.value?.trim()||''};
+  const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct);
+  const e={id:uid(),date:document.getElementById(pfx+'_date')?.value||todayISO(),cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,total,note:document.getElementById(pfx+'_note')?.value?.trim()||'',_balEffects:effects};
   data.shops[shopId][arrKey].push(e);
-  if(cash>0)credit(shopId,'cash',cash);
-  if(upi>0&&upiAcct)credit(shopId,upiAcct,upi);else if(upi>0)credit(shopId,'cash',upi);
-  if(bank>0&&bankAcct)credit(shopId,bankAcct,bank);else if(bank>0)credit(shopId,'cash',bank);
-  if(swipe>0&&swipeAcct)credit(shopId,swipeAcct,swipe);else if(swipe>0)credit(shopId,'cash',swipe);
   save();toast('Saved!');renderARHistory(shopId,arrKey,pfx);
 };
 window.doAREdit=function(btn){window._editingAR=btn.dataset.key;renderARHistory(btn.dataset.shop,btn.dataset.arr,btn.dataset.pfx);};
@@ -622,7 +646,7 @@ window.saveAREdit=function(shopId,arrKey,i){
   logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[i].total),shopId);
   save();window._editingAR=null;toast('Updated!');renderAccRep();
 };
-window.delAREntry=function(shopId,arrKey,i){if(!confirm('Delete?'))return;const e=data.shops[shopId][arrKey][i];logChange('DELETE',arrKey,fmtDate(e?.date)+' Rs.'+fmt(e?.total),shopId);data.shops[shopId][arrKey].splice(i,1);save();window._editingAR=null;toast('Deleted!');renderAccRep();};
+window.delAREntry=function(shopId,arrKey,i){if(!confirm('Delete?'))return;const e=data.shops[shopId][arrKey][i];reverseEffects(shopId,e?._balEffects);logChange('DELETE',arrKey,fmtDate(e?.date)+' Rs.'+fmt(e?.total),shopId);data.shops[shopId][arrKey].splice(i,1);save();window._editingAR=null;toast('Deleted!');renderAccRep();};
 
 
 // ── RECHARGE ──────────────────────────────────────────────────────────────────
@@ -630,6 +654,75 @@ window.delAREntry=function(shopId,arrKey,i){if(!confirm('Delete?'))return;const 
 // We'll add it to the sales nav page under a tab
 // Actually, keep as its own sub-tab within sales for hasSales shops, and we'll add a separate page approach
 // For simplicity: recharge entries go under the sales page for all shops via a separate card at bottom
+
+// ── RECHARGE ──────────────────────────────────────────────────────────────────
+function renderRecharge(){
+  const shopId=isOwner()?(activeShops.recharge||SHOPS.find(s=>s.hasRecharge!==false).id):(session?.shopIdx);
+  const pg=document.getElementById('rechargeContent');
+  if(!pg)return;
+  const ownerSel=isOwner()?`<div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">${SHOPS.filter(s=>s.hasRecharge!==false).map(s=>`<button class="shop-tab${activeShops.recharge===s.id?' active':''}" onclick="activeShops.recharge='${s.id}';document.getElementById('rechargeContent').dataset.shopId='';renderRecharge()">${s.name}</button>`).join('')}</div>`:'';
+  if(pg.dataset.shopId!==shopId){
+    pg.dataset.shopId=shopId;
+    pg.innerHTML=ownerSel+`
+    <div style="background:#f0ede8;border-radius:10px;padding:10px;margin-bottom:8px;font-size:14px;font-weight:700">Total: <span id="rcTot" style="color:#1a7a4a">Rs.0</span></div>
+    <div class="card"><div class="card-title">📶 Recharge — Day Entry</div>
+      <div class="two-col"><div class="field"><label>Date</label><input type="date" id="rc_date" value="${todayISO()}"></div><div class="field"><label>Note (optional)</label><input type="text" id="rc_note" placeholder=""></div></div>
+      <div class="field"><label>💵 Cash (Rs.)</label><input type="number" id="rc_cash" placeholder="0" oninput="calcRCT()" style="font-size:15px;padding:11px 14px"></div>
+      <div class="field" style="background:#f0f8ff;border-radius:12px;padding:12px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:800;color:#2980b9;margin-bottom:8px;display:block">📲 UPI Payment</label>
+        <div class="two-col">
+          <div><select id="rc_upi_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Select UPI --</option>${upiOpts(shopId)}</select></div>
+          <div><input type="number" id="rc_upi" placeholder="Amount" oninput="calcRCT()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <div class="field" style="background:#f0fff4;border-radius:12px;padding:12px;margin-bottom:8px">
+        <label style="font-size:11px;font-weight:800;color:#1a7a4a;margin-bottom:8px;display:block">🏦 Bank Transfer</label>
+        <div class="two-col">
+          <div><select id="rc_bank_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff"><option value="">-- Select Bank --</option>${bankOpts(shopId)}</select></div>
+          <div><input type="number" id="rc_bank" placeholder="Amount" oninput="calcRCT()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="addRechargeEntry('${shopId}')">💾 Save Recharge</button>
+    </div>
+    <div id="rcHistory"></div>`;
+  }
+  renderRCHistory(shopId);
+}
+window.calcRCT=function(){
+  const v=(+document.getElementById('rc_cash')?.value||0)+(+document.getElementById('rc_upi')?.value||0)+(+document.getElementById('rc_bank')?.value||0);
+  const el=document.getElementById('rcTot');if(el)el.textContent='Rs.'+fmt(v);
+};
+window.addRechargeEntry=function(shopId){
+  const cash=+document.getElementById('rc_cash')?.value||0;
+  const upi=+document.getElementById('rc_upi')?.value||0;
+  const bank=+document.getElementById('rc_bank')?.value||0;
+  const total=cash+upi+bank;
+  if(!total){toast('Enter at least one amount');return;}
+  const upiAcct=document.getElementById('rc_upi_acct')?.value||'';
+  const bankAcct=document.getElementById('rc_bank_acct')?.value||'';
+  const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,0,'');
+  const e={id:uid(),date:document.getElementById('rc_date')?.value||todayISO(),cash,upi,upiAcct,bank,bankAcct,total,note:document.getElementById('rc_note')?.value?.trim()||'',_balEffects:effects};
+  if(!data.shops[shopId].recharge)data.shops[shopId].recharge=[];
+  data.shops[shopId].recharge.push(e);
+  save();toast('Saved!');renderRCHistory(shopId);
+};
+function renderRCHistory(shopId){
+  const entries=(data.shops[shopId].recharge||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const rows=entries.map((e,i)=>{
+    const parts=[e.cash?'Cash:'+fmt(e.cash):'',e.upi?'UPI:'+fmt(e.upi):'',e.bank?'Bank:'+fmt(e.bank):''].filter(Boolean).join(' | ');
+    const click=isManager()?'onclick="delRCEntry(\''+shopId+'\','+i+')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px"':'';
+    return '<div class="entry-row"><div><div class="entry-main g">Rs.'+fmt(e.total||0)+(e.note?' <span style="font-size:11px;color:#aaa">'+e.note+'</span>':'')+'</div><div class="entry-sub">'+parts+'</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">'+fmtDate(e.date)+'</span>'+(isManager()?'<button '+click+'>x</button>':'')+'</div></div>';
+  }).join('');
+  const hist=document.getElementById('rcHistory');
+  if(hist)hist.innerHTML='<div class="card"><div class="card-title">📶 Recharge History</div>'+(rows||'<div class="empty">No entries</div>')+'</div>';
+}
+window.delRCEntry=function(shopId,i){
+  if(!confirm('Delete?'))return;
+  const e=data.shops[shopId].recharge[i];
+  reverseEffects(shopId,e?._balEffects);
+  data.shops[shopId].recharge.splice(i,1);
+  save();toast('Deleted!');renderRCHistory(shopId);
+};
 
 // ── EXPENSE ───────────────────────────────────────────────────────────────────
 function renderExpense(){
@@ -674,8 +767,8 @@ window.addExpense=function(shopId){
   const paidFrom=document.getElementById('exp_from')?.value||'cash';
   const accountId=document.getElementById('exp_acct')?.value||'';
   const date=document.getElementById('exp_date')?.value||todayISO();
-  data.shops[shopId].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId});
-  debit(shopId,paidFrom,amt);
+  const effects=[collectBalEffect(shopId,paidFrom,-amt)];
+  data.shops[shopId].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId,_balEffects:effects});
   if(accountId)addLedger(accountId,date,'cr',amt,note||'Payment','expense',shopId);
   save();toast('Saved!');
   document.getElementById('exp_amt').value='';document.getElementById('exp_note').value='';
@@ -684,6 +777,7 @@ window.addExpense=function(shopId){
 window.delExpense=function(shopId,i){
   if(!isManager())return;if(!confirm('Delete expense?'))return;
   const e=data.shops[shopId].expenses[i];
+  reverseEffects(shopId,e?._balEffects);
   logChange('DELETE','Expense','Rs.'+fmt(e?.amount)+' '+(e?.note||''),shopId);
   data.shops[shopId].expenses.splice(i,1);save();toast('Deleted!');renderExpHistory(shopId);
 };
@@ -776,39 +870,73 @@ window.delLeave=function(si,si2,li){data.staff[si][si2].leaves.splice(li,1);save
 // ── TRANSFER ──────────────────────────────────────────────────────────────────
 function renderTransfer(){
   const shopOpts=SHOPS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-  const rows=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25).map(t=>`<div class="entry-row"><div><div class="entry-main">₹${fmt(t.amount)} <span style="font-size:11px;color:#888">${t.balType==='cash'?'💵':'🏦'}</span></div><div class="entry-sub">${shopObj(t.from).name} → ${shopObj(t.to).name}${t.note?' | '+t.note:''}</div></div><span class="entry-date">${fmtDate(t.date)}</span></div>`).join('');
+  const transfers=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25);
+  const rows=transfers.map((t,ti)=>{
+    const settled=t.settled?`<span style="font-size:10px;background:#e8f5ee;color:#1a7a4a;padding:2px 7px;border-radius:8px;margin-left:6px">Settled</span>`:'<span style="font-size:10px;background:#fde8e8;color:#c0392b;padding:2px 7px;border-radius:8px;margin-left:6px">Outstanding</span>';
+    return `<div class="entry-row"><div><div class="entry-main">Rs.${fmt(t.amount)} ${settled}</div><div class="entry-sub">${shopObj(t.from).name} → ${shopObj(t.to).name}${t.note?' | '+t.note:''}</div></div><div style="text-align:right"><span class="entry-date">${fmtDate(t.date)}</span>${!t.settled&&isManager()?`<br><button onclick="settleTransfer(${ti})" style="font-size:11px;background:#1a7a4a;color:#fff;border:none;padding:4px 10px;border-radius:8px;cursor:pointer;margin-top:4px">Settle</button>`:''}</div></div>`;
+  }).join('');
   document.getElementById('transferContent').innerHTML=`
   <div class="sec-hdr">🔄 Inter-Branch Transfer</div>
-  <div class="card"><div class="card-title">➕ New Transfer</div>
-    <div class="two-col"><div class="field"><label>From</label><select id="tr_from">${shopOpts}</select></div><div class="field"><label>To</label><select id="tr_to">${shopOpts}</select></div></div>
-    <div class="two-col"><div class="field"><label>Amount (₹)</label><input type="number" id="tr_amt" placeholder="0"></div><div class="field"><label>Date</label><input type="date" id="tr_date" value="${todayISO()}"></div></div>
-    <div class="two-col"><div class="field"><label>Type</label><select id="tr_bal" onchange="trBalChange()"><option value="cash">💵 Cash</option><option value="bank">🏦 Bank</option></select></div><div class="field" id="tr_bank_wrap" style="display:none"><label>Bank Acct</label><select id="tr_bank_idx"></select></div></div>
-    <div class="field"><label>Note (optional)</label><input type="text" id="tr_note" placeholder=""></div>
+  <div class="card" style="background:#e8f5ee;border:1px solid #c3e6cb"><div style="font-size:12px;color:#155724;font-weight:600">Transfer records outstanding between branches. No balance change on send — only when settled (repaid).</div></div>
+  <div class="card"><div class="card-title">➕ New Transfer Entry</div>
+    <div class="two-col"><div class="field"><label>From Branch</label><select id="tr_from">${shopOpts}</select></div><div class="field"><label>To Branch</label><select id="tr_to">${shopOpts}</select></div></div>
+    <div class="two-col"><div class="field"><label>Amount (Rs.)</label><input type="number" id="tr_amt" placeholder="0"></div><div class="field"><label>Date</label><input type="date" id="tr_date" value="${todayISO()}"></div></div>
+    <div class="field"><label>Note (optional)</label><input type="text" id="tr_note" placeholder="Goods, reason..."></div>
     <button class="save-btn" onclick="addTransfer()">Save Transfer</button>
   </div>
   <div class="card"><div class="card-title">📋 Transfers</div>${rows||'<div class="empty">No transfers</div>'}</div>`;
 }
-window.trBalChange=function(){const isB=document.getElementById('tr_bal')?.value==='bank';document.getElementById('tr_bank_wrap').style.display=isB?'block':'none';if(isB){const fi=document.getElementById('tr_from')?.value||SHOPS[0].id;document.getElementById('tr_bank_idx').innerHTML=(data.shops[fi]?.balanceAccounts?.bank||[]).map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')||'<option>No accounts</option>';}};
 window.addTransfer=function(){
   const from=document.getElementById('tr_from')?.value||SHOPS[0].id;
   const to=document.getElementById('tr_to')?.value||SHOPS[1].id;
   const amt=+document.getElementById('tr_amt')?.value||0;
-  const balType=document.getElementById('tr_bal')?.value||'cash';
   const date=document.getElementById('tr_date')?.value||todayISO();
   const note=document.getElementById('tr_note')?.value?.trim()||'';
   if(from===to){toast('From and To must differ');return;}
   if(!amt){toast('Enter amount');return;}
-  data.transfers.push({id:uid(),date,from,to,amount:amt,balType,note});
-  if(balType==='cash'){debit(from,'cash',amt);credit(to,'cash',amt);}
-  else{const bi=+document.getElementById('tr_bank_idx')?.value||0;debit(from,`bank_${bi}`,amt);const tb=data.shops[to].balanceAccounts.bank||[];tb.length?credit(to,'bank_0',amt):credit(to,'cash',amt);}
   const fn=shopObj(from).name,tn=shopObj(to).name;
-  let toAcct=data.accounts.find(a=>a.name===`Branch:${tn}`&&a.shopIdx===from);
-  if(!toAcct){toAcct={id:uid(),name:`Branch:${tn}`,type:'Custom',phone:'',shopIdx:from,notes:'Inter-branch'};data.accounts.push(toAcct);}
-  let fromAcct=data.accounts.find(a=>a.name===`Branch:${fn}`&&a.shopIdx===to);
-  if(!fromAcct){fromAcct={id:uid(),name:`Branch:${fn}`,type:'Custom',phone:'',shopIdx:to,notes:'Inter-branch'};data.accounts.push(fromAcct);}
-  addLedger(toAcct.id,date,'dr',amt,`Sent to ${tn}${note?' - '+note:''}`.trim(),'transfer',from);
-  addLedger(fromAcct.id,date,'cr',amt,`Received from ${fn}${note?' - '+note:''}`.trim(),'transfer',to);
-  save();toast('Transfer saved!');renderTransfer();
+  // From branch: "To branch owes us" = DR on their account
+  let toAcct=data.accounts.find(a=>a.name==='Branch:'+tn&&a.shopIdx===from);
+  if(!toAcct){toAcct={id:uid(),name:'Branch:'+tn,type:'Custom',phone:'',shopIdx:from,notes:'Inter-branch'};data.accounts.push(toAcct);}
+  // To branch: "We owe From branch" = DR on their account (outstanding)
+  let fromAcct=data.accounts.find(a=>a.name==='Branch:'+fn&&a.shopIdx===to);
+  if(!fromAcct){fromAcct={id:uid(),name:'Branch:'+fn,type:'Custom',phone:'',shopIdx:to,notes:'Inter-branch'};data.accounts.push(fromAcct);}
+  const trId=uid();
+  data.transfers.push({id:trId,date,from,to,amount:amt,note,settled:false,toAcctId:toAcct.id,fromAcctId:fromAcct.id});
+  addLedger(toAcct.id,date,'dr',amt,'Transfer sent to '+tn+(note?' - '+note:''),'transfer',from);
+  addLedger(fromAcct.id,date,'dr',amt,'Transfer owed to '+fn+(note?' - '+note:''),'transfer',to);
+  save();toast('Transfer saved! Settle when payment is made.');renderTransfer();
+};
+window.settleTransfer=function(ti){
+  const t=data.transfers[ti];if(!t||t.settled)return;
+  // Ask which balance accounts to use
+  const fromBalOpts=balOpts(t.from);const toBalOpts=balOpts(t.to);
+  const fn=shopObj(t.from).name,tn=shopObj(t.to).name;
+  document.getElementById('transferContent').insertAdjacentHTML('afterbegin',`
+  <div class="card" style="border:2px solid #1a7a4a;background:#f0fff4" id="settleCard">
+    <div class="card-title">✅ Settle Transfer — Rs.${fmt(t.amount)}</div>
+    <div style="font-size:12px;color:#555;margin-bottom:10px">${fn} sent Rs.${fmt(t.amount)} to ${tn}. Select how payment was made:</div>
+    <div class="field"><label>Deduct from (${fn} — money going out)</label><select id="settle_from_bal">${fromBalOpts}</select></div>
+    <div class="field"><label>Credit to (${tn} — money coming in)</label><select id="settle_to_bal">${toBalOpts}</select></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="confirmSettle(${ti})" class="save-btn" style="margin-top:0">Confirm Settlement</button>
+      <button onclick="document.getElementById('settleCard').remove()" style="padding:13px;background:#f0ede8;color:#555;border:none;border-radius:12px;cursor:pointer;font-weight:700;flex:1;margin-top:0">Cancel</button>
+    </div>
+  </div>`);
+};
+window.confirmSettle=function(ti){
+  const t=data.transfers[ti];if(!t)return;
+  const fromBal=document.getElementById('settle_from_bal')?.value||'cash';
+  const toBal=document.getElementById('settle_to_bal')?.value||'cash';
+  const date=todayISO();
+  // Deduct from "from" branch, credit to "to" branch
+  debit(t.from,fromBal,t.amount);
+  credit(t.to,toBal,t.amount);
+  // Mark settled and add CR to both accounts
+  t.settled=true;t.settledDate=date;
+  if(t.toAcctId)addLedger(t.toAcctId,date,'cr',t.amount,'Transfer settled','transfer_settle',t.from);
+  if(t.fromAcctId)addLedger(t.fromAcctId,date,'cr',t.amount,'Transfer settled by '+shopObj(t.from).name,'transfer_settle',t.to);
+  save();toast('Settled! Balances updated.');renderTransfer();
 };
 
 // ── ACCOUNTS ──────────────────────────────────────────────────────────────────
@@ -824,7 +952,7 @@ function renderAccounts(){
     const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
     const bal=dr-cr;
     const rows=txns.map((t,ti)=>`<div class="txn-row">
-      <div style="flex:1"><div class="entry-main">${t.type==='dr'?'<span class="badge badge-dr">DR</span>':'<span class="badge badge-cr">CR</span>'} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 5px;border-radius:6px;color:#666">${t.source||''}</span></div>
+      <div style="flex:1"><div class="entry-main">${t.type==='dr'?'<span class="badge badge-dr">Purchase</span>':'<span class="badge badge-cr">Payment Rcvd</span>'} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 5px;border-radius:6px;color:#666">${t.source||''}</span></div>
       <div class="entry-sub">${t.note||''} | ${fmtDate(t.date)}</div></div>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
         ${isManager()?`<button onclick="delLedger('${t.id}','${shopId}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}
@@ -837,10 +965,14 @@ function renderAccounts(){
       <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(cr)}</div></div>
       <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
     </div>
-    <div class="card"><div class="card-title">➕ Manual Entry / Baki Jama</div>
-      <div class="two-col"><div class="field"><label>Type</label><select id="lt_type"><option value="dr">DR — They owe you</option><option value="cr">CR — Payment / Baki Jama received</option></select></div><div class="field"><label>Amount (₹)</label><input type="number" id="lt_amt" placeholder="0"></div></div>
-      <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details / Baki Jama"></div></div>
-      <div class="field"><label>Also credit/debit balance (for Baki Jama received)</label><select id="lt_bal"><option value="">— No balance change —</option>${balOpts(shopId)}</select></div>
+    <div class="card"><div class="card-title">➕ Add Transaction</div>
+      <div class="two-col"><div class="field"><label>Type</label><select id="lt_type" onchange="toggleLedgerBalField()">
+        <option value="purchase">📦 Purchase (credit — I owe them)</option>
+        <option value="purchase_cash">💸 Purchase (paid now — deducts balance)</option>
+        <option value="payment_received">💰 Payment Received (adds to balance)</option>
+      </select></div><div class="field"><label>Amount (Rs.)</label><input type="number" id="lt_amt" placeholder="0"></div></div>
+      <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div></div>
+      <div class="field" id="lt_bal_wrap"><label>Balance Account</label><select id="lt_bal"><option value="">— Select —</option>${balOpts(shopId)}</select></div>
       <button class="save-btn" onclick="addManualLedger('${selId}','${shopId}')">Save</button>
     </div>
     <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
@@ -870,14 +1002,27 @@ function renderAccounts(){
   ${sections||'<div class="card"><div class="empty">No accounts yet</div></div>'}`;
 }
 window.addAccount=function(si){const name=document.getElementById('acct_name')?.value?.trim();if(!name){toast('Enter name');return;}if(data.accounts.find(a=>a.name===name&&a.shopIdx===si)){toast('Already exists');return;}data.accounts.push({id:uid(),name,type:document.getElementById('acct_type')?.value||'Custom',phone:document.getElementById('acct_phone')?.value?.trim()||'',shopIdx:si,notes:document.getElementById('acct_notes')?.value?.trim()||''});save();toast('Added!');renderAccounts();};
+window.toggleLedgerBalField=function(){
+  const t=document.getElementById('lt_type')?.value;
+  const wrap=document.getElementById('lt_bal_wrap');
+  if(wrap)wrap.style.display=(t==='purchase')?'none':'block';
+};
 window.addManualLedger=function(accountId,shopId){
-  const txnType=document.getElementById('lt_type')?.value||'dr';const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}
-  const note=document.getElementById('lt_note')?.value?.trim()||'';const balKey=document.getElementById('lt_bal')?.value||'';const date=document.getElementById('lt_date')?.value||todayISO();
-  addLedger(accountId,date,txnType,amt,note,'manual',shopId);
-  if(balKey){txnType==='cr'?credit(shopId,balKey,amt):debit(shopId,balKey,amt);}
+  const txnType=document.getElementById('lt_type')?.value||'purchase';
+  const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}
+  const note=document.getElementById('lt_note')?.value?.trim()||'';
+  const balKey=document.getElementById('lt_bal')?.value||'';
+  const date=document.getElementById('lt_date')?.value||todayISO();
+  if((txnType==='purchase_cash'||txnType==='payment_received')&&!balKey){toast('Select a balance account');return;}
+  // Map to DR/CR for ledger
+  const ledgerType=(txnType==='payment_received')?'cr':'dr';
+  addLedger(accountId,date,ledgerType,amt,note,'manual',shopId);
+  // Balance effects
+  if(txnType==='purchase_cash'&&balKey)debit(shopId,balKey,amt); // paid cash = money out
+  if(txnType==='payment_received'&&balKey)credit(shopId,balKey,amt); // received = money in
   save();toast('Saved!');renderAccounts();
 };
-window.delLedger=function(txnId,shopId){if(!isManager())return;if(!confirm('Delete transaction?'))return;const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;const t=data.ledger[idx];logChange('DELETE','Ledger',`${t.type.toUpperCase()} ₹${fmt(t.amount)} ${t.note||''}`,shopId);data.ledger.splice(idx,1);save();toast('Deleted!');renderAccounts();};
+window.delLedger=function(txnId,shopId){if(!isManager())return;if(!confirm('Delete transaction?'))return;const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;const t=data.ledger[idx];logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId);data.ledger.splice(idx,1);save();toast('Deleted!');renderAccounts();};
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard(){
@@ -908,19 +1053,21 @@ function renderDashboard(){
   <div style="font-size:11px;color:#888;margin-bottom:8px">📅 Today: ${fmtDate(today)} | ${shopDef.name}</div>
   <div class="sec-hdr">Today</div>
   <div class="metric-grid">
-    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">₹${fmt(tSaleAmt)}</div><div style="font-size:11px;color:#888">${tQty} phones</div></div>`:''}
-    <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">₹${fmt(tExp)}</div></div>
-    ${shopDef.hasAccRep?`<div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">₹${fmt(tAcc)}</div></div><div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">₹${fmt(tRep)}</div></div>`:''}
-    <div class="metric"><div class="metric-label">📶 Recharge</div><div class="metric-value">₹${fmt(tRch)}</div></div>
-    <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483;font-size:15px">₹${fmt(Math.abs(adj))} ${adj<0?'↓ Short':adj>0?'↑ Excess':'✓'}</div></div>
+    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">Rs.${fmt(tSaleAmt)}</div><div style="font-size:11px;color:#888">${tQty} phones</div></div>`:''}
+    <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">Rs.${fmt(tExp)}</div></div>
+    <div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">Rs.${fmt(tAcc)}</div></div>
+    <div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">Rs.${fmt(tRep)}</div></div>
+    <div class="metric"><div class="metric-label">📶 Recharge</div><div class="metric-value">Rs.${fmt(tRch)}</div></div>
+    <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483;font-size:15px">Rs.${fmt(Math.abs(adj))} ${adj<0?'↓ Short':adj>0?'↑ Surplus':'✓'}</div></div>
   </div>
   <div class="sec-hdr">This Month</div>
   <div class="metric-grid">
-    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">₹${fmt(mSaleAmt)}</div></div>`:''}
-    <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">₹${fmt(mExp)}</div></div>
-    ${shopDef.hasAccRep?`<div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">₹${fmt(mAcc)}</div></div><div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">₹${fmt(mRep)}</div></div>`:''}
-    <div class="metric"><div class="metric-label">📶 Recharge</div><div class="metric-value">₹${fmt(mRch)}</div></div>
-    <div class="metric"><div class="metric-label">⚠️ Outstanding</div><div class="metric-value r">₹${fmt(outstanding)}</div></div>
+    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">Rs.${fmt(mSaleAmt)}</div></div>`:''}
+    <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">Rs.${fmt(mExp)}</div></div>
+    <div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">Rs.${fmt(mAcc)}</div></div>
+    <div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">Rs.${fmt(mRep)}</div></div>
+    <div class="metric"><div class="metric-label">📶 Recharge</div><div class="metric-value">Rs.${fmt(mRch)}</div></div>
+    <div class="metric"><div class="metric-label">⚠️ Outstanding</div><div class="metric-value r">Rs.${fmt(outstanding)}</div></div>
   </div>
   <div class="sec-hdr">Balances</div>
   <div class="metric-grid">
@@ -931,7 +1078,14 @@ function renderDashboard(){
   ${isOwner()?`<div class="card"><div class="card-title">⚖️ Set Adjustment</div><div class="field"><input type="number" id="adj_v" value="${adj}" placeholder="0"></div><button class="save-btn" onclick="saveAdj('${shopId}')">Save</button></div>
   <div class="card" style="border:2px solid #c0392b"><div class="card-title" style="color:#c0392b">🗑️ Clear All Data</div><div style="font-size:12px;color:#888;margin-bottom:10px">Wipes everything. Cannot be undone.</div><button class="save-btn red" onclick="clearAll()">Clear All Data</button></div>`:''}`;
 }
-window.saveAdj=function(si){data.shops[si].adjustment=+document.getElementById('adj_v')?.value||0;save();toast('Saved!');renderDashboard();};
+window.saveAdj=function(si){
+  const newAdj=+document.getElementById('adj_v')?.value||0;
+  const oldAdj=data.shops[si].adjustment||0;
+  const diff=newAdj-oldAdj; // positive = surplus (add to cash), negative = short (deduct from cash)
+  data.shops[si].adjustment=newAdj;
+  if(diff!==0)adjBal(si,'cash',diff); // directly affects cash balance
+  save();toast('Adjustment saved! Cash balance updated.');renderDashboard();
+};
 window.clearAll=function(){if(!isOwner())return;if(!confirm('Delete ALL data from all shops?'))return;if(!confirm('FINAL WARNING — cannot be undone. Continue?'))return;data={shops:Object.fromEntries(SHOPS.map(s=>[s.id,defShop()])),staff:Object.fromEntries(SHOPS.map(s=>[s.id,[]])),transfers:[],accounts:[],ledger:[],changes:[]};['shopapp_v9','shopapp_v8','shopapp_v7'].forEach(k=>localStorage.removeItem(k));save();toast('Cleared!');renderDashboard();};
 
 // ── CHANGES LOG ───────────────────────────────────────────────────────────────
