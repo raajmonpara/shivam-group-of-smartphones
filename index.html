@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_11.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_12.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,7 +106,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
     <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
     <div class="top-bar-right">
       <span class="sync-indicator" id="appSyncDot">🟢</span>
+      <div style="display:flex;gap:6px">
+      <button onclick="refreshApp()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer" title="Refresh data">🔄</button>
       <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
     </div>
   </div>
   <div id="pages">
@@ -246,6 +249,21 @@ function hideSaving(){setTimeout(()=>{const el=document.getElementById('savingIn
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 window.setExpNote=function(t){const el=document.getElementById('exp_note');if(el)el.value=t;};
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+window.refreshApp=async function(){
+  document.getElementById('appSyncDot').textContent='🔄';
+  try{
+    const rows=await sbFetch('GET');
+    if(rows&&rows[0]?.payload){mergeData(rows[0].payload);ensure();}
+  }catch(e){}
+  renderPage(activePage);
+  // Force rebuild forms by clearing dataset
+  ['salesContent','accrepContent','expContent','rechargeContent'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.dataset.shopId='';
+  });
+  renderPage(activePage);
+  document.getElementById('appSyncDot').textContent='🟢';
+  toast('Refreshed!');
+};
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function nowISO(){return new Date().toISOString();}
 function fmt(n){return Number(n||0).toLocaleString('en-IN');}
@@ -412,7 +430,7 @@ function getNav(){
   nav.push({id:'expense',icon:'💸',label:'Expense'});
   nav.push({id:'balance',icon:'💰',label:'Balance'});
   nav.push({id:'staff',icon:'👤',label:'Staff'});
-  if(isOwner())nav.push({id:'transfer',icon:'🔄',label:'Transfer'});
+  nav.push({id:'transfer',icon:'🔄',label:'Transfer'});
   nav.push({id:'accounts',icon:'📒',label:'Accounts'});
   if(isOwner())nav.push({id:'changes',icon:'🔔',label:'Changes'});
   return nav;
@@ -892,11 +910,17 @@ function renderTransfer(){
     const settled=t.settled?`<span style="font-size:10px;background:#e8f5ee;color:#1a7a4a;padding:2px 7px;border-radius:8px;margin-left:6px">Settled</span>`:'<span style="font-size:10px;background:#fde8e8;color:#c0392b;padding:2px 7px;border-radius:8px;margin-left:6px">Outstanding</span>';
     return `<div class="entry-row"><div><div class="entry-main">Rs.${fmt(t.amount)} ${settled}</div><div class="entry-sub">${shopObj(t.from).name} → ${shopObj(t.to).name}${t.note?' | '+t.note:''}</div></div><div style="text-align:right"><span class="entry-date">${fmtDate(t.date)}</span>${!t.settled&&isManager()?`<br><button onclick="settleTransfer(${ti})" style="font-size:11px;background:#1a7a4a;color:#fff;border:none;padding:4px 10px;border-radius:8px;cursor:pointer;margin-top:4px">Settle</button>`:''}</div></div>`;
   }).join('');
+  // Manager: from is fixed to their branch. Owner: can choose any.
+  const myShopId=session?.shopIdx||SHOPS[0].id;
+  const fromField=isOwner()
+    ?`<div class="field"><label>From Branch</label><select id="tr_from">${shopOpts}</select></div>`
+    :`<div class="field"><label>From Branch</label><input type="text" value="${shopObj(myShopId).name}" disabled style="width:100%;padding:11px 14px;border:1.5px solid #e8e8e8;border-radius:12px;font-size:14px;background:#f0f0f0"><input type="hidden" id="tr_from" value="${myShopId}"></div>`;
+  const toOpts=SHOPS.filter(s=>s.id!==myShopId).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   document.getElementById('transferContent').innerHTML=`
   <div class="sec-hdr">🔄 Inter-Branch Transfer</div>
-  <div class="card" style="background:#e8f5ee;border:1px solid #c3e6cb"><div style="font-size:12px;color:#155724;font-weight:600">Transfer records outstanding between branches. No balance change on send — only when settled (repaid).</div></div>
+  <div class="card" style="background:#e8f5ee;border:1px solid #c3e6cb"><div style="font-size:12px;color:#155724;font-weight:600">Records money/goods sent between branches. Outstanding shows in receiving branch until settled.</div></div>
   <div class="card"><div class="card-title">➕ New Transfer Entry</div>
-    <div class="two-col"><div class="field"><label>From Branch</label><select id="tr_from">${shopOpts}</select></div><div class="field"><label>To Branch</label><select id="tr_to">${shopOpts}</select></div></div>
+    <div class="two-col">${fromField}<div class="field"><label>To Branch</label><select id="tr_to">${toOpts}</select></div></div>
     <div class="two-col"><div class="field"><label>Amount (Rs.)</label><input type="number" id="tr_amt" placeholder="0"></div><div class="field"><label>Date</label><input type="date" id="tr_date" value="${todayISO()}"></div></div>
     <div class="field"><label>Note (optional)</label><input type="text" id="tr_note" placeholder="Goods, reason..."></div>
     <button class="save-btn" onclick="addTransfer()">Save Transfer</button>
@@ -990,7 +1014,7 @@ function renderAccounts(){
         <option value="payment_received">💰 Payment Received / Baki Jama (adds to balance)</option>
       </select></div><div class="field"><label>Amount (Rs.)</label><input type="number" id="lt_amt" placeholder="0"></div></div>
       <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div></div>
-      <div class="field" id="lt_bal_wrap"><label>Balance Account</label><select id="lt_bal"><option value="">— Select —</option>${balOpts(shopId)}</select></div>
+      <div class="field" id="lt_bal_wrap"><label>Payment received in (which account)</label><select id="lt_bal"><option value="">-- Select Balance Account --</option>${balOpts(shopId)}</select></div>
       <button class="save-btn" onclick="addManualLedger('${selId}','${shopId}')">Save</button>
     </div>
     <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
@@ -1023,22 +1047,29 @@ window.addAccount=function(si){const name=document.getElementById('acct_name')?.
 window.toggleLedgerBalField=function(){
   const t=document.getElementById('lt_type')?.value;
   const wrap=document.getElementById('lt_bal_wrap');
-  if(wrap)wrap.style.display=(t==='purchase')?'none':'block';
+  if(!wrap)return;
+  if(t==='purchase'){
+    wrap.style.display='none';
+  } else {
+    wrap.style.display='block';
+  }
 };
-// called on page load to set initial state
-setTimeout(()=>window.toggleLedgerBalField&&toggleLedgerBalField(),100);
+setTimeout(()=>window.toggleLedgerBalField&&toggleLedgerBalField(),200);
 window.addManualLedger=function(accountId,shopId){
   const txnType=document.getElementById('lt_type')?.value||'purchase';
   const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}
   const note=document.getElementById('lt_note')?.value?.trim()||'';
   const balKey=document.getElementById('lt_bal')?.value||'';
   const date=document.getElementById('lt_date')?.value||todayISO();
-  if(txnType==='payment_received'&&!balKey){toast('Select which account payment received in');return;}
-  // Map to DR/CR for ledger
+  if(txnType==='payment_received'&&!balKey){toast('Select which balance account the payment came into');return;}
+  if(txnType==='purchase'&&balKey){toast('Purchase on credit should have no balance account');return;}
+  // purchase = DR (we owe them, outstanding increases), payment_received = CR (they paid us, outstanding decreases)
   const ledgerType=(txnType==='payment_received')?'cr':'dr';
   addLedger(accountId,date,ledgerType,amt,note,'manual',shopId);
-  // Balance effects: only payment_received adds to balance
-  if(txnType==='payment_received'&&balKey)credit(shopId,balKey,amt);
+  // Payment received = money comes IN to our balance
+  if(txnType==='payment_received'&&balKey){
+    credit(shopId,balKey,amt);
+  }
   save();toast('Saved!');renderAccounts();
 };
 window.delLedger=function(txnId,shopId){if(!isManager())return;if(!confirm('Delete transaction?'))return;const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;const t=data.ledger[idx];logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId);data.ledger.splice(idx,1);save();toast('Deleted!');renderAccounts();};
