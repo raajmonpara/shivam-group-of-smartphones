@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_9.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_11.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -771,7 +771,9 @@ window.addExpense=function(shopId){
   data.shops[shopId].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId,_balEffects:effects});
   if(accountId)addLedger(accountId,date,'cr',amt,note||'Payment','expense',shopId);
   save();toast('Saved!');
-  document.getElementById('exp_amt').value='';document.getElementById('exp_note').value='';
+  document.getElementById('exp_amt').value='';
+  document.getElementById('exp_note').value='';
+  const expAcct=document.getElementById('exp_acct');if(expAcct)expAcct.value=''; // reset to Direct Expense
   renderExpHistory(shopId);
 };
 window.delExpense=function(shopId,i){
@@ -863,7 +865,22 @@ function renderStaff(){
   <div class="card"><div class="card-title">👥 Staff — ${shopObj(shopId).name}</div>${rows||'<div class="empty">No staff</div>'}</div>`;
 }
 window.addStaff=function(si){const name=document.getElementById('st_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.staff[si])data.staff[si]=[];data.staff[si].push({id:uid(),name,role:document.getElementById('st_role')?.value?.trim()||'Staff',joined:document.getElementById('st_joined')?.value||todayISO(),leaves:[]});if(!data.accounts.find(a=>a.name===name&&a.type==='Staff'&&a.shopIdx===si))data.accounts.push({id:uid(),name,type:'Staff',phone:'',shopIdx:si,notes:'Auto'});save();toast('Added!');renderStaff();};
-window.delStaff=function(si,i){if(!isOwner())return;if(confirm('Remove staff?')){data.staff[si].splice(i,1);save();renderStaff();}};
+window.delStaff=function(si,i){
+  if(!isOwner())return;
+  if(!confirm('Remove staff? Their account will also be removed.'))return;
+  const s=data.staff[si][i];
+  if(s){
+    // Remove their account from accounts section
+    data.accounts=data.accounts.filter(a=>!(a.name===s.name&&a.type==='Staff'&&a.shopIdx===si));
+    // Remove their ledger entries
+    data.ledger=data.ledger.filter(l=>{
+      const acct=data.accounts.find(a=>a.id===l.accountId);
+      return acct!==undefined; // keep only entries with valid accounts
+    });
+  }
+  data.staff[si].splice(i,1);
+  save();toast('Staff and account removed.');renderStaff();
+};
 window.addLeave=function(si,i){const s=data.staff[si][i];if(!s)return;if(!s.leaves)s.leaves=[];s.leaves.push({date:document.getElementById('lv_date')?.value||todayISO(),type:document.getElementById('lv_type')?.value||'Full Day',note:document.getElementById('lv_note')?.value?.trim()||''});save();toast('Saved!');renderStaff();};
 window.delLeave=function(si,si2,li){data.staff[si][si2].leaves.splice(li,1);save();renderStaff();};
 
@@ -903,8 +920,10 @@ window.addTransfer=function(){
   if(!fromAcct){fromAcct={id:uid(),name:'Branch:'+fn,type:'Custom',phone:'',shopIdx:to,notes:'Inter-branch'};data.accounts.push(fromAcct);}
   const trId=uid();
   data.transfers.push({id:trId,date,from,to,amount:amt,note,settled:false,toAcctId:toAcct.id,fromAcctId:fromAcct.id});
-  addLedger(toAcct.id,date,'dr',amt,'Transfer sent to '+tn+(note?' - '+note:''),'transfer',from);
-  addLedger(fromAcct.id,date,'dr',amt,'Transfer owed to '+fn+(note?' - '+note:''),'transfer',to);
+  // Only the RECEIVING branch shows outstanding (they owe the sending branch)
+  // Sending branch does NOT show outstanding — they just sent money/goods
+  addLedger(fromAcct.id,date,'dr',amt,'Transfer received from '+fn+(note?' - '+note:''),'transfer',to);
+  // No ledger entry in sending branch — they track it via the Transfers list
   save();toast('Transfer saved! Settle when payment is made.');renderTransfer();
 };
 window.settleTransfer=function(ti){
@@ -934,8 +953,8 @@ window.confirmSettle=function(ti){
   credit(t.to,toBal,t.amount);
   // Mark settled and add CR to both accounts
   t.settled=true;t.settledDate=date;
-  if(t.toAcctId)addLedger(t.toAcctId,date,'cr',t.amount,'Transfer settled','transfer_settle',t.from);
-  if(t.fromAcctId)addLedger(t.fromAcctId,date,'cr',t.amount,'Transfer settled by '+shopObj(t.from).name,'transfer_settle',t.to);
+  // CR in receiving branch to clear the outstanding
+  if(t.fromAcctId)addLedger(t.fromAcctId,date,'cr',t.amount,'Transfer settled - paid to '+shopObj(t.from).name,'transfer_settle',t.to);
   save();toast('Settled! Balances updated.');renderTransfer();
 };
 
@@ -967,9 +986,8 @@ function renderAccounts(){
     </div>
     <div class="card"><div class="card-title">➕ Add Transaction</div>
       <div class="two-col"><div class="field"><label>Type</label><select id="lt_type" onchange="toggleLedgerBalField()">
-        <option value="purchase">📦 Purchase (credit — I owe them)</option>
-        <option value="purchase_cash">💸 Purchase (paid now — deducts balance)</option>
-        <option value="payment_received">💰 Payment Received (adds to balance)</option>
+        <option value="purchase">📦 Purchase on Credit (I owe them — no balance change)</option>
+        <option value="payment_received">💰 Payment Received / Baki Jama (adds to balance)</option>
       </select></div><div class="field"><label>Amount (Rs.)</label><input type="number" id="lt_amt" placeholder="0"></div></div>
       <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div></div>
       <div class="field" id="lt_bal_wrap"><label>Balance Account</label><select id="lt_bal"><option value="">— Select —</option>${balOpts(shopId)}</select></div>
@@ -1007,19 +1025,20 @@ window.toggleLedgerBalField=function(){
   const wrap=document.getElementById('lt_bal_wrap');
   if(wrap)wrap.style.display=(t==='purchase')?'none':'block';
 };
+// called on page load to set initial state
+setTimeout(()=>window.toggleLedgerBalField&&toggleLedgerBalField(),100);
 window.addManualLedger=function(accountId,shopId){
   const txnType=document.getElementById('lt_type')?.value||'purchase';
   const amt=+document.getElementById('lt_amt')?.value||0;if(!amt){toast('Enter amount');return;}
   const note=document.getElementById('lt_note')?.value?.trim()||'';
   const balKey=document.getElementById('lt_bal')?.value||'';
   const date=document.getElementById('lt_date')?.value||todayISO();
-  if((txnType==='purchase_cash'||txnType==='payment_received')&&!balKey){toast('Select a balance account');return;}
+  if(txnType==='payment_received'&&!balKey){toast('Select which account payment received in');return;}
   // Map to DR/CR for ledger
   const ledgerType=(txnType==='payment_received')?'cr':'dr';
   addLedger(accountId,date,ledgerType,amt,note,'manual',shopId);
-  // Balance effects
-  if(txnType==='purchase_cash'&&balKey)debit(shopId,balKey,amt); // paid cash = money out
-  if(txnType==='payment_received'&&balKey)credit(shopId,balKey,amt); // received = money in
+  // Balance effects: only payment_received adds to balance
+  if(txnType==='payment_received'&&balKey)credit(shopId,balKey,amt);
   save();toast('Saved!');renderAccounts();
 };
 window.delLedger=function(txnId,shopId){if(!isManager())return;if(!confirm('Delete transaction?'))return;const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;const t=data.ledger[idx];logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId);data.ledger.splice(idx,1);save();toast('Deleted!');renderAccounts();};
