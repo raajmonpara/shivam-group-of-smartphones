@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_13.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_14.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -257,6 +257,8 @@ function delById(arr, id){
 window.setExpNote=function(t){const el=document.getElementById('exp_note');if(el)el.value=t;};
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
 function byTag(){return session?session.name+' ('+session.role+')':'system';}
+// Prevent mouse wheel from changing number inputs
+document.addEventListener('wheel',function(e){if(document.activeElement&&document.activeElement.type==='number')document.activeElement.blur();},{passive:false});
 window.refreshApp=async function(){
   document.getElementById('appSyncDot').textContent='🔄';
   try{
@@ -531,7 +533,7 @@ function renderSalesHistory(shopId){
         +'<div class="two-col"><div class="field"><label>Exchange</label><input type="number" id="ed_exch" value="'+(e.exchange||0)+'"></div><div class="field"><label>Udhari</label><input type="number" id="ed_udhari" value="'+(e.udhari||0)+'"></div></div>'
         +'<div class="two-col"><div class="field"><label>Udhari Acct</label><select id="ed_udh_acct"><option value="">--</option>'+acctOpts(shopId)+'</select></div><div class="field"><label>Note</label><input type="text" id="ed_note" value="'+(e.note||'')+'"></div></div>'
         +'<div style="display:flex;gap:8px;margin-top:8px">'
-        +'<button onclick="saveSaleEdit(\''+shopId+'\','+i+')" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>'
+        +'<button onclick="saveSaleEdit(\''+shopId+'\',\''+e.id+'\')" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>'
         +'<button onclick="window._editing=null;renderSalesHistory(\''+shopId+'\')" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>'
         +'<button onclick="delSale(\''+shopId+'\',\''+e.id+'\'" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>'
         +'</div></div>';
@@ -559,16 +561,16 @@ window.addSale=function(shopId){
   ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   window.calcST();renderSalesHistory(shopId);
 };
-window.saveSaleEdit=function(shopId,i){
-  const arr=data.shops[shopId].sales;if(!arr[i])return;
-  const old={...arr[i]};
-  // Reverse old balance effects
+window.saveSaleEdit=function(shopId,entryId){
+  const arr=data.shops[shopId].sales;
+  const idx=arr.findIndex(e=>e.id===entryId);if(idx===-1)return;
+  const old={...arr[idx]};
   reverseEffects(shopId,old._balEffects);
   const cash=+document.getElementById('ed_cash')?.value||0;const upi=+document.getElementById('ed_upi')?.value||0;const bank=+document.getElementById('ed_bank')?.value||0;const swipe=+document.getElementById('ed_swipe')?.value||0;const exch=+document.getElementById('ed_exch')?.value||0;const udhari=+document.getElementById('ed_udhari')?.value||0;
   const upiAcct=document.getElementById('ed_upi_acct')?.value||'';const bankAcct=document.getElementById('ed_bank_acct')?.value||'';
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,0,'');
-  arr[i]={...arr[i],date:document.getElementById('ed_date')?.value||arr[i].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari-exch,note:document.getElementById('ed_note')?.value?.trim()||'',_balEffects:effects};
-  logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' → Rs.'+fmt(arr[i].total),shopId);
+  arr[idx]={...arr[idx],date:document.getElementById('ed_date')?.value||arr[idx].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari-exch,note:document.getElementById('ed_note')?.value?.trim()||'',_balEffects:effects};
+  logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' → Rs.'+fmt(arr[idx].total),shopId);
   save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);
 };
 window.delSale=function(shopId,entryId){
@@ -639,7 +641,7 @@ function renderARHistory(shopId,arrKey,pfx){
         +'<div class="two-col"><div class="field"><label>Cash</label><input type="number" id="ar_cash" value="'+(e.cash||0)+'"></div><div class="field"><label>UPI</label><input type="number" id="ar_upi" value="'+(e.upi||0)+'"></div></div>'
         +'<div class="two-col"><div class="field"><label>Bank</label><input type="number" id="ar_bank" value="'+(e.bank||0)+'"></div><div class="field"><label>Swipe</label><input type="number" id="ar_swipe" value="'+(e.swipe||0)+'"></div></div>'
         +'<div style="display:flex;gap:8px;margin-top:8px">'
-        +'<button onclick="doSaveAR(this)" data-shop="'+shopId+'" data-arr="'+arrKey+'" data-i="'+i+'" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>'
+        +'<button onclick="doSaveAR(this)" data-shop="'+shopId+'" data-arr="'+arrKey+'" data-id="'+e.id+'" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>'
         +'<button onclick="doARCancel(this)" data-shop="'+shopId+'" data-arr="'+arrKey+'" data-pfx="'+pfx+'" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>'
         +'<button onclick="doARDel(this)" data-shop="'+shopId+'" data-arr="'+arrKey+'" data-id="'+e.id+'" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>'
         +'</div></div>';
@@ -664,12 +666,16 @@ window.addAREntry=function(shopId,arrKey,pfx){
 window.doAREdit=function(btn){window._editingAR=btn.dataset.key;renderARHistory(btn.dataset.shop,btn.dataset.arr,btn.dataset.pfx);};
 window.doARCancel=function(btn){window._editingAR=null;renderARHistory(btn.dataset.shop,btn.dataset.arr,btn.dataset.pfx);};
 window.doARDel=function(btn){delAREntry(btn.dataset.shop,btn.dataset.arr,btn.dataset.id);};
-window.doSaveAR=function(btn){const s=btn.dataset.shop,a=btn.dataset.arr,i=+btn.dataset.i;saveAREdit(s,a,i);};
-window.saveAREdit=function(shopId,arrKey,i){
-  const arr=data.shops[shopId][arrKey];if(!arr[i])return;
-  const old={...arr[i]};const cash=+document.getElementById('ar_cash')?.value||0;const upi=+document.getElementById('ar_upi')?.value||0;const bank=+document.getElementById('ar_bank')?.value||0;const swipe=+document.getElementById('ar_swipe')?.value||0;
-  arr[i]={...arr[i],date:document.getElementById('ar_date')?.value||arr[i].date,cash,upi,bank,swipe,total:cash+upi+bank+swipe,note:document.getElementById('ar_note')?.value?.trim()||''};
-  logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[i].total),shopId);
+window.doSaveAR=function(btn){saveAREdit(btn.dataset.shop,btn.dataset.arr,btn.dataset.id);};
+window.saveAREdit=function(shopId,arrKey,entryId){
+  const arr=data.shops[shopId][arrKey];
+  const idx=arr.findIndex(e=>e.id===entryId);if(idx===-1)return;
+  const old={...arr[idx]};
+  reverseEffects(shopId,old._balEffects);
+  const cash=+document.getElementById('ar_cash')?.value||0;const upi=+document.getElementById('ar_upi')?.value||0;const bank=+document.getElementById('ar_bank')?.value||0;const swipe=+document.getElementById('ar_swipe')?.value||0;
+  const effects=applyPayments(shopId,cash,upi,old.upiAcct||'',bank,old.bankAcct||'',swipe,old.swipeAcct||'');
+  arr[idx]={...arr[idx],date:document.getElementById('ar_date')?.value||arr[idx].date,cash,upi,bank,swipe,total:cash+upi+bank+swipe,note:document.getElementById('ar_note')?.value?.trim()||'',_balEffects:effects};
+  logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[idx].total),shopId);
   save();window._editingAR=null;toast('Updated!');renderAccRep();
 };
 window.delAREntry=function(shopId,arrKey,entryId){if(!confirm('Delete?'))return;const e=delById(data.shops[shopId][arrKey],entryId);if(!e)return;reverseEffects(shopId,e._balEffects);logChange('DELETE',arrKey,fmtDate(e.date)+' Rs.'+fmt(e.total),shopId);save();window._editingAR=null;toast('Deleted!');renderAccRep();};
@@ -783,7 +789,7 @@ function renderExpense(){
 }
 function renderExpHistory(shopId){
   const expenses=(data.shops[shopId].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
-  const rows=expenses.map((e,i)=>`<div class="entry-row"><div><div class="entry-main r">Rs.${fmt(e.amount)}${e._by?`<span style='font-size:10px;color:#bbb'> · ${e._by}</span>`:''}</div><div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopId,e.paidFrom||'cash')}${e.accountId?' to '+acctName(e.accountId):''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delExpense('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
+  const rows=expenses.map((e,i)=>`<div class="entry-row"><div><div class="entry-main r">Rs.${fmt(e.amount)}${e._by?`<span style='font-size:10px;color:#bbb'> · ${e._by}</span>`:''}</div><div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopId,e.paidFrom||'cash')}${e.accountId?' to '+acctName(e.accountId):''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delExpense('${shopId}','${e.id}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
   const hist=document.getElementById('expHistory');
   if(hist)hist.innerHTML='<div class="card"><div class="card-title">Recent Expenses</div>'+(rows||'<div class="empty">No expenses</div>')+'</div>';
 }
@@ -795,7 +801,23 @@ window.addExpense=function(shopId){
   const date=document.getElementById('exp_date')?.value||todayISO();
   const effects=[collectBalEffect(shopId,paidFrom,-amt)];
   data.shops[shopId].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId,_balEffects:effects,_by:byTag()});
-  if(accountId)addLedger(accountId,date,'cr',amt,note||'Payment','expense',shopId);
+  if(accountId){
+    addLedger(accountId,date,'cr',amt,note||'Payment','expense',shopId);
+    // If paying a branch account, also credit THEIR cash balance
+    const acct=data.accounts.find(a=>a.id===accountId);
+    if(acct&&acct.name.startsWith('Branch:')){
+      const branchName=acct.name.replace('Branch:','');
+      const receivingShop=SHOPS.find(s=>s.name===branchName);
+      if(receivingShop){
+        credit(receivingShop.id,'cash',amt);
+        // Also add CR ledger entry in receiving branch for their "Branch:sender" account
+        const senderName=shopObj(shopId).name;
+        let senderAcct=data.accounts.find(a=>a.name==='Branch:'+senderName&&a.shopIdx===receivingShop.id);
+        if(!senderAcct){senderAcct={id:uid(),name:'Branch:'+senderName,type:'Custom',phone:'',shopIdx:receivingShop.id,notes:'Inter-branch'};data.accounts.push(senderAcct);}
+        addLedger(senderAcct.id,date,'cr',amt,'Payment received from '+senderName+(note?' - '+note:''),'expense',receivingShop.id);
+      }
+    }
+  }
   save();toast('Saved!');
   document.getElementById('exp_amt').value='';
   document.getElementById('exp_note').value='';
@@ -926,9 +948,9 @@ function renderTransfer(){
   // Manager: from is fixed to their branch. Owner: can choose any.
   const myShopId=session?.shopIdx||SHOPS[0].id;
   const fromField=isOwner()
-    ?`<div class="field"><label>From Branch</label><select id="tr_from">${shopOpts}</select></div>`
+    ?`<div class="field"><label>From Branch</label><select id="tr_from" onchange="updateToOpts()">${shopOpts}</select></div>`
     :`<div class="field"><label>From Branch</label><input type="text" value="${shopObj(myShopId).name}" disabled style="width:100%;padding:11px 14px;border:1.5px solid #e8e8e8;border-radius:12px;font-size:14px;background:#f0f0f0"><input type="hidden" id="tr_from" value="${myShopId}"></div>`;
-  const toOpts=SHOPS.filter(s=>s.id!==myShopId).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  const toOpts=SHOPS.filter(s=>isOwner()||s.id!==myShopId).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   document.getElementById('transferContent').innerHTML=`
   <div class="sec-hdr">🔄 Inter-Branch Transfer</div>
   <div class="card" style="background:#e8f5ee;border:1px solid #c3e6cb"><div style="font-size:12px;color:#155724;font-weight:600">Records money/goods sent between branches. Outstanding shows in receiving branch until settled.</div></div>
@@ -940,6 +962,12 @@ function renderTransfer(){
   </div>
   <div class="card"><div class="card-title">📋 Transfers</div>${rows||'<div class="empty">No transfers</div>'}</div>`;
 }
+window.updateToOpts=function(){
+  const fromId=document.getElementById('tr_from')?.value||SHOPS[0].id;
+  const toSel=document.getElementById('tr_to');
+  if(!toSel)return;
+  toSel.innerHTML=SHOPS.filter(s=>s.id!==fromId).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+};
 window.addTransfer=function(){
   const from=document.getElementById('tr_from')?.value||SHOPS[0].id;
   const to=document.getElementById('tr_to')?.value||SHOPS[1].id;
@@ -991,7 +1019,7 @@ function renderAccounts(){
       <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(cr)}</div></div>
       <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
     </div>
-    <div class="card"><div class="card-title">➕ Add Transaction</div>
+    ${acct.name.startsWith('Branch:')?`<div class="card" style="background:#fef9f0;border:1px solid #f0c040"><div style="font-size:12px;color:#856404;font-weight:600">⚠️ Inter-branch account — transactions are auto-recorded via Transfer section or Expenses. No manual entries here.</div></div>`:`<div class="card"><div class="card-title">➕ Add Transaction</div>
       <div class="two-col"><div class="field"><label>Type</label><select id="lt_type" onchange="toggleLedgerBalField()">
         <option value="purchase">📦 Purchase on Credit (I owe them — no balance change)</option>
         <option value="payment_received">💰 Payment Received / Baki Jama (adds to balance)</option>
@@ -999,7 +1027,7 @@ function renderAccounts(){
       <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div></div>
       <div class="field" id="lt_bal_wrap"><label>Payment received in (which account)</label><select id="lt_bal"><option value="">-- Select Balance Account --</option>${balOpts(shopId)}</select></div>
       <button class="save-btn" onclick="addManualLedger('${selId}','${shopId}')">Save</button>
-    </div>
+    </div>`}
     <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
     return;
   }
