@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_14.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_15.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -535,7 +535,7 @@ function renderSalesHistory(shopId){
         +'<div style="display:flex;gap:8px;margin-top:8px">'
         +'<button onclick="saveSaleEdit(\''+shopId+'\',\''+e.id+'\')" style="flex:1;padding:10px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>'
         +'<button onclick="window._editing=null;renderSalesHistory(\''+shopId+'\')" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>'
-        +'<button onclick="delSale(\''+shopId+'\',\''+e.id+'\'" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>'
+        +'<button onclick="delSale(\''+shopId+'\',\''+e.id+'\')" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>'
         +'</div></div>';
     }
     const parts=[e.cash?'Cash:Rs.'+fmt(e.cash):'',e.upi?'UPI:Rs.'+fmt(e.upi):'',e.bank?'Bank:Rs.'+fmt(e.bank):'',e.swipe?'Swipe:Rs.'+fmt(e.swipe):'',e.exchange?'Exch:-Rs.'+fmt(e.exchange):'',e.udhari?'Udhari:+Rs.'+fmt(e.udhari):''].filter(Boolean).join(' | ');
@@ -578,6 +578,10 @@ window.delSale=function(shopId,entryId){
   const e=delById(data.shops[shopId].sales,entryId);
   if(!e)return;
   reverseEffects(shopId,e._balEffects);
+  // Remove linked ledger entries (udhari DR, bakijama CR)
+  if(e.udhAcct){
+    data.ledger=data.ledger.filter(l=>!(l.accountId===e.udhAcct&&l.source==='sale'&&l.shopId===shopId&&l.date===e.date));
+  }
   logChange('DELETE','Phone Sale',fmtDate(e.date)+' Rs.'+fmt(e.total),shopId);
   save();window._editing=null;toast('Deleted!');renderSalesHistory(shopId);
 };
@@ -814,7 +818,7 @@ window.addExpense=function(shopId){
         const senderName=shopObj(shopId).name;
         let senderAcct=data.accounts.find(a=>a.name==='Branch:'+senderName&&a.shopIdx===receivingShop.id);
         if(!senderAcct){senderAcct={id:uid(),name:'Branch:'+senderName,type:'Custom',phone:'',shopIdx:receivingShop.id,notes:'Inter-branch'};data.accounts.push(senderAcct);}
-        addLedger(senderAcct.id,date,'cr',amt,'Payment received from '+senderName+(note?' - '+note:''),'expense',receivingShop.id);
+        addLedger(senderAcct.id,date,'dr',amt,'Received payment from '+senderName+(note?' - '+note:''),'expense',receivingShop.id);
       }
     }
   }
@@ -828,7 +832,30 @@ window.delExpense=function(shopId,entryId){
   if(!isManager())return;if(!confirm('Delete expense?'))return;
   const e=delById(data.shops[shopId].expenses,entryId);
   if(!e)return;
+  // Reverse balance effects (cash/upi/bank deduction)
   reverseEffects(shopId,e._balEffects);
+  // Remove linked ledger entry in this shop
+  if(e.accountId){
+    const lIdx=data.ledger.findIndex(l=>l.accountId===e.accountId&&l.source==='expense'&&l.shopId===shopId&&Math.abs(l.amount-e.amount)<0.01&&l.date===e.date);
+    if(lIdx>-1)data.ledger.splice(lIdx,1);
+    // If it was a branch payment, also reverse receiver effects
+    const acct=data.accounts.find(a=>a.id===e.accountId);
+    if(acct&&acct.name.startsWith('Branch:')){
+      const branchName=acct.name.replace('Branch:','');
+      const receivingShop=SHOPS.find(s=>s.name===branchName);
+      if(receivingShop){
+        // Reverse cash credit in receiving branch
+        debit(receivingShop.id,'cash',e.amount);
+        // Remove DR ledger entry added in receiving branch
+        const senderName=shopObj(shopId).name;
+        const senderAcct=data.accounts.find(a=>a.name==='Branch:'+senderName&&a.shopIdx===receivingShop.id);
+        if(senderAcct){
+          const rIdx=data.ledger.findIndex(l=>l.accountId===senderAcct.id&&l.source==='expense'&&l.shopId===receivingShop.id&&Math.abs(l.amount-e.amount)<0.01&&l.date===e.date);
+          if(rIdx>-1)data.ledger.splice(rIdx,1);
+        }
+      }
+    }
+  }
   logChange('DELETE','Expense','Rs.'+fmt(e.amount)+' '+(e.note||''),shopId);
   save();toast('Deleted!');renderExpHistory(shopId);
 };
@@ -844,14 +871,14 @@ function renderBalance(){
   // Always rebuild balance — it's read-only display with simple inline inputs
   // But update balances without rebuilding UPI/bank input fields
   const b=data.shops[shopId].balanceAccounts;
-  const subTabs=['cash','upi','bank'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'Cash',upi:'UPI',bank:'Bank'}[t]}</button>`).join('');
+  const subTabs=['cash','upi','bank','adj'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank',adj:'⚖️ Adjustment'}[t]}</button>`).join('');
   let body='';
   if(sub==='cash'){
     const rows=(b.cash.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delCashE('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
     const adjAmt=data.shops[shopId].adjustment||0;
     body=`<div class="metric-grid">
       <div class="metric"><div class="metric-label">Cash Balance</div><div class="metric-value g">Rs.${fmt(b.cash.balance)}</div></div>
-      <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483;font-size:16px">${adjAmt>=0?'+':''}Rs.${fmt(adjAmt)}</div></div>
+      <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff;cursor:pointer" onclick="window._balTab='adj';renderBalance()"><div class="metric-label" style="color:#6c3483">⚖️ Total Adjustment</div><div class="metric-value" style="color:#6c3483;font-size:16px">${adjAmt>=0?'+':''}Rs.${fmt(adjAmt)}</div><div style="font-size:10px;color:#9b59b6;margin-top:2px">Tap to manage →</div></div>
     </div>
     <div class="card"><div class="card-title">Manual Cash Entry</div>
       <div class="two-col"><div class="field"><label>Amount (type positive to add, negative to deduct)</label><input type="number" id="cash_amt" placeholder="e.g. 5000 or -2000"></div><div class="field"><label>Note</label><input type="text" id="cash_note" placeholder="Reason"></div></div>
@@ -868,7 +895,7 @@ function renderBalance(){
       <div class="two-col"><div class="field"><label>Name</label><input type="text" id="upi_name" placeholder="GPay/PhonePe"></div><div class="field"><label>Number</label><input type="text" id="upi_num" placeholder="Mobile no."></div></div>
       <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="upi_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addUpiAcct('${shopId}')">Add</button></div>`;
-  } else {
+  } else if(sub==='bank'){
     const cards=(b.bank||[]).map((bk,i)=>{
       const rows=(bk.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e,ei)=>`<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delBankE('${shopId}',${i},${ei})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`).join('');
       return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${bk.name}</div><div style="font-size:11px;color:#888">${bk.accountNo||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">Rs.${fmt(bk.balance)}</div></div>
@@ -879,6 +906,44 @@ function renderBalance(){
       <div class="two-col"><div class="field"><label>Bank Name</label><input type="text" id="bank_name" placeholder="SBI/HDFC"></div><div class="field"><label>Acct No.</label><input type="text" id="bank_no" placeholder="Last 4 digits"></div></div>
       <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="bank_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addBankAcct('${shopId}')">Add</button></div>`;
+  } else if(sub==='adj'){
+    const adjs=(data.shops[shopId].adjustments||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const total=(data.shops[shopId].adjustments||[]).reduce((s,a)=>s+a.amount,0);
+    const adjRows=adjs.map((a,i)=>{
+      if(window._editingAdj===i){
+        return `<div class="edit-row">
+          <div style="font-size:11px;font-weight:700;color:#856404;margin-bottom:8px">✏️ Editing — ${fmtDate(a.date)}</div>
+          <div class="two-col">
+            <div class="field"><label>Amount</label><input type="number" id="adj_edit_amt" value="${a.amount}"></div>
+            <div class="field"><label>Note</label><input type="text" id="adj_edit_note" value="${a.note||''}"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="saveAdjEdit('${shopId}',${i})" style="flex:1;padding:10px;background:#6c3483;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Save</button>
+            <button onclick="window._editingAdj=null;renderBalance()" style="flex:1;padding:10px;background:#f0ede8;color:#555;border:none;border-radius:10px;font-weight:700;cursor:pointer">Cancel</button>
+            <button onclick="delAdjEntry('${shopId}',${i})" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>
+          </div></div>`;
+      }
+      return `<div class="entry-row" onclick="window._editingAdj=${i};renderBalance()" style="cursor:pointer">
+        <div><div class="entry-main" style="color:${a.amount>=0?'#1a7a4a':'#c0392b'}">${a.amount>=0?'+':''}Rs.${fmt(Math.abs(a.amount))}</div>
+        <div class="entry-sub">${a.note||'—'} ${a._by?'· '+a._by:''}</div></div>
+        <span class="entry-date">${fmtDate(a.date)}</span></div>`;
+    }).join('');
+    body=`<div class="metric-grid">
+      <div class="metric" style="grid-column:1/-1;background:#f3eeff;border:1px solid #d4b8ff">
+        <div class="metric-label" style="color:#6c3483">⚖️ Net Adjustment (Running Total)</div>
+        <div class="metric-value" style="color:#6c3483">${total>=0?'+':''}Rs.${fmt(total)}</div>
+        <div style="font-size:11px;color:#9b59b6;margin-top:4px">${total<0?'↓ Short (physical cash is less)':total>0?'↑ Surplus (physical cash is more)':'✓ Balanced'}</div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">➕ Add Adjustment Entry</div>
+      <div style="font-size:11px;color:#888;margin-bottom:10px">Enter the difference you observed. Positive = you have more cash than software. Negative = you have less.</div>
+      <div class="two-col">
+        <div class="field"><label>Amount (+surplus / -short)</label><input type="number" id="adj_v" placeholder="e.g. -100 or +200"></div>
+        <div class="field"><label>Note</label><input type="text" id="adj_note" placeholder="Date of count, reason..."></div>
+      </div>
+      <button class="save-btn" onclick="saveAdj('${shopId}')" style="background:#6c3483">Add Entry</button>
+    </div>
+    <div class="card"><div class="card-title">📋 Adjustment Entries <span style="font-size:11px;color:#6c3483">— tap to edit</span></div>${adjRows||'<div class="empty">No adjustment entries yet</div>'}</div>`;
   }
   pg.innerHTML=`<div class="sub-tabs">${subTabs}</div>${body}`;
 }
@@ -1077,13 +1142,24 @@ window.addManualLedger=function(accountId,shopId){
   // purchase = DR (we owe them, outstanding increases), payment_received = CR (they paid us, outstanding decreases)
   const ledgerType=(txnType==='payment_received')?'cr':'dr';
   // Payment received = money comes IN to our balance
-  addLedger(accountId,date,ledgerType,amt,note,'manual',shopId);
+  // Store balance key on ledger entry for reversal on delete
+  const ledgerEntry={id:uid(),accountId,date,type:ledgerType,amount:+amt,note:note||'',source:'manual',shopId,_by:byTag(),_balKey:txnType==='payment_received'?balKey:null,_balAmt:txnType==='payment_received'?+amt:0};
+  data.ledger.push(ledgerEntry);
   if(txnType==='payment_received'&&balKey){
     credit(shopId,balKey,amt);
   }
   save();toast('Saved!');renderAccounts();
 };
-window.delLedger=function(txnId,shopId){if(!isManager())return;if(!confirm('Delete transaction?'))return;const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;const t=data.ledger[idx];logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId);data.ledger.splice(idx,1);save();toast('Deleted!');renderAccounts();};
+window.delLedger=function(txnId,shopId){
+  if(!isManager())return;if(!confirm('Delete transaction?'))return;
+  const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;
+  const t=data.ledger[idx];
+  // Reverse balance if this entry had a balance effect stored
+  if(t._balKey&&t._balAmt){debit(t.shopId||shopId,t._balKey,t._balAmt);}
+  logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId);
+  data.ledger.splice(idx,1);
+  save();toast('Deleted!');renderAccounts();
+};
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard(){
@@ -1120,7 +1196,7 @@ function renderDashboard(){
     <div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">Rs.${fmt(tAcc)}</div></div>
     <div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">Rs.${fmt(tRep)}</div></div>
     <div class="metric"><div class="metric-label">📶 Recharge</div><div class="metric-value">Rs.${fmt(tRch)}</div></div>
-    <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483;font-size:15px">Rs.${fmt(Math.abs(adj))} ${adj<0?'↓ Short':adj>0?'↑ Surplus':'✓'}</div></div>
+    <div class="metric" style="background:#f3eeff;border:1px solid #d4b8ff;cursor:pointer" onclick="window._balTab='adj';activeShops.balance=isOwner()?(activeShops.dashboard||'poojara'):(session?.shopIdx||'poojara');switchPage('balance')"><div class="metric-label" style="color:#6c3483">⚖️ Adjustment</div><div class="metric-value" style="color:#6c3483;font-size:15px">${adj>=0?'+':''}Rs.${fmt(adj)} ${adj<0?'↓ Short':adj>0?'↑ Surplus':'✓'}</div><div style="font-size:10px;color:#9b59b6;margin-top:2px">Tap to manage →</div></div>
   </div>
   <div class="sec-hdr">This Month</div>
   <div class="metric-grid">
@@ -1137,13 +1213,41 @@ function renderDashboard(){
     <div class="metric"><div class="metric-label">📲 UPI Total</div><div class="metric-value">₹${fmt(upiTot)}</div></div>
     <div class="metric" style="grid-column:1/-1"><div class="metric-label">🏦 Bank Total</div><div class="metric-value">₹${fmt(bankTot)}</div></div>
   </div>
-  ${isManager()?`<div class="card"><div class="card-title">⚖️ Adjustment</div><div class="field"><input type="number" id="adj_v" value="${adj}" placeholder="0"></div><button class="save-btn" onclick="saveAdj('${shopId}')">Save</button></div>
-  <div class="card" style="border:2px solid #c0392b"><div class="card-title" style="color:#c0392b">🗑️ Clear All Data</div><div style="font-size:12px;color:#888;margin-bottom:10px">Wipes everything. Cannot be undone.</div><button class="save-btn red" onclick="clearAll()">Clear All Data</button></div>`:''}`;
+  ${isManager()?`<div class="card"><div class="card-title">⚖️ Adjustment</div>
+    <div style="font-size:11px;color:#888;margin-bottom:8px">Enter the difference between physical cash and what software shows. Display only — does NOT change any balance.</div>
+    <div class="two-col">
+      <div class="field"><label>Amount (+surplus / -short)</label><input type="number" id="adj_v" placeholder="e.g. -100 or +200"></div>
+      <div class="field"><label>Note (optional)</label><input type="text" id="adj_note" placeholder="Reason"></div>
+    </div>
+    <button class="save-btn" onclick="saveAdj('${shopId}')" style="background:#6c3483;margin-top:8px">Add Entry</button>
+    ${(data.shops[shopId].adjustments||[]).slice().reverse().slice(0,5).map(a=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #f0ede8"><div style="font-size:12px;font-weight:700;color:${a.amount>=0?'#1a7a4a':'#c0392b'}">${a.amount>=0?'+':''}Rs.${fmt(Math.abs(a.amount))} <span style="font-size:10px;color:#888">${a.note||''}</span></div><span style="font-size:11px;color:#aaa">${fmtDate(a.date)}</span></div>`).join('')}
+    </div>`:''}`;
 }
 window.saveAdj=function(si){
-  const newAdj=+document.getElementById('adj_v')?.value||0;
-  data.shops[si].adjustment=newAdj; // just store it, does NOT touch any balance
-  save();toast('Adjustment saved!');renderDashboard();
+  const amt=+document.getElementById('adj_v')?.value||0;
+  if(!amt){toast('Enter an amount');return;}
+  if(!data.shops[si].adjustments)data.shops[si].adjustments=[];
+  data.shops[si].adjustments.push({id:uid(),date:todayISO(),amount:amt,note:document.getElementById('adj_note')?.value?.trim()||'',_by:byTag()});
+  data.shops[si].adjustment=(data.shops[si].adjustments||[]).reduce((s,a)=>s+a.amount,0);
+  save();toast('Adjustment saved!');
+  const el=document.getElementById('adj_v');if(el)el.value='';
+  const en=document.getElementById('adj_note');if(en)en.value='';
+  // Refresh whichever page called this
+  if(activePage==='dashboard')renderDashboard();else renderBalance();
+};
+window.saveAdjEdit=function(si,i){
+  const adjs=data.shops[si].adjustments||[];if(!adjs[i])return;
+  adjs[i].amount=+document.getElementById('adj_edit_amt')?.value||0;
+  adjs[i].note=document.getElementById('adj_edit_note')?.value?.trim()||'';
+  data.shops[si].adjustment=adjs.reduce((s,a)=>s+a.amount,0);
+  save();window._editingAdj=null;toast('Updated!');renderBalance();
+};
+window.delAdjEntry=function(si,i){
+  if(!confirm('Delete this adjustment entry?'))return;
+  const adjs=data.shops[si].adjustments||[];
+  adjs.splice(i,1);
+  data.shops[si].adjustment=adjs.reduce((s,a)=>s+a.amount,0);
+  save();window._editingAdj=null;toast('Deleted!');renderBalance();
 };
 window.clearAll=function(){if(!isOwner())return;if(!confirm('Delete ALL data from all shops?'))return;if(!confirm('FINAL WARNING — cannot be undone. Continue?'))return;data={shops:Object.fromEntries(SHOPS.map(s=>[s.id,defShop()])),staff:Object.fromEntries(SHOPS.map(s=>[s.id,[]])),transfers:[],accounts:[],ledger:[],changes:[]};['shopapp_v9','shopapp_v8','shopapp_v7'].forEach(k=>localStorage.removeItem(k));save();toast('Cleared!');renderDashboard();};
 
