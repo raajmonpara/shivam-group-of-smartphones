@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_21.html -->
+<!-- saved from url=(0043)file:///C:/Users/Admin/Downloads/index.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -77,6 +77,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .type-Custom{background:#f0ede8;color:#555}
 .edit-row{background:#fffbf0;border:1.5px solid #f0c040;border-radius:12px;padding:12px;margin-bottom:8px}
 .change-row{background:#fff;border-left:3px solid #e74c3c;border-radius:8px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.reason-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px}
+.reason-box{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.reason-title{font-size:15px;font-weight:800;margin-bottom:8px;color:#1a1a1a}
+.reason-sub{font-size:12px;color:#888;margin-bottom:14px}
+.reason-input{width:100%;padding:11px 14px;border:1.5px solid #e8e8e8;border-radius:12px;font-size:14px;outline:none;margin-bottom:14px}
+.reason-input:focus{border-color:#1a7a4a}
+.reason-btns{display:flex;gap:10px}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
 .saving-indicator{position:fixed;top:60px;right:12px;background:#1a7a4a;color:#fff;font-size:11px;padding:4px 10px;border-radius:10px;z-index:200;opacity:0;transition:opacity 0.3s}
 input[type=number]{-moz-appearance:textfield}
@@ -328,10 +335,43 @@ function ensure(){
 }
 
 // ── CHANGE LOG ────────────────────────────────────────────────────────────────
-function logChange(action, section, detail, shopId){
+// ── REASON MODAL ──────────────────────────────────────────────────────────────
+let _reasonCallback=null;
+window.showReason=function(action,cb){
+  _reasonCallback=cb;
+  let modal=document.getElementById('reasonModal');
+  if(!modal){
+    modal=document.createElement('div');modal.id='reasonModal';modal.className='reason-modal';
+    modal.innerHTML=`<div class="reason-box">
+      <div class="reason-title" id="reasonTitle">Reason Required</div>
+      <div class="reason-sub">This will be logged under Changes (Owner view)</div>
+      <textarea id="reasonInput" class="reason-input" rows="3" placeholder="Enter reason for this action..."></textarea>
+      <div class="reason-btns">
+        <button onclick="confirmReason()" style="flex:1;padding:11px;background:#1a7a4a;color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-size:14px">Confirm</button>
+        <button onclick="cancelReason()" style="flex:1;padding:11px;background:#f0ede8;color:#555;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-size:14px">Cancel</button>
+      </div></div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('reasonTitle').textContent=action;
+  document.getElementById('reasonInput').value='';
+  modal.style.display='flex';
+  setTimeout(()=>document.getElementById('reasonInput')?.focus(),100);
+};
+window.confirmReason=function(){
+  const r=document.getElementById('reasonInput')?.value?.trim();
+  if(!r){document.getElementById('reasonInput').style.border='1.5px solid #c0392b';return;}
+  document.getElementById('reasonModal').style.display='none';
+  if(_reasonCallback)_reasonCallback(r);
+  _reasonCallback=null;
+};
+window.cancelReason=function(){
+  document.getElementById('reasonModal').style.display='none';
+  _reasonCallback=null;
+};
+function logChange(action, section, detail, shopId, reason){
   data.changes.unshift({
     id:uid(), ts:nowISO(), user:session?.name||session?.role||'?',
-    shopId:shopId||session?.shopIdx||'', action, section, detail
+    shopId:shopId||session?.shopIdx||'', action, section, detail, reason:reason||''
   });
   if(data.changes.length>200)data.changes=data.changes.slice(0,200);
 }
@@ -514,7 +554,7 @@ function renderSales(){
           <div><input type="number" id="s_swipe" placeholder="Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
         </div>
       </div>
-      <div class="field"><label>🔁 Exchange Amount (deducted from total)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div>
+      <div class="field"><label>🔁 Exchange (old phone value — adds to total)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div>
       <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
         <label style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px;display:block">📋 UDHARI — adds to sale value, customer pays later</label>
         <div class="two-col">
@@ -549,19 +589,19 @@ function renderSalesHistory(shopId){
         +'<button onclick="delSale(\''+shopId+'\',\''+e.id+'\')" style="padding:10px 14px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">Del</button>'
         +'</div></div>';
     }
-    const parts=[e.cash?'Cash:Rs.'+fmt(e.cash):'',e.upi?'UPI:Rs.'+fmt(e.upi):'',e.bank?'Bank:Rs.'+fmt(e.bank):'',e.swipe?'Swipe:Rs.'+fmt(e.swipe):'',e.exchange?'Exch:-Rs.'+fmt(e.exchange):'',e.udhari?'Udhari:+Rs.'+fmt(e.udhari):''].filter(Boolean).join(' | ');
+    const parts=[e.cash?'Cash:Rs.'+fmt(e.cash):'',e.upi?'UPI:Rs.'+fmt(e.upi):'',e.bank?'Bank:Rs.'+fmt(e.bank):'',e.swipe?'Swipe:Rs.'+fmt(e.swipe):'',e.exchange?'Exch:+Rs.'+fmt(e.exchange):'',e.udhari?'Udhari:+Rs.'+fmt(e.udhari):''].filter(Boolean).join(' | ');
     const click=isManager()?'onclick="window._editing=\''+editKey+'\';renderSalesHistory(\''+shopId+'\')" style="cursor:pointer"':'';
     const byStr=e._by?(' <span style="font-size:10px;color:#bbb">'+e._by+'</span>'):''; return '<div class="entry-row" '+click+'><div><div class="entry-main g">Rs.'+fmt(e.total||0)+' x'+(e.qty||0)+(e.note?' <span style="font-size:11px;color:#aaa">'+e.note+'</span>':'')+byStr+'</div><div class="entry-sub">'+parts+'</div></div><span class="entry-date">'+fmtDate(e.date)+'</span></div>';
   }).join('');
   const hist=document.getElementById('salesHistory');
   if(hist)hist.innerHTML='<div class="card"><div class="card-title">Sales History'+(isManager()?' -- tap to edit':'')+' </div>'+(rows||'<div class="empty">No sales</div>')+'</div>';
 }
-window.calcST=function(){const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)-(+document.getElementById('s_exch')?.value||0);const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));};
+window.calcST=function(){const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)+(+document.getElementById('s_exch')?.value||0);const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));};
 window.addSale=function(shopId){
   const cash=+document.getElementById('s_cash')?.value||0;const upi=+document.getElementById('s_upi')?.value||0;const bank=+document.getElementById('s_bank')?.value||0;const swipe=+document.getElementById('s_swipe')?.value||0;const exch=+document.getElementById('s_exch')?.value||0;const udhari=+document.getElementById('s_udhari')?.value||0;
   const upiAcct=document.getElementById('s_upi_acct')?.value||'';const bankAcct=document.getElementById('s_bank_acct')?.value||'';const swipeAcct=document.getElementById('s_swipe_acct')?.value||'';const udhAcct=document.getElementById('s_udh_acct')?.value||'';
-  // total: cash+upi+bank+swipe+udhari-exchange. Exchange is just value deduction, NOT balance change.
-  const total=cash+upi+bank+swipe+udhari-exch;
+  // total: cash+upi+bank+swipe+udhari+exchange. Exchange = old phone received, adds to sale value. Does NOT affect cash balance.
+  const total=cash+upi+bank+swipe+udhari+exch;
   if(!cash&&!upi&&!bank&&!swipe&&!udhari){toast('Enter at least one amount');return;}
   const date=document.getElementById('s_date')?.value||todayISO();
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct);
@@ -582,12 +622,14 @@ window.saveSaleEdit=function(shopId,entryId){
   const cash=+document.getElementById('ed_cash')?.value||0;const upi=+document.getElementById('ed_upi')?.value||0;const bank=+document.getElementById('ed_bank')?.value||0;const swipe=+document.getElementById('ed_swipe')?.value||0;const exch=+document.getElementById('ed_exch')?.value||0;const udhari=+document.getElementById('ed_udhari')?.value||0;
   const upiAcct=document.getElementById('ed_upi_acct')?.value||'';const bankAcct=document.getElementById('ed_bank_acct')?.value||'';
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,0,'');
-  arr[idx]={...arr[idx],date:document.getElementById('ed_date')?.value||arr[idx].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari-exch,note:document.getElementById('ed_note')?.value?.trim()||'',_balEffects:effects};
+  arr[idx]={...arr[idx],date:document.getElementById('ed_date')?.value||arr[idx].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari+exch,note:document.getElementById('ed_note')?.value?.trim()||'',_balEffects:effects};
   logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' → Rs.'+fmt(arr[idx].total),shopId);
   save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);if(activePage==='dashboard'||document.getElementById('page_dashboard')?.classList.contains('active'))renderDashboard();
 };
 window.delSale=function(shopId,entryId){
-  if(!isManager())return;if(!confirm('Delete this sale entry?'))return;
+  if(!isManager())return;
+  showReason('Delete Phone Sale Entry',function(reason){
+  (function(){
   const e=delById(data.shops[shopId].sales,entryId);
   if(!e)return;
   reverseEffects(shopId,e._balEffects);
@@ -596,7 +638,9 @@ window.delSale=function(shopId,entryId){
     data.ledger=data.ledger.filter(l=>!(l.accountId===e.udhAcct&&l.source==='sale'&&l.shopId===shopId&&l.date===e.date));
   }
   logChange('DELETE','Phone Sale',fmtDate(e.date)+' Rs.'+fmt(e.total),shopId);
+  logChange('DELETE','Phone Sale',fmtDate(e.date)+' Rs.'+fmt(e.total),shopId,reason);
   save();window._editing=null;toast('Deleted!');renderSalesHistory(shopId);
+  })()});
 };
 
 
@@ -696,9 +740,12 @@ window.saveAREdit=function(shopId,arrKey,entryId){
   const effects=applyPayments(shopId,cash,upi,old.upiAcct||'',bank,old.bankAcct||'',swipe,old.swipeAcct||'');
   arr[idx]={...arr[idx],date:document.getElementById('ar_date')?.value||arr[idx].date,cash,upi,bank,swipe,total:cash+upi+bank+swipe,note:document.getElementById('ar_note')?.value?.trim()||'',_balEffects:effects};
   logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[idx].total),shopId);
-  save();window._editingAR=null;toast('Updated!');renderAccRep();if(activePage==='dashboard')renderDashboard();
+  showReason('Edit '+arrKey+' Entry',function(reason){
+    logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' → Rs.'+fmt(arr[idx].total),shopId,reason);
+    save();window._editingAR=null;toast('Updated!');renderAccRep();if(activePage==='dashboard')renderDashboard();
+  });
 };
-window.delAREntry=function(shopId,arrKey,entryId){if(!confirm('Delete?'))return;const e=delById(data.shops[shopId][arrKey],entryId);if(!e)return;reverseEffects(shopId,e._balEffects);logChange('DELETE',arrKey,fmtDate(e.date)+' Rs.'+fmt(e.total),shopId);save();window._editingAR=null;toast('Deleted!');renderAccRep();};
+window.delAREntry=function(shopId,arrKey,entryId){showReason('Delete '+arrKey+' Entry',function(reason){const e=delById(data.shops[shopId][arrKey],entryId);if(!e)return;reverseEffects(shopId,e._balEffects);logChange('DELETE',arrKey,fmtDate(e.date)+' Rs.'+fmt(e.total),shopId,reason);save();window._editingAR=null;toast('Deleted!');renderAccRep();});}
 
 
 // ── RECHARGE ──────────────────────────────────────────────────────────────────
@@ -772,11 +819,13 @@ function renderRCHistory(shopId){
   if(hist)hist.innerHTML='<div class="card"><div class="card-title">📶 Recharge History</div>'+(rows||'<div class="empty">No entries</div>')+'</div>';
 }
 window.delRCEntry=function(shopId,entryId){
-  if(!confirm('Delete?'))return;
-  const e=delById(data.shops[shopId].recharge,entryId);
-  if(!e)return;
-  reverseEffects(shopId,e._balEffects);
-  save();toast('Deleted!');renderRCHistory(shopId);
+  showReason('Delete Recharge Entry',function(reason){
+    const e=delById(data.shops[shopId].recharge,entryId);
+    if(!e)return;
+    reverseEffects(shopId,e._balEffects);
+    logChange('DELETE','Recharge',fmtDate(e.date)+' Rs.'+fmt(e.total),shopId,reason);
+    save();toast('Deleted!');renderRCHistory(shopId);
+  });
 };
 
 // ── EXPENSE ───────────────────────────────────────────────────────────────────
@@ -877,8 +926,10 @@ window.delExpense=function(shopId,entryId){
       }
     }
   }
-  logChange('DELETE','Expense','Rs.'+fmt(e.amount)+' '+(e.note||''),shopId);
-  save();toast('Deleted!');renderExpHistory(shopId);
+  showReason('Delete Expense Entry',function(reason){
+    logChange('DELETE','Expense','Rs.'+fmt(e.amount)+' '+(e.note||''),shopId,reason);
+    save();toast('Deleted!');renderExpHistory(shopId);
+  });
 };
 window.addExpTag=function(shopId){const v=document.getElementById('expTagIn')?.value?.trim();if(!v)return;data.shops[shopId].expTags.push(v);save();document.getElementById('expContent').dataset.shopId='';renderExpense();};
 
@@ -996,11 +1047,11 @@ window.addUpiE=function(si,i){const amt=+document.getElementById(`upi_a_${i}`)?.
 window.addBankE=function(si,i){const amt=+document.getElementById(`bank_a_${i}`)?.value||0;if(!amt){toast('Enter amount');return;}const bk=data.shops[si].balanceAccounts.bank[i];bk.balance=+(bk.balance||0)+ +amt;if(!bk.entries)bk.entries=[];bk.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`bank_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
 window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:+document.getElementById('upi_bal')?.value||0,entries:[]});save();toast('Added! Refresh form to see new account in dropdowns.');clearFormCache();renderBalance();};
 window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_no')?.value?.trim()||'',balance:+document.getElementById('bank_bal')?.value||0,entries:[]});save();toast('Added! Refresh form to see new account in dropdowns.');clearFormCache();renderBalance();};
-window.delCashE=function(si,i){if(!confirm('Delete?'))return;const entries=data.shops[si].balanceAccounts.cash.entries;data.shops[si].balanceAccounts.cash.balance-=(entries[i]?.amount||0);entries.splice(i,1);save();renderBalance();};
-window.delUpiE=function(si,ai,i){if(!confirm('Delete?'))return;const u=data.shops[si].balanceAccounts.upi[ai];u.balance-=(u.entries[i]?.amount||0);u.entries.splice(i,1);save();renderBalance();};
-window.delBankE=function(si,ai,i){if(!confirm('Delete?'))return;const bk=data.shops[si].balanceAccounts.bank[ai];bk.balance-=(bk.entries[i]?.amount||0);bk.entries.splice(i,1);save();renderBalance();};
+window.delCashE=function(si,i){showReason('Delete Cash Entry',function(reason){const entries=data.shops[si].balanceAccounts.cash.entries;const a=entries[i];data.shops[si].balanceAccounts.cash.balance-=(a?.amount||0);entries.splice(i,1);logChange('DELETE','Cash Entry',fmt(a?.amount)+' '+(a?.note||''),si,reason);save();renderBalance();});};
+window.delUpiE=function(si,ai,i){showReason('Delete UPI Entry',function(reason){const u=data.shops[si].balanceAccounts.upi[ai];const a=u.entries[i];u.balance-=(a?.amount||0);u.entries.splice(i,1);logChange('DELETE','UPI Entry',u.name+' '+fmt(a?.amount),si,reason);save();renderBalance();});};
+window.delBankE=function(si,ai,i){showReason('Delete Bank Entry',function(reason){const bk=data.shops[si].balanceAccounts.bank[ai];const a=bk.entries[i];bk.balance-=(a?.amount||0);bk.entries.splice(i,1);logChange('DELETE','Bank Entry',bk.name+' '+fmt(a?.amount),si,reason);save();renderBalance();});};
 window.addSwipeE=function(si,i){const amt=+document.getElementById('swipe_a_'+i)?.value||0;if(!amt){toast('Enter amount');return;}const sw=data.shops[si].balanceAccounts.swipe[i];sw.balance=+(sw.balance||0)+ +amt;if(!sw.entries)sw.entries=[];sw.entries.push({date:todayISO(),amount:amt,note:document.getElementById('swipe_n_'+i)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
-window.delSwipeE=function(si,ai,i){if(!confirm('Delete?'))return;const sw=data.shops[si].balanceAccounts.swipe[ai];sw.balance-=(sw.entries[i]?.amount||0);sw.entries.splice(i,1);save();renderBalance();};
+window.delSwipeE=function(si,ai,i){showReason('Delete Swipe Entry',function(reason){const sw=data.shops[si].balanceAccounts.swipe[ai];const a=sw.entries[i];sw.balance-=(a?.amount||0);sw.entries.splice(i,1);logChange('DELETE','Swipe Entry',sw.name+' '+fmt(a?.amount),si,reason);save();renderBalance();});};
 window.addSwipeAcct=function(si){const name=document.getElementById('swipe_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.shops[si].balanceAccounts.swipe)data.shops[si].balanceAccounts.swipe=[];data.shops[si].balanceAccounts.swipe.push({name,bankName:document.getElementById('swipe_bank')?.value?.trim()||'',balance:+document.getElementById('swipe_bal')?.value||0,entries:[]});save();toast('Added!');clearFormCache();renderBalance();};
 
 function renderStaff(){
@@ -1095,7 +1146,7 @@ window.updateToOpts=function(){
 
 window.delTransfer=function(trId){
   if(!isManager())return;
-  if(!confirm('Delete this transfer? Both branch accounts and all effects will be reversed.'))return;
+  showReason('Delete Inter-Branch Transfer',function(reason){
   const trIdx=data.transfers.findIndex(t=>t.id===trId);
   if(trIdx===-1){toast('Transfer not found');return;}
   const tr=data.transfers[trIdx];
@@ -1109,8 +1160,9 @@ window.delTransfer=function(trId){
   // Also remove any ibpayment ledger entries linked to this transfer's accounts
   // (we don't remove those - they were separate payments made after the transfer)
   data.transfers.splice(trIdx,1);
-  logChange('DELETE','Transfer','Rs.'+fmt(tr.amount)+' '+shopObj(tr.from).name+'→'+shopObj(tr.to).name,tr.from);
+  logChange('DELETE','Transfer','Rs.'+fmt(tr.amount)+' '+shopObj(tr.from).name+'→'+shopObj(tr.to).name,tr.from,reason);
   save();toast('Transfer deleted. Both branch accounts updated.');renderTransfer();
+  });
 };
 window.addTransfer=function(){
   const from=document.getElementById('tr_from')?.value||SHOPS[0].id;
@@ -1272,7 +1324,8 @@ window.addInterBranchPayment=function(accountId,shopId){
   window._selAcct=accountId;renderAccounts();
 };
 window.delLedger=function(txnId,shopId){
-  if(!isManager())return;if(!confirm('Delete transaction?'))return;
+  if(!isManager())return;
+  showReason('Delete Account Transaction',function(reason){
   const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;
   const t=data.ledger[idx];
   // Reverse balance if this entry had a balance effect stored
@@ -1306,9 +1359,10 @@ window.delLedger=function(txnId,shopId){
       }
     }
   }
-  logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId);
+  logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId,reason);
   data.ledger.splice(data.ledger.findIndex(l=>l.id===txnId),1);
   save();toast('Deleted!');renderAccounts();
+  });
 };
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
@@ -1403,11 +1457,14 @@ window.saveAdjEdit=function(si,i){
   save();window._editingAdj=null;toast('Updated!');renderBalance();
 };
 window.delAdjEntry=function(si,i){
-  if(!confirm('Delete this adjustment entry?'))return;
-  const adjs=data.shops[si].adjustments||[];
-  adjs.splice(i,1);
-  data.shops[si].adjustment=adjs.reduce((s,a)=>s+a.amount,0);
-  save();window._editingAdj=null;toast('Deleted!');renderBalance();
+  showReason('Delete Adjustment Entry',function(reason){
+    const adjs=data.shops[si].adjustments||[];
+    const a=adjs[i];
+    adjs.splice(i,1);
+    data.shops[si].adjustment=adjs.reduce((s,x)=>s+x.amount,0);
+    logChange('DELETE','Adjustment',(a?.amount>=0?'+':'')+fmt(a?.amount)+' '+(a?.note||''),si,reason);
+    save();window._editingAdj=null;toast('Deleted!');renderBalance();
+  });
 };
 window.clearAll=function(){if(!isOwner())return;if(!confirm('Delete ALL data from all shops?'))return;if(!confirm('FINAL WARNING — cannot be undone. Continue?'))return;data={shops:Object.fromEntries(SHOPS.map(s=>[s.id,defShop()])),staff:Object.fromEntries(SHOPS.map(s=>[s.id,[]])),transfers:[],accounts:[],ledger:[],changes:[]};['shopapp_v9','shopapp_v8','shopapp_v7'].forEach(k=>localStorage.removeItem(k));save();toast('Cleared!');renderDashboard();};
 
@@ -1421,6 +1478,7 @@ function renderChanges(){
     </div>
     <div style="font-size:13px;font-weight:600">${c.section} — ${shopObj(c.shopId||'')?.name||''}</div>
     <div style="font-size:11px;color:#888;margin-top:2px">${c.detail||''} | By: ${c.user||'?'}</div>
+    ${c.reason?`<div style="margin-top:5px;background:#fff3cd;border-radius:8px;padding:5px 8px;font-size:11px;color:#856404"><b>Reason:</b> ${c.reason}</div>`:''}
   </div>`).join('');
   document.getElementById('changesContent').innerHTML=`
   <div class="sec-hdr">🔔 Changes Log — Owner View</div>
