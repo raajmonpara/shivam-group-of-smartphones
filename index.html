@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_19.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_21.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1012,7 +1012,15 @@ function renderStaff(){
     const s=staffList[sel];if(!s){window._selStaff=null;renderStaff();return;}
     const rows=(s.leaves||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).map((l,i)=>`<div class="entry-row"><div><div class="entry-main">${l.type}</div><div class="entry-sub">${l.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(l.date)}</span><button onclick="delLeave('${shopId}',${sel},${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button></div></div>`).join('');
     document.getElementById('staffContent').innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><button onclick="window._selStaff=null;renderStaff()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a">←</button><div><div style="font-size:16px;font-weight:800">${s.name}</div><div style="font-size:12px;color:#888">${s.role} | Leaves: ${(s.leaves||[]).length}</div></div></div>
+    ${(()=>{
+      const now=new Date();
+      const curYearStart=now.getMonth()>=3?now.getFullYear():now.getFullYear()-1;
+      const aprStart=curYearStart+'-04-01'; const marEnd=(curYearStart+1)+'-03-31';
+      const thisMonth=now.toISOString().slice(0,7);
+      const monthlyLeaves=(s.leaves||[]).filter(l=>l.date&&l.date.startsWith(thisMonth)).length;
+      const yearlyLeaves=(s.leaves||[]).filter(l=>l.date&&l.date>=aprStart&&l.date<=marEnd).length;
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><button onclick="window._selStaff=null;renderStaff()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a">←</button><div><div style="font-size:16px;font-weight:800">${s.name}</div><div style="font-size:12px;color:#888">${s.role} | This Month: ${monthlyLeaves} leaves | Year (Apr-Mar): ${yearlyLeaves} leaves | Total: ${(s.leaves||[]).length}</div></div></div>`;
+    })()}
     <div class="card"><div class="card-title">➕ Mark Leave</div>
       <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lv_date" value="${todayISO()}"></div><div class="field"><label>Type</label><select id="lv_type"><option>Full Day</option><option>Half Day</option><option>Absent</option></select></div></div>
       <div class="field"><label>Note</label><input type="text" id="lv_note" placeholder="Reason"></div>
@@ -1052,10 +1060,14 @@ window.delLeave=function(si,si2,li){data.staff[si][si2].leaves.splice(li,1);save
 // ── TRANSFER ──────────────────────────────────────────────────────────────────
 function renderTransfer(){
   const shopOpts=SHOPS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-  const transfers=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25);
-  const rows=transfers.map((t,ti)=>{
+  // Filter transfers to only show ones involving this branch (for managers)
+  const myShop=session?.shopIdx;
+  const allTransfers=(data.transfers||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const transfers=isOwner()?allTransfers:allTransfers.filter(t=>t.from===myShop||t.to===myShop);
+  const rows=transfers.slice(0,30).map((t,ti)=>{
     const byStr=t._by?`<span style="font-size:10px;color:#bbb"> · ${t._by}</span>`:'';
-    return `<div class="entry-row"><div><div class="entry-main">Rs.${fmt(t.amount)}${byStr}</div><div class="entry-sub">${shopObj(t.from).name} → ${shopObj(t.to).name}${t.note?' | '+t.note:''}</div></div><span class="entry-date">${fmtDate(t.date)}</span></div>`;
+    const dir=`${shopObj(t.from).name} → ${shopObj(t.to).name}`;
+    return `<div class="entry-row"><div><div class="entry-main">Rs.${fmt(t.amount)}${byStr}</div><div class="entry-sub">${dir}${t.note?' | '+t.note:''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(t.date)}</span>${isManager()?`<button onclick="delTransfer('${t.id}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}</div></div>`;
   }).join('');
   // Manager: from is fixed to their branch. Owner: can choose any.
   const myShopId=session?.shopIdx||SHOPS[0].id;
@@ -1079,6 +1091,26 @@ window.updateToOpts=function(){
   const toSel=document.getElementById('tr_to');
   if(!toSel)return;
   toSel.innerHTML=SHOPS.filter(s=>s.id!==fromId).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+};
+
+window.delTransfer=function(trId){
+  if(!isManager())return;
+  if(!confirm('Delete this transfer? Both branch accounts and all effects will be reversed.'))return;
+  const trIdx=data.transfers.findIndex(t=>t.id===trId);
+  if(trIdx===-1){toast('Transfer not found');return;}
+  const tr=data.transfers[trIdx];
+  // Remove all ledger entries linked to this transfer
+  const linked=data.ledger.filter(l=>l._transferId===trId);
+  linked.forEach(l=>{
+    // No balance to reverse since transfers don't change balance
+    // Just remove the ledger entry
+  });
+  data.ledger=data.ledger.filter(l=>l._transferId!==trId);
+  // Also remove any ibpayment ledger entries linked to this transfer's accounts
+  // (we don't remove those - they were separate payments made after the transfer)
+  data.transfers.splice(trIdx,1);
+  logChange('DELETE','Transfer','Rs.'+fmt(tr.amount)+' '+shopObj(tr.from).name+'→'+shopObj(tr.to).name,tr.from);
+  save();toast('Transfer deleted. Both branch accounts updated.');renderTransfer();
 };
 window.addTransfer=function(){
   const from=document.getElementById('tr_from')?.value||SHOPS[0].id;
@@ -1115,7 +1147,8 @@ function renderAccounts(){
   if(selId){
     const acct=data.accounts.find(a=>a.id===selId);
     if(!acct){window._selAcct=null;renderAccounts();return;}
-    const txns=data.ledger.filter(t=>t.accountId===selId).sort((a,b)=>b.date.localeCompare(a.date));
+    const txns=data.ledger.filter(t=>t.accountId===selId&&(isOwner()||!t.shopId||t.shopId===shopId||(acct?.name?.startsWith('Branch:')))).sort((a,b)=>b.date.localeCompare(a.date));
+    // Only show ledger entries relevant to this shop
     const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
     const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
     const bal=dr-cr;
@@ -1293,7 +1326,9 @@ function renderDashboard(){
   const tAcc=acc.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
   const tRep=rep.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
   const tRch=rch.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
-  const mSaleAmt=sales.filter(e=>e.date.startsWith(ym)&&(e.cash||e.upi||e.bank||e.swipe||e.exchange||e.udhari)).reduce((s,e)=>s+(e.total||0),0);
+  const mSales=sales.filter(e=>e.date.startsWith(ym)&&(e.cash||e.upi||e.bank||e.swipe||e.exchange||e.udhari));
+  const mSaleAmt=mSales.reduce((s,e)=>s+(e.total||0),0);
+  const mQty=mSales.reduce((s,e)=>s+(e.qty||0),0);
   const mExp=expenses.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+e.amount,0);
   const mAcc=acc.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
   const mRep=rep.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
@@ -1302,6 +1337,7 @@ function renderDashboard(){
   const cashBal=b.cash?.balance||0;
   const upiTot=(b.upi||[]).reduce((s,u)=>s+(u.balance||0),0);
   const bankTot=(b.bank||[]).reduce((s,u)=>s+(u.balance||0),0);
+  const swipeTot=(b.swipe||[]).reduce((s,sw)=>s+(sw.balance||0),0);
   // Only Dealer, Franchise, Custom (Branch) accounts count as outstanding (payables)
   // Customer/Staff udhari is a receivable, not outstanding
   const outstanding=data.accounts.filter(a=>a.shopIdx===shopId&&['Dealer','Franchise','Custom'].includes(a.type)).reduce((s,a)=>{const txns=data.ledger.filter(t=>t.accountId===a.id&&t.source!=='sale');const d=txns.filter(t=>t.type==='dr').reduce((x,t)=>x+t.amount,0);const c=txns.filter(t=>t.type==='cr').reduce((x,t)=>x+t.amount,0);return s+Math.max(0,d-c);},0);
@@ -1319,7 +1355,7 @@ function renderDashboard(){
   </div>
   <div class="sec-hdr">This Month</div>
   <div class="metric-grid">
-    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">Rs.${fmt(mSaleAmt)}</div></div>`:''}
+    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">Rs.${fmt(mSaleAmt)}</div><div style="font-size:11px;color:#888">${mQty} phones</div></div>`:''}
     <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">Rs.${fmt(mExp)}</div></div>
     <div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">Rs.${fmt(mAcc)}</div></div>
     <div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">Rs.${fmt(mRep)}</div></div>
@@ -1328,9 +1364,10 @@ function renderDashboard(){
   </div>
   <div class="sec-hdr">Balances</div>
   <div class="metric-grid">
-    <div class="metric"><div class="metric-label">💵 Cash</div><div class="metric-value">₹${fmt(cashBal)}</div></div>
-    <div class="metric"><div class="metric-label">📲 UPI Total</div><div class="metric-value">₹${fmt(upiTot)}</div></div>
-    <div class="metric" style="grid-column:1/-1"><div class="metric-label">🏦 Bank Total</div><div class="metric-value">₹${fmt(bankTot)}</div></div>
+    <div class="metric"><div class="metric-label">💵 Cash</div><div class="metric-value">Rs.${fmt(cashBal)}</div></div>
+    <div class="metric"><div class="metric-label">📲 UPI Total</div><div class="metric-value">Rs.${fmt(upiTot)}</div></div>
+    <div class="metric"><div class="metric-label">🏦 Bank Total</div><div class="metric-value">Rs.${fmt(bankTot)}</div></div>
+    <div class="metric"><div class="metric-label">💳 Swipe Total</div><div class="metric-value" style="color:#e67e22">Rs.${fmt(swipeTot)}</div></div>
   </div>
   ${isManager()?`<div class="card"><div class="card-title">⚖️ Adjustment</div>
     <div style="font-size:11px;color:#888;margin-bottom:8px">Enter the difference between physical cash and what software shows. Display only — does NOT change any balance.</div>
