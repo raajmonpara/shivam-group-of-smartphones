@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_16.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_18.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -571,7 +571,7 @@ window.saveSaleEdit=function(shopId,entryId){
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,0,'');
   arr[idx]={...arr[idx],date:document.getElementById('ed_date')?.value||arr[idx].date,qty:+document.getElementById('ed_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct:'',exchange:exch,udhari,udhAcct:document.getElementById('ed_udh_acct')?.value||'',total:cash+upi+bank+swipe+udhari-exch,note:document.getElementById('ed_note')?.value?.trim()||'',_balEffects:effects};
   logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' → Rs.'+fmt(arr[idx].total),shopId);
-  save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);
+  save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);if(activePage==='dashboard'||document.getElementById('page_dashboard')?.classList.contains('active'))renderDashboard();
 };
 window.delSale=function(shopId,entryId){
   if(!isManager())return;if(!confirm('Delete this sale entry?'))return;
@@ -680,7 +680,7 @@ window.saveAREdit=function(shopId,arrKey,entryId){
   const effects=applyPayments(shopId,cash,upi,old.upiAcct||'',bank,old.bankAcct||'',swipe,old.swipeAcct||'');
   arr[idx]={...arr[idx],date:document.getElementById('ar_date')?.value||arr[idx].date,cash,upi,bank,swipe,total:cash+upi+bank+swipe,note:document.getElementById('ar_note')?.value?.trim()||'',_balEffects:effects};
   logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[idx].total),shopId);
-  save();window._editingAR=null;toast('Updated!');renderAccRep();
+  save();window._editingAR=null;toast('Updated!');renderAccRep();if(activePage==='dashboard')renderDashboard();
 };
 window.delAREntry=function(shopId,arrKey,entryId){if(!confirm('Delete?'))return;const e=delById(data.shops[shopId][arrKey],entryId);if(!e)return;reverseEffects(shopId,e._balEffects);logChange('DELETE',arrKey,fmtDate(e.date)+' Rs.'+fmt(e.total),shopId);save();window._editingAR=null;toast('Deleted!');renderAccRep();};
 
@@ -806,7 +806,7 @@ window.addExpense=function(shopId){
   const effects=[collectBalEffect(shopId,paidFrom,-amt)];
   data.shops[shopId].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId,_balEffects:effects,_by:byTag()});
   if(accountId){
-    addLedger(accountId,date,'cr',amt,note||'Payment','expense',shopId);
+    addLedger(accountId,date,'cr',amt,(acct&&acct.name.startsWith('Branch:')?'Payment Given to '+acct.name.replace('Branch:',''):note)||'Payment','expense',shopId);
     // If paying a branch account, also credit THEIR cash balance
     const acct=data.accounts.find(a=>a.id===accountId);
     if(acct&&acct.name.startsWith('Branch:')){
@@ -818,7 +818,7 @@ window.addExpense=function(shopId){
         const senderName=shopObj(shopId).name;
         let senderAcct=data.accounts.find(a=>a.name==='Branch:'+senderName&&a.shopIdx===receivingShop.id);
         if(!senderAcct){senderAcct={id:uid(),name:'Branch:'+senderName,type:'Custom',phone:'',shopIdx:receivingShop.id,notes:'Inter-branch'};data.accounts.push(senderAcct);}
-        addLedger(senderAcct.id,date,'dr',amt,'Received payment from '+senderName+(note?' - '+note:''),'expense',receivingShop.id);
+        addLedger(senderAcct.id,date,'dr',amt,'Payment Received from '+senderName+(note?' - '+note:''),'expense',receivingShop.id);
       }
     }
   }
@@ -1059,12 +1059,14 @@ window.addTransfer=function(){
   if(!toAcct){toAcct={id:uid(),name:'Branch:'+tn,type:'Custom',phone:'',shopIdx:from,notes:'Inter-branch'};data.accounts.push(toAcct);}
   let fromAcct=data.accounts.find(a=>a.name==='Branch:'+fn&&a.shopIdx===to);
   if(!fromAcct){fromAcct={id:uid(),name:'Branch:'+fn,type:'Custom',phone:'',shopIdx:to,notes:'Inter-branch'};data.accounts.push(fromAcct);}
-  data.transfers.push({id:uid(),date,from,to,amount:amt,note,_by:byStr});
-  // SENDER side: CR entry = they are owed money (receivable - someone owes THEM)
-  // This means in sender's accounts, Branch:X shows as CR = they have credit = receivable
-  addLedger(toAcct.id,date,'cr',amt,'Sent to '+tn+(note?' - '+note:''),'transfer',from);
-  // RECEIVER side: DR entry = they owe money (outstanding)
-  addLedger(fromAcct.id,date,'dr',amt,'Received from '+fn+(note?' - '+note:''),'transfer',to);
+  const trId=uid();
+  data.transfers.push({id:trId,date,from,to,amount:amt,note,_by:byStr});
+  // SENDER: CR on Branch:Receiver = sender is owed (receivable)
+  // RECEIVER: DR on Branch:Sender = receiver owes (outstanding)
+  // Store trId on both ledger entries for cascade delete
+  const senderLedgerId=uid(),receiverLedgerId=uid();
+  data.ledger.push({id:senderLedgerId,accountId:toAcct.id,date,type:'cr',amount:+amt,note:'Sent to '+tn+(note?' - '+note:''),source:'transfer',shopId:from,_transferId:trId,_by:byStr});
+  data.ledger.push({id:receiverLedgerId,accountId:fromAcct.id,date,type:'dr',amount:+amt,note:'Received from '+fn+(note?' - '+note:''),source:'transfer',shopId:to,_transferId:trId,_by:byStr});
   save();toast('Transfer recorded! Both branches updated.');renderTransfer();
 };
 
@@ -1082,7 +1084,16 @@ function renderAccounts(){
     const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
     const bal=dr-cr;
     const rows=txns.map((t,ti)=>`<div class="txn-row">
-      <div style="flex:1"><div class="entry-main">${t.type==='dr'?'<span class="badge badge-dr">Purchase</span>':'<span class="badge badge-cr">Payment Rcvd</span>'} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 5px;border-radius:6px;color:#666">${t.source||''}</span></div>
+      <div style="flex:1"><div class="entry-main">${(()=>{
+  const isBranch=data.accounts.find(a=>a.id===t.accountId)?.name?.startsWith('Branch:');
+  if(isBranch){
+    if(t.note?.startsWith('Receivable'))return '<span class="badge" style="background:#e2d9f3;color:#4a235a">Receivable</span>';
+    if(t.note?.startsWith('Outstanding'))return '<span class="badge badge-dr">Outstanding</span>';
+    if(t.note?.startsWith('Payment Given'))return '<span class="badge badge-dr">Payment Given</span>';
+    if(t.note?.startsWith('Payment Received'))return '<span class="badge badge-cr">Payment Rcvd</span>';
+  }
+  return t.type==='dr'?'<span class="badge badge-dr">Purchase</span>':'<span class="badge badge-cr">Payment Rcvd</span>';
+})()} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 5px;border-radius:6px;color:#666">${t.source||''}</span></div>
       <div class="entry-sub">${t.note||''} | ${fmtDate(t.date)}${t._by?' · '+t._by:''}</div></div>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
         ${isManager()?`<button onclick="delLedger('${t.id}','${shopId}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:''}
@@ -1095,7 +1106,16 @@ function renderAccounts(){
       <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(cr)}</div></div>
       <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
     </div>
-    ${acct.name.startsWith('Branch:')?`<div class="card" style="background:#fef9f0;border:1px solid #f0c040"><div style="font-size:12px;color:#856404;font-weight:600">⚠️ Inter-branch account — transactions are auto-recorded via Transfer section or Expenses. No manual entries here.</div></div>`:`<div class="card"><div class="card-title">➕ Add Transaction</div>
+    ${acct.name.startsWith('Branch:')?`<div class="card"><div class="card-title">💰 Payment Received from ${acct.name.replace('Branch:','')}</div>
+    <div style="font-size:11px;color:#888;margin-bottom:10px">Record cash/payment received from this branch. Updates both branch balances and accounts.</div>
+    <div class="two-col">
+      <div class="field"><label>Amount (Rs.)</label><input type="number" id="ibp_amt" placeholder="0"></div>
+      <div class="field"><label>Date</label><input type="date" id="ibp_date" value="${todayISO()}"></div>
+    </div>
+    <div class="field"><label>Received into (your balance)</label><select id="ibp_bal">${balOpts(shopId)}</select></div>
+    <div class="field"><label>Note</label><input type="text" id="ibp_note" placeholder="Payment for transfer, goods..."></div>
+    <button class="save-btn" onclick="addInterBranchPayment('${selId}','${shopId}')">Save Payment Received</button>
+    </div>`:`<div class="card"><div class="card-title">➕ Add Transaction</div>
       <div class="two-col"><div class="field"><label>Type</label><select id="lt_type" onchange="toggleLedgerBalField()">
         <option value="purchase">📦 Purchase on Credit (I owe them — no balance change)</option>
         <option value="payment_received">💰 Payment Received / Baki Jama (adds to balance)</option>
@@ -1161,14 +1181,73 @@ window.addManualLedger=function(accountId,shopId){
   }
   save();toast('Saved!');renderAccounts();
 };
+
+window.addInterBranchPayment=function(accountId,shopId){
+  const amt=+document.getElementById('ibp_amt')?.value||0;
+  if(!amt){toast('Enter amount');return;}
+  const balKey=document.getElementById('ibp_bal')?.value||'cash';
+  const date=document.getElementById('ibp_date')?.value||todayISO();
+  const note=document.getElementById('ibp_note')?.value?.trim()||'';
+  const acct=data.accounts.find(a=>a.id===accountId);
+  if(!acct)return;
+  const otherBranchName=acct.name.replace('Branch:','');
+  const otherShop=SHOPS.find(s=>s.name===otherBranchName);
+  const myName=shopObj(shopId).name;
+  // This branch: CR on Branch:Other (payment received = reduces outstanding or creates receivable)
+  addLedger(accountId,date,'cr',amt,'Payment Received from '+otherBranchName+(note?' - '+note:''),'ibpayment',shopId);
+  // This branch: credit our balance (money came in)
+  credit(shopId,balKey,amt);
+  // Other branch effects (if they exist in system)
+  if(otherShop){
+    // Other branch cash goes DOWN (they paid)
+    debit(otherShop.id,'cash',amt);
+    // Other branch: DR on their Branch:MyShop account (receivable reduces)
+    let myAcct=data.accounts.find(a=>a.name==='Branch:'+myName&&a.shopIdx===otherShop.id);
+    if(!myAcct){myAcct={id:uid(),name:'Branch:'+myName,type:'Custom',phone:'',shopIdx:otherShop.id,notes:'Inter-branch'};data.accounts.push(myAcct);}
+    addLedger(myAcct.id,date,'dr',amt,'Payment Given to '+myName+(note?' - '+note:''),'ibpayment',otherShop.id);
+  }
+  save();toast('Payment recorded! Both branches updated.');
+  document.getElementById('ibp_amt').value='';
+  document.getElementById('ibp_note').value='';
+  window._selAcct=accountId;renderAccounts();
+};
 window.delLedger=function(txnId,shopId){
   if(!isManager())return;if(!confirm('Delete transaction?'))return;
   const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;
   const t=data.ledger[idx];
   // Reverse balance if this entry had a balance effect stored
   if(t._balKey&&t._balAmt){debit(t.shopId||shopId,t._balKey,t._balAmt);}
+  // If this is a transfer ledger entry, also delete the Transfer record + other branch entry
+  if(t._transferId){
+    // Remove the transfer from transfers list
+    const trIdx=data.transfers.findIndex(tr=>tr.id===t._transferId);
+    if(trIdx>-1)data.transfers.splice(trIdx,1);
+    // Remove the OTHER branch's ledger entry for this same transfer
+    const otherIdx=data.ledger.findIndex(l=>l._transferId===t._transferId&&l.id!==txnId);
+    if(otherIdx>-1)data.ledger.splice(otherIdx,1);
+  }
+  // If this is a branch payment ledger entry, reverse other branch effects
+  if(t.source==='expense'||t.source==='branch_payment'){
+    const acct=data.accounts.find(a=>a.id===t.accountId);
+    if(acct&&acct.name.startsWith('Branch:')){
+      const branchName=acct.name.replace('Branch:','');
+      const otherShop=SHOPS.find(s=>s.name===branchName);
+      if(otherShop){
+        // Reverse the balance credit/debit in other branch
+        if(t.type==='cr'){debit(otherShop.id,'cash',t.amount);}
+        else{credit(otherShop.id,'cash',t.amount);}
+        // Remove the linked ledger entry in other branch
+        const senderName=shopObj(t.shopId||shopId).name;
+        const otherAcct=data.accounts.find(a=>a.name==='Branch:'+senderName&&a.shopIdx===otherShop.id);
+        if(otherAcct){
+          const oIdx=data.ledger.findIndex(l=>l.accountId===otherAcct.id&&Math.abs(l.amount-t.amount)<0.01&&l.date===t.date);
+          if(oIdx>-1)data.ledger.splice(oIdx,1);
+        }
+      }
+    }
+  }
   logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId);
-  data.ledger.splice(idx,1);
+  data.ledger.splice(data.ledger.findIndex(l=>l.id===txnId),1);
   save();toast('Deleted!');renderAccounts();
 };
 
