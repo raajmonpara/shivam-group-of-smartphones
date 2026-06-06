@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_3.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shivam Group</title>
 <style>
@@ -96,14 +96,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="login-logo">🏪</div>
   <div class="login-title">Shivam Group</div>
   <div class="login-sub">of Smartphones</div>
-  <div id="syncStatus"><div class="sync-dot" id="syncDot"></div><span id="syncTxt">Connecting...</span></div>
+  <div id="syncStatus"><div class="sync-dot connected" id="syncDot"></div><span id="syncTxt">Connected — Cloudflare D1</span></div>
   <div class="login-card">
-    <div class="role-tabs" id="roleTabs"></div>
+    <div class="role-tabs" id="roleTabs"><button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button><button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button><button class="role-tab" onclick="setRole(&#39;staff&#39;)">🧑‍🏭 Staff</button></div>
     <div id="shopFieldWrap" class="field" style="display:none">
       <label>Branch</label>
-      <select id="loginShop"></select>
+      <select id="loginShop"><option value="poojara">POOJARA</option><option value="ramdev">RAMDEV</option><option value="kosad">SHIVAM (KOSAD)</option><option value="khodiyar">SHIVAM (KHODIYAR)</option><option value="pacc">P ACC</option><option value="rdacc">RD ACC</option></select>
     </div>
-    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()"></div>
     <button class="login-btn" onclick="doLogin()">Login →</button>
     <div class="err" id="loginErr"></div>
   </div>
@@ -112,7 +112,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="top-bar">
     <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
     <div class="top-bar-right">
-      <span class="sync-indicator" id="appSyncDot">🔄</span>
+      <span class="sync-indicator" id="appSyncDot">🟢</span>
       <div style="display:flex;gap:6px">
       <button onclick="refreshApp()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer" title="Refresh data">🔄</button>
       <button class="logout-btn" onclick="doLogout()">Logout</button>
@@ -340,6 +340,8 @@ function ensure(){
 // ── REASON MODAL ──────────────────────────────────────────────────────────────
 let _reasonCallback=null;
 window.showReason=function(action,cb){
+  // Pause polling so server re-fetch doesn't overwrite data during popup
+  if(_pollInterval){clearInterval(_pollInterval);_pollInterval=null;}
   _reasonCallback=cb;
   let modal=document.getElementById('reasonModal');
   if(!modal){
@@ -363,13 +365,38 @@ window.confirmReason=function(){
   const r=document.getElementById('reasonInput')?.value?.trim();
   if(!r){document.getElementById('reasonInput').style.border='1.5px solid #c0392b';return;}
   document.getElementById('reasonModal').style.display='none';
-  if(_reasonCallback)_reasonCallback(r);
-  _reasonCallback=null;
+  const cb=_reasonCallback; _reasonCallback=null;
+  if(cb)cb(r);
+  // Resume polling after action
+  _resumePoll();
 };
 window.cancelReason=function(){
   document.getElementById('reasonModal').style.display='none';
   _reasonCallback=null;
+  _resumePoll();
 };
+function _resumePoll(){
+  if(_pollInterval)return;
+  _pollInterval=setInterval(async()=>{
+    try{
+      const result=await cfFetch('GET');
+      if(result){
+        const remoteStr=JSON.stringify(result);
+        if(remoteStr!==_lastSaved){
+          if(result.shops)Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
+          if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;}
+          ensure();
+          if(session){
+            if(activePage==='dashboard')renderDashboard();
+            else if(activePage==='changes')renderChanges();
+            else if(activePage==='sales'){const si=activeShops.sales||session.shopIdx;if(si)renderSalesHistory(si);}
+            else if(activePage==='expense'){const si=activeShops.expense||session.shopIdx;if(si)renderExpHistory(si);}
+          }
+        }
+      }
+    }catch(e){}
+  },10000);
+}
 function logChange(action, section, detail, shopId, reason){
   data.changes.unshift({
     id:uid(), ts:nowISO(), user:session?.name||session?.role||'?',
@@ -563,6 +590,7 @@ function renderSales(){
           <div><select id="s_udh_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff">${acctOpts(shopId,'-- Customer Account --',true)}</select></div>
           <div><input type="number" id="s_udhari" placeholder="Udhari Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
         </div>
+        <div class="field" style="margin-top:6px"><label style="font-size:10px;color:#856404">Udhari Note (visible in customer account)</label><input type="text" id="s_udh_note" placeholder="e.g. iPhone 15, pending payment..."></div>
       </div>
       <div class="field"><label>Note (optional)</label><input type="text" id="s_note" placeholder="Any note"></div>
       <button class="save-btn" onclick="addSale('${shopId}')">💾 Save Sale</button>
@@ -605,13 +633,18 @@ window.addSale=function(shopId){
   // total: cash+upi+bank+swipe+udhari+exchange. Exchange = old phone received, adds to sale value. Does NOT affect cash balance.
   const total=cash+upi+bank+swipe+udhari+exch;
   if(!cash&&!upi&&!bank&&!swipe&&!udhari){toast('Enter at least one amount');return;}
+  if(upi>0&&!upiAcct){toast('Please select a UPI account for the UPI amount');return;}
+  if(bank>0&&!bankAcct){toast('Please select a Bank account for the Bank amount');return;}
+  if(swipe>0&&!swipeAcct){toast('Please select a Swipe machine for the Swipe amount');return;}
+  if(udhari>0&&!udhAcct){toast('Please select a Customer account for the Udhari amount');return;}
   const date=document.getElementById('s_date')?.value||todayISO();
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct);
-  if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,'Udhari - phone sale','sale',shopId);
+  const udhNote=document.getElementById('s_udh_note')?.value?.trim()||'Udhari - phone sale';
+  if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,udhNote,'sale',shopId);
   const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||'',_balEffects:effects,_by:byTag()};
   data.shops[shopId].sales.push(e);
   save();toast('Sale saved!');
-  ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_note','s_udh_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); 
   const sd=document.getElementById('s_date');if(sd)sd.value=todayISO();
   ['s_upi_acct','s_bank_acct','s_swipe_acct','s_udh_acct'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   window.calcST();renderSalesHistory(shopId);
@@ -742,6 +775,10 @@ window.addAREntry=function(shopId,arrKey,pfx){
   const cash=+document.getElementById(pfx+'_cash')?.value||0;const upi=+document.getElementById(pfx+'_upi')?.value||0;const bank=+document.getElementById(pfx+'_bank')?.value||0;const swipe=+document.getElementById(pfx+'_swipe')?.value||0;const udhari=+document.getElementById(pfx+'_udhari')?.value||0;const total=cash+upi+bank+swipe+udhari;
   if(!total){toast('Enter at least one amount');return;}
   const upiAcct=document.getElementById(pfx+'_upi_acct')?.value||'';const bankAcct=document.getElementById(pfx+'_bank_acct')?.value||'';const swipeAcct=document.getElementById(pfx+'_swipe_acct')?.value||'';const udhAcct=document.getElementById(pfx+'_udh_acct')?.value||'';
+  if(upi>0&&!upiAcct){toast('Please select a UPI account');return;}
+  if(bank>0&&!bankAcct){toast('Please select a Bank account');return;}
+  if(swipe>0&&!swipeAcct){toast('Please select a Swipe machine');return;}
+  if(udhari>0&&!udhAcct){toast('Please select a Customer account for Udhari');return;}
   const date=document.getElementById(pfx+'_date')?.value||todayISO();
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct);
   if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,'Udhari - '+arrKey,'sale',shopId);
@@ -827,6 +864,8 @@ window.addRechargeEntry=function(shopId){
   if(!total){toast('Enter at least one amount');return;}
   const upiAcct=document.getElementById('rc_upi_acct')?.value||'';
   const bankAcct=document.getElementById('rc_bank_acct')?.value||'';
+  if(upi>0&&!upiAcct){toast('Please select a UPI account');return;}
+  if(bank>0&&!bankAcct){toast('Please select a Bank account');return;}
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,0,'');
   const e={id:uid(),date:document.getElementById('rc_date')?.value||todayISO(),cash,upi,upiAcct,bank,bankAcct,total,note:document.getElementById('rc_note')?.value?.trim()||'',_balEffects:effects,_by:byTag()};
   if(!data.shops[shopId].recharge)data.shops[shopId].recharge=[];
@@ -834,6 +873,8 @@ window.addRechargeEntry=function(shopId){
   save();toast('Saved!');
   const rcd=document.getElementById('rc_date');if(rcd)rcd.value=todayISO();
   ['rc_upi_acct','rc_bank_acct'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rc_cash','rc_upi','rc_bank','rc_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const rcTotEl=document.getElementById('rcTot');if(rcTotEl)rcTotEl.textContent='Rs.0';
   renderRCHistory(shopId);
 };
 function renderRCHistory(shopId){
@@ -879,8 +920,20 @@ function renderExpense(){
       </div>
       <button class="save-btn" onclick="addExpense('${shopId}')">💾 Save Expense</button>
     </div>
-    <div class="card"><div class="card-title">🏷 Quick Tags</div>
+    <div class="card"><div class="card-title">🏷 Quick Tags & Monthly Totals</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagBtns||'<span style="color:#bbb;font-size:12px">No tags yet</span>'}</div>
+      ${(()=>{
+        const ym=todayISO().slice(0,7);
+        const tagTotals={};
+        (data.shops[shopId].expenses||[]).filter(e=>e.date&&e.date.startsWith(ym)).forEach(e=>{
+          const tag=(data.shops[shopId].expTags||[]).find(t=>e.note&&e.note.includes(t));
+          if(tag){tagTotals[tag]=(tagTotals[tag]||0)+e.amount;}
+        });
+        const entries=Object.entries(tagTotals);
+        if(!entries.length)return '<div style="font-size:11px;color:#bbb;margin-bottom:10px">No tag expenses this month</div>';
+        return '<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#888;margin-bottom:6px">THIS MONTH BY TAG</div>'+
+          entries.map(([tag,amt])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0ede8"><span style="font-size:12px">${tag}</span><span style="font-size:12px;font-weight:700;color:#c0392b">Rs.${fmt(amt)}</span></div>`).join('')+'</div>';
+      })()}
       <div style="display:flex;gap:8px"><input type="text" id="expTagIn" placeholder="Add new tag" style="flex:1;padding:8px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addExpTag('${shopId}')" style="padding:8px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700">Add</button></div>
     </div>
     <div id="expHistory"></div>`;
@@ -1477,10 +1530,19 @@ function renderDashboard(){
     <div class="metric"><div class="metric-label">🏦 Bank Total</div><div class="metric-value">Rs.${fmt(bankTot)}</div></div>
     <div class="metric"><div class="metric-label">💳 Swipe Total</div><div class="metric-value" style="color:#e67e22">Rs.${fmt(swipeTot)}</div></div>
     <div class="metric" style="grid-column:1/-1;background:linear-gradient(135deg,#f3eeff,#ede0ff);border:2px solid #c9a8f5;cursor:pointer" onclick="window._balTab='adj';activeShops.balance=isOwner()?(activeShops.dashboard||'poojara'):(session?.shopIdx||'poojara');switchPage('balance')">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><div class="metric-label" style="color:#6c3483">⚖️ Cash Adjustment</div><div class="metric-value" style="color:#6c3483;font-size:18px">${adj===0?'✓ Balanced':(adj>=0?'+':'')+' Rs.'+fmt(Math.abs(adj))+' '+(adj<0?'↓ Short':'↑ Surplus')}</div></div>
-        <div style="font-size:11px;color:#9b59b6;text-align:right;font-weight:600">Tap to<br>manage →</div>
+      <div style="display:flex;align-items:center">
+        <div style="flex:1">
+          <div class="metric-label" style="color:#6c3483">⚖️ Cash Adjustment</div>
+          <div class="metric-value" style="color:#6c3483;font-size:16px">${adj===0?'✓ Balanced':(adj>=0?'+':'')+' Rs.'+fmt(Math.abs(adj))+' '+(adj<0?'↓ Short':'↑ Surplus')}</div>
+        </div>
+        <div style="width:1px;background:#d4b8ff;margin:0 12px;height:40px"></div>
+        <div style="flex:1;text-align:right">
+          <div class="metric-label" style="color:#1a7a4a">💵 Actual Cash</div>
+          <div class="metric-value" style="color:#1a7a4a;font-size:16px">Rs.${fmt(cashBal+adj)}</div>
+          <div style="font-size:10px;color:#888">Rs.${fmt(cashBal)} ${adj>=0?'+':'-'} Rs.${fmt(Math.abs(adj))}</div>
+        </div>
       </div>
+    </div>
     </div>
   </div>
   ${isOwner()?`<div class="card" style="border:2px solid #c0392b;margin-top:4px"><div class="card-title" style="color:#c0392b">🗑️ Clear All Data</div><div style="font-size:12px;color:#888;margin-bottom:10px">Wipes everything. Cannot be undone.</div><button class="save-btn red" onclick="clearAll()">Clear All Data</button></div>`:''}`;
@@ -1544,6 +1606,6 @@ function renderChanges(){
 buildLoginRoles();
 initFirebase();
 </script>
-</body>
-</html>
 
+
+</body></html>
