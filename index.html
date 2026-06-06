@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_2.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shivam Group</title>
 <style>
@@ -96,14 +96,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="login-logo">🏪</div>
   <div class="login-title">Shivam Group</div>
   <div class="login-sub">of Smartphones</div>
-  <div id="syncStatus"><div class="sync-dot connected" id="syncDot"></div><span id="syncTxt">Connected — live sync active</span></div>
+  <div id="syncStatus"><div class="sync-dot" id="syncDot"></div><span id="syncTxt">Connecting...</span></div>
   <div class="login-card">
-    <div class="role-tabs" id="roleTabs"><button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button><button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button><button class="role-tab" onclick="setRole(&#39;staff&#39;)">🧑‍🏭 Staff</button></div>
+    <div class="role-tabs" id="roleTabs"></div>
     <div id="shopFieldWrap" class="field" style="display:none">
       <label>Branch</label>
-      <select id="loginShop"><option value="poojara">POOJARA</option><option value="ramdev">RAMDEV</option><option value="kosad">SHIVAM (KOSAD)</option><option value="khodiyar">SHIVAM (KHODIYAR)</option><option value="pacc">P ACC</option><option value="rdacc">RD ACC</option></select>
+      <select id="loginShop"></select>
     </div>
-    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" onclick="doLogin()">Login →</button>
     <div class="err" id="loginErr"></div>
   </div>
@@ -112,7 +112,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="top-bar">
     <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
     <div class="top-bar-right">
-      <span class="sync-indicator" id="appSyncDot">🟢</span>
+      <span class="sync-indicator" id="appSyncDot">🔄</span>
       <div style="display:flex;gap:6px">
       <button onclick="refreshApp()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer" title="Refresh data">🔄</button>
       <button class="logout-btn" onclick="doLogout()">Logout</button>
@@ -136,10 +136,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 <div class="toast" id="toast"></div>
 <div class="saving-indicator" id="savingInd">Saving...</div>
 <script>
-// ── SUPABASE CONFIG ───────────────────────────────────────────────────────────
-const SB_URL = 'https://zdvjqczstintklvnyyjh.supabase.co';
-const SB_KEY = 'sb_publishable_YaDUN3wo7_wvJjSId0TFHg_n7iPYZin';
-const USE_SYNC = true;
+// ── CLOUDFLARE WORKER CONFIG ──────────────────────────────────────────────────
+const CF_WORKER = 'https://shivam-worker.raajmonpara.workers.dev';
+const APP_KEY = 'shivam2026secure';
 let _pollInterval = null;
 
 // ── SHOPS CONFIG ──────────────────────────────────────────────────────────────
@@ -173,73 +172,72 @@ let data = {
 };
 
 // ── SUPABASE SYNC ─────────────────────────────────────────────────────────────
-async function sbFetch(method, body){
-  const res = await fetch(`${SB_URL}/rest/v1/appdata?id=eq.main`, {
-    method, headers: {
-      'Content-Type':'application/json',
-      'apikey': SB_KEY,
-      'Authorization': `Bearer ${SB_KEY}`,
-      'Prefer': method==='PATCH'?'return=minimal':'return=representation'
-    },
+async function cfFetch(method, body){
+  const res = await fetch(CF_WORKER+'/data', {
+    method, headers: {'Content-Type':'application/json','X-App-Key':APP_KEY},
     body: body ? JSON.stringify(body) : undefined
   });
   if(!res.ok) throw new Error(await res.text());
-  return method==='PATCH' ? null : res.json();
+  return method==='GET' ? res.json() : null;
 }
 async function initFirebase(){
   const dot = document.getElementById('syncDot');
   const txt = document.getElementById('syncTxt');
-  if(!USE_SYNC){
-    dot.className='sync-dot error';
-    txt.textContent='Offline mode (Supabase not configured)';
-    loadLocal(); return;
-  }
   try{
-    const rows = await sbFetch('GET');
-    if(rows && rows[0]?.payload){
-      mergeData(rows[0].payload);
+    const result = await cfFetch('GET');
+    if(result){
+      if(result.shops) Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
+      if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;}
       ensure();
     } else { loadLocal(); }
     dot.className='sync-dot connected';
-    txt.textContent='Connected — live sync active';
+    txt.textContent='Connected — Cloudflare D1';
     document.getElementById('appSyncDot').textContent='🟢';
-    // Poll every 8 seconds for updates from other devices
     _pollInterval = setInterval(async ()=>{
       try{
-        const rows = await sbFetch('GET');
-        if(rows && rows[0]?.payload){
-          const remote = rows[0].payload;
-          if(JSON.stringify(remote)!==_lastSaved){
-            mergeData(remote); ensure();
+        const result = await cfFetch('GET');
+        if(result){
+          const remoteStr=JSON.stringify(result);
+          if(remoteStr!==_lastSaved){
+            if(result.shops) Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
+            if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;}
+            ensure();
             if(session){
-              // Only auto-refresh dashboard and changes — never wipe active forms
               if(activePage==='dashboard')renderDashboard();
               else if(activePage==='changes')renderChanges();
-              // For other pages, just update the history/list part silently
               else if(activePage==='sales'){const si=activeShops.sales||session.shopIdx;if(si)renderSalesHistory(si);}
-              else if(activePage==='accrep'){const si=activeShops.accrep||session.shopIdx;const sub=window._accTab||'acc';const arr=sub==='acc'?'accessories':'repairing';const pfx=sub==='acc'?'ac':'rp';if(si)renderARHistory(si,arr,pfx);}
               else if(activePage==='expense'){const si=activeShops.expense||session.shopIdx;if(si)renderExpHistory(si);}
-              else if(activePage==='recharge'){renderRecharge();}
             }
           }
         }
       }catch(e){}
-    }, 8000);
+    }, 10000);
   }catch(e){
     dot.className='sync-dot error';
-    txt.textContent='Sync error — offline mode';
+    txt.textContent='Offline mode';
     loadLocal();
   }
 }
 async function save(){
   showSaving();
   const d = JSON.parse(JSON.stringify(data));
-  _lastSaved = JSON.stringify(d);
-  if(USE_SYNC){
-    try{
-      await sbFetch('PATCH', {payload: d, updated_at: new Date().toISOString()});
-    }catch(e){ saveLocal(d); }
-  } else { saveLocal(d); }
+  const month = new Date().toISOString().slice(0,7);
+  try{
+    // Save each shop's current month data
+    const shopSaves = Object.entries(d.shops).map(([shopId, shopData])=>
+      cfFetch('POST', {shop_id: shopId, month, payload: shopData})
+    );
+    // Save global data
+    const globalSave = cfFetch('POST', {global: {
+      staff: d.staff, transfers: d.transfers,
+      accounts: d.accounts, ledger: d.ledger, changes: d.changes
+    }});
+    await Promise.all([...shopSaves, globalSave]);
+    _lastSaved = JSON.stringify({shops: d.shops, global: {staff:d.staff,transfers:d.transfers,accounts:d.accounts,ledger:d.ledger,changes:d.changes}});
+    saveLocal(d);
+  }catch(e){
+    saveLocal(d);
+  }
   hideSaving();
 }
 function saveLocal(d){ try{localStorage.setItem('shopapp_v9',JSON.stringify(d||data));}catch(e){} }
@@ -274,8 +272,12 @@ window.clearFormCache=function(){
 window.refreshApp=async function(){
   document.getElementById('appSyncDot').textContent='🔄';
   try{
-    const rows=await sbFetch('GET');
-    if(rows&&rows[0]?.payload){mergeData(rows[0].payload);ensure();}
+    const result=await cfFetch('GET');
+    if(result){
+      if(result.shops) Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
+      if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;}
+      ensure();
+    }
   }catch(e){}
   clearFormCache();
   renderPage(activePage);
@@ -1542,6 +1544,6 @@ function renderChanges(){
 buildLoginRoles();
 initFirebase();
 </script>
+</body>
+</html>
 
-
-</body></html>
