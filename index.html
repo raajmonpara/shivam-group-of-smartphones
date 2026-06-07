@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_3.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_4.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -158,6 +158,7 @@ const ACCT_TYPES = ['Dealer','Franchise','Staff','Owner','Customer','Custom'];
 let session = null, activePage = 'dashboard';
 let activeShops = {expense:'poojara',balance:'poojara',staff:'poojara',accounts:'poojara',dashboard:'poojara',recharge:'poojara',sales:'poojara',accrep:'pacc'};
 let fbDb = null, _lastSaved = null;
+let _filterDate = {sales:null,accrep:null,recharge:null,expense:null};
 
 // ── DATA TEMPLATE ─────────────────────────────────────────────────────────────
 const defShop = () => ({
@@ -592,6 +593,14 @@ function renderSales(){
         </div>
         <div class="field" style="margin-top:6px"><label style="font-size:10px;color:#856404">Udhari Note (visible in customer account)</label><input type="text" id="s_udh_note" placeholder="e.g. iPhone 15, pending payment..."></div>
       </div>
+      <div class="field" style="background:#e8f4ff;border-radius:12px;padding:12px;margin:8px 0">
+        <label style="font-size:11px;font-weight:800;color:#1565c0;margin-bottom:8px;display:block">🏦 LOAN / FINANCE — adds to total, no balance effect</label>
+        <div style="font-size:10px;color:#555;margin-bottom:8px">Down payment entered above. Enter remaining loan amount customer got from finance company.</div>
+        <div class="two-col">
+          <div><input type="number" id="s_loan" placeholder="Loan Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #c5d8f0;border-radius:10px;font-size:13px"></div>
+          <div><input type="text" id="s_loan_note" placeholder="Finance co. / Note" style="width:100%;padding:9px 12px;border:1.5px solid #c5d8f0;border-radius:10px;font-size:13px"></div>
+        </div>
+      </div>
       <div class="field"><label>Note (optional)</label><input type="text" id="s_note" placeholder="Any note"></div>
       <button class="save-btn" onclick="addSale('${shopId}')">💾 Save Sale</button>
     </div>
@@ -601,7 +610,15 @@ function renderSales(){
 }
 window.switchSalesShop=function(id){activeShops.sales=id;document.getElementById('salesContent').dataset.shopId='';renderSales();};
 function renderSalesHistory(shopId){
-  const entries=(data.shops[shopId].sales||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const filterDate=_filterDate.sales;
+  const allEntries=(data.shops[shopId].sales||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const entries=filterDate?allEntries.filter(e=>e.date===filterDate):allEntries.filter(e=>e.date===todayISO());
+  const filterBar=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+    <span style="font-size:12px;color:#888;font-weight:600">📅 Showing:</span>
+    <input type="date" value="${filterDate||todayISO()}" onchange="_filterDate.sales=this.value;renderSalesHistory('${shopId}')" style="border:1.5px solid #e8e8e8;border-radius:8px;padding:5px 8px;font-size:12px;flex:1">
+    ${filterDate&&filterDate!==todayISO()?`<button onclick="_filterDate.sales=null;renderSalesHistory('${shopId}')" style="background:#f0ede8;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>`:''}
+    <span style="font-size:11px;color:#888">${entries.length} entries</span>
+  </div>`;
   const rows=entries.map((e,i)=>{
     const editKey='sale_'+i+'_'+shopId;
     if(window._editing===editKey&&isManager()){
@@ -626,25 +643,28 @@ function renderSalesHistory(shopId){
   const hist=document.getElementById('salesHistory');
   if(hist)hist.innerHTML='<div class="card"><div class="card-title">Sales History'+(isManager()?' -- tap to edit':'')+' </div>'+(rows||'<div class="empty">No sales</div>')+'</div>';
 }
-window.calcST=function(){const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)+(+document.getElementById('s_exch')?.value||0);const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));};
+window.calcST=function(){const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)+(+document.getElementById('s_exch')?.value||0)+(+document.getElementById('s_loan')?.value||0);const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));};
 window.addSale=function(shopId){
   const cash=+document.getElementById('s_cash')?.value||0;const upi=+document.getElementById('s_upi')?.value||0;const bank=+document.getElementById('s_bank')?.value||0;const swipe=+document.getElementById('s_swipe')?.value||0;const exch=+document.getElementById('s_exch')?.value||0;const udhari=+document.getElementById('s_udhari')?.value||0;
   const upiAcct=document.getElementById('s_upi_acct')?.value||'';const bankAcct=document.getElementById('s_bank_acct')?.value||'';const swipeAcct=document.getElementById('s_swipe_acct')?.value||'';const udhAcct=document.getElementById('s_udh_acct')?.value||'';
   // total: cash+upi+bank+swipe+udhari+exchange. Exchange = old phone received, adds to sale value. Does NOT affect cash balance.
-  const total=cash+upi+bank+swipe+udhari+exch;
-  if(!cash&&!upi&&!bank&&!swipe&&!udhari){toast('Enter at least one amount');return;}
+  const loan=+document.getElementById('s_loan')?.value||0;
+  const loanNote=document.getElementById('s_loan_note')?.value?.trim()||'';
+  const total=cash+upi+bank+swipe+udhari+exch+loan;
+  if(!cash&&!upi&&!bank&&!swipe&&!udhari&&!loan){toast('Enter at least one amount');return;}
   if(upi>0&&!upiAcct){toast('Please select a UPI account for the UPI amount');return;}
   if(bank>0&&!bankAcct){toast('Please select a Bank account for the Bank amount');return;}
   if(swipe>0&&!swipeAcct){toast('Please select a Swipe machine for the Swipe amount');return;}
-  if(udhari>0&&!udhAcct){toast('Please select a Customer account for the Udhari amount');return;}
+  if(udhari>0&&!udhAcct){toast('Please select a Customer account for Udhari');return;}
+  const udhNote=document.getElementById('s_udh_note')?.value?.trim()||'';
+  if(udhari>0&&!udhNote){toast('Please enter a note for the Udhari entry (e.g. iPhone 15, Model name...)');return;}
   const date=document.getElementById('s_date')?.value||todayISO();
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct);
-  const udhNote=document.getElementById('s_udh_note')?.value?.trim()||'Udhari - phone sale';
   if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,udhNote,'sale',shopId);
-  const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,udhAcct,total,note:document.getElementById('s_note')?.value?.trim()||'',_balEffects:effects,_by:byTag()};
+  const e={id:uid(),date,qty:+document.getElementById('s_qty')?.value||0,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,exchange:exch,udhari,udhAcct,loan,loanNote,total,note:document.getElementById('s_note')?.value?.trim()||'',_balEffects:effects,_by:byTag()};
   data.shops[shopId].sales.push(e);
   save();toast('Sale saved!');
-  ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_note','s_udh_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); 
+  ['s_cash','s_upi','s_bank','s_swipe','s_qty','s_exch','s_udhari','s_note','s_udh_note','s_loan','s_loan_note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});  
   const sd=document.getElementById('s_date');if(sd)sd.value=todayISO();
   ['s_upi_acct','s_bank_acct','s_swipe_acct','s_udh_acct'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   window.calcST();renderSalesHistory(shopId);
@@ -747,7 +767,14 @@ function renderAccRep(){
 }
 window.switchARShop=function(id){activeShops.accrep=id;document.getElementById('accrepContent').dataset.stateKey='';renderAccRep();};
 function renderARHistory(shopId,arrKey,pfx){
-  const entries=(data.shops[shopId][arrKey]||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const filterDate=_filterDate.accrep;
+  const allAR=(data.shops[shopId][arrKey]||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const entries=filterDate?allAR.filter(e=>e.date===filterDate):allAR.filter(e=>e.date===todayISO());
+  const arFilterBar=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+    <span style="font-size:12px;color:#888;font-weight:600">📅 Date:</span>
+    <input type="date" value="${filterDate||todayISO()}" onchange="_filterDate.accrep=this.value;renderARHistory('${shopId}','${arrKey}','${pfx}')" style="border:1.5px solid #e8e8e8;border-radius:8px;padding:5px 8px;font-size:12px;flex:1">
+    ${filterDate?`<button onclick="_filterDate.accrep=null;renderARHistory('${shopId}','${arrKey}','${pfx}')" style="background:#f0ede8;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>`:''}
+  </div>`;
   const label=arrKey==='accessories'?'Accessories':'Repairing';
   const rows=entries.map((e,i)=>{
     const editKey=arrKey+'_'+i+'_'+shopId;
@@ -768,7 +795,7 @@ function renderARHistory(shopId,arrKey,pfx){
     return '<div class="entry-row" '+click+'><div><div class="entry-main g">Rs.'+fmt(e.total||0)+(e.note?' <span style="font-size:11px;color:#aaa">'+e.note+'</span>':'')+'</div><div class="entry-sub">'+parts+'</div></div><span class="entry-date">'+fmtDate(e.date)+'</span></div>';
   }).join('');
   const hist=document.getElementById('arHistory');
-  if(hist)hist.innerHTML='<div class="card"><div class="card-title">'+label+' History'+(isManager()?' -- tap to edit':'')+'</div>'+(rows||'<div class="empty">No entries</div>')+'</div>';
+  if(hist)hist.innerHTML=arFilterBar+'<div class="card"><div class="card-title">'+label+' History'+(isManager()?' -- tap to edit':'')+'</div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
 }
 window.calcARTot=function(pfx){const v=(+document.getElementById(pfx+'_cash')?.value||0)+(+document.getElementById(pfx+'_upi')?.value||0)+(+document.getElementById(pfx+'_bank')?.value||0)+(+document.getElementById(pfx+'_swipe')?.value||0);const el=document.getElementById(pfx+'Tot');if(el)el.textContent='Rs.'+fmt(v);};
 window.addAREntry=function(shopId,arrKey,pfx){
@@ -878,14 +905,21 @@ window.addRechargeEntry=function(shopId){
   renderRCHistory(shopId);
 };
 function renderRCHistory(shopId){
-  const entries=(data.shops[shopId].recharge||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const filterDate=_filterDate.recharge;
+  const allRC=(data.shops[shopId].recharge||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const entries=filterDate?allRC.filter(e=>e.date===filterDate):allRC.filter(e=>e.date===todayISO());
+  const rcFilterBar=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+    <span style="font-size:12px;color:#888;font-weight:600">📅 Date:</span>
+    <input type="date" value="${filterDate||todayISO()}" onchange="_filterDate.recharge=this.value;renderRCHistory('${shopId}')" style="border:1.5px solid #e8e8e8;border-radius:8px;padding:5px 8px;font-size:12px;flex:1">
+    ${filterDate?`<button onclick="_filterDate.recharge=null;renderRCHistory('${shopId}')" style="background:#f0ede8;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>`:''}
+  </div>`;
   const rows=entries.map((e,i)=>{
     const parts=[e.cash?'Cash:'+fmt(e.cash):'',e.upi?'UPI:'+fmt(e.upi):'',e.bank?'Bank:'+fmt(e.bank):''].filter(Boolean).join(' | ');
     const click=isManager()?'onclick="delRCEntry(\''+shopId+'\',\''+e.id+'\')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px"':'';
     return '<div class="entry-row"><div><div class="entry-main g">Rs.'+fmt(e.total||0)+(e.note?' <span style="font-size:11px;color:#aaa">'+e.note+'</span>':'')+'</div><div class="entry-sub">'+parts+'</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">'+fmtDate(e.date)+'</span>'+(isManager()?'<button '+click+'>x</button>':'')+'</div></div>';
   }).join('');
   const hist=document.getElementById('rcHistory');
-  if(hist)hist.innerHTML='<div class="card"><div class="card-title">📶 Recharge History</div>'+(rows||'<div class="empty">No entries</div>')+'</div>';
+  if(hist)hist.innerHTML=rcFilterBar+'<div class="card"><div class="card-title">📶 Recharge History</div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
 }
 window.delRCEntry=function(shopId,entryId){
   showReason('Delete Recharge Entry',function(reason){
@@ -941,10 +975,18 @@ function renderExpense(){
   renderExpHistory(shopId);
 }
 function renderExpHistory(shopId){
-  const expenses=(data.shops[shopId].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
+  const filterDate=_filterDate.expense;
+  const allExp=(data.shops[shopId].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const expenses=filterDate?allExp.filter(e=>e.date===filterDate):allExp.filter(e=>e.date===todayISO());
+  const expFilterBar=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+    <span style="font-size:12px;color:#888;font-weight:600">📅 Date:</span>
+    <input type="date" value="${filterDate||todayISO()}" onchange="_filterDate.expense=this.value;renderExpHistory('${shopId}')" style="border:1.5px solid #e8e8e8;border-radius:8px;padding:5px 8px;font-size:12px;flex:1">
+    ${filterDate?`<button onclick="_filterDate.expense=null;renderExpHistory('${shopId}')" style="background:#f0ede8;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>`:''}
+    <span style="font-size:11px;color:#888">${expenses.length} entries</span>
+  </div>`;
   const rows=expenses.map((e,i)=>`<div class="entry-row"><div><div class="entry-main r">Rs.${fmt(e.amount)}${e._by?`<span style='font-size:10px;color:#bbb'> · ${e._by}</span>`:''}</div><div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopId,e.paidFrom||'cash')}${e.accountId?' to '+acctName(e.accountId):''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delExpense('${shopId}','${e.id}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
   const hist=document.getElementById('expHistory');
-  if(hist)hist.innerHTML='<div class="card"><div class="card-title">Recent Expenses</div>'+(rows||'<div class="empty">No expenses</div>')+'</div>';
+  if(hist)hist.innerHTML=expFilterBar+'<div class="card"><div class="card-title">Expenses</div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
 }
 window.addExpense=function(shopId){
   const amt=+document.getElementById('exp_amt')?.value||0;if(!amt){toast('Enter amount');return;}
@@ -1030,7 +1072,7 @@ function renderBalance(){
   // Always rebuild balance — it's read-only display with simple inline inputs
   // But update balances without rebuilding UPI/bank input fields
   const b=data.shops[shopId].balanceAccounts;
-  const subTabs=['cash','upi','bank','swipe','adj'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank',swipe:'💳 Swipe',adj:'⚖️ Adjustment'}[t]}</button>`).join('');
+  const subTabs=['cash','upi','bank','swipe','loan','adj'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank',swipe:'💳 Swipe',loan:'🏦 Loan',adj:'⚖️ Adjustment'}[t]}</button>`).join('');
   let body='';
   if(sub==='cash'){
     const rows=(b.cash.entries||[]).slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map((e,i)=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delCashE('${shopId}',${i})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
@@ -1077,6 +1119,26 @@ function renderBalance(){
       <div class="two-col"><div class="field"><label>Machine Name</label><input type="text" id="swipe_name" placeholder="SBI/HDFC Machine"></div><div class="field"><label>Bank Name</label><input type="text" id="swipe_bank" placeholder="SBI/HDFC"></div></div>
       <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="swipe_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addSwipeAcct('${shopId}')" style="background:#e67e22">Add Machine</button></div>`;
+  } else if(sub==='loan'){
+    // Show loan sales by month - browse history
+    const allSales=data.shops[shopId].sales||[];
+    const months=[...new Set(allSales.map(s=>s.date?.slice(0,7)).filter(Boolean))].sort().reverse();
+    const selMonth=window._loanMonth||new Date().toISOString().slice(0,7);
+    window._loanMonth=selMonth;
+    const loanSales=allSales.filter(s=>s.date?.startsWith(selMonth)&&s.loan>0).sort((a,b)=>b.date.localeCompare(a.date));
+    const totalLoan=loanSales.reduce((s,e)=>s+(e.loan||0),0);
+    const rows=loanSales.map(e=>`<div class="entry-row"><div><div class="entry-main" style="color:#1565c0">Rs.${fmt(e.loan)} <span style="font-size:11px;color:#888">${e.loanNote||''}</span></div><div class="entry-sub">${e.qty||0} phones | Total sale: Rs.${fmt(e.total)} | ${e.note||''}</div></div><span class="entry-date">${fmtDate(e.date)}</span></div>`).join('');
+    body=`<div class="metric-grid">
+      <div class="metric" style="grid-column:1/-1;background:#e8f4ff;border:2px solid #90caf9">
+        <div class="metric-label" style="color:#1565c0">🏦 Total Loan — ${selMonth}</div>
+        <div class="metric-value" style="color:#1565c0">Rs.${fmt(totalLoan)}</div>
+        <div style="font-size:11px;color:#888">${loanSales.length} loan transactions</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;overflow-x:auto">
+      ${months.map(m=>`<button onclick="window._loanMonth='${m}';renderBalance()" class="shop-tab${m===selMonth?' active':''}">${m}</button>`).join('')}
+    </div>
+    <div class="card"><div class="card-title">🏦 Loan Sales — ${selMonth}</div>${rows||'<div class="empty">No loan sales this month</div>'}</div>`;
   } else if(sub==='adj'){
     const adjs=(data.shops[shopId].adjustments||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
     const total=(data.shops[shopId].adjustments||[]).reduce((s,a)=>s+a.amount,0);
@@ -1480,16 +1542,18 @@ function renderDashboard(){
   const shop=data.shops[shopId];const shopDef=shopObj(shopId);
   const today=todayISO(),ym=today.slice(0,7);
   const sales=shop.sales||[];const expenses=shop.expenses||[];const acc=shop.accessories||[];const rep=shop.repairing||[];const rch=shop.recharge||[];
-  const tSales=sales.filter(e=>e.date===today&&(e.cash||e.upi||e.bank||e.swipe||e.exchange||e.udhari));
+  const tSales=sales.filter(e=>e.date===today&&(e.cash||e.upi||e.bank||e.swipe||e.exchange||e.udhari||e.loan));
   const tSaleAmt=tSales.reduce((s,e)=>s+(e.total||0),0);
   const tQty=tSales.reduce((s,e)=>s+(e.qty||0),0);
+  const tLoan=tSales.reduce((s,e)=>s+(e.loan||0),0);
   const tExp=expenses.filter(e=>e.date===today).reduce((s,e)=>s+e.amount,0);
   const tAcc=acc.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
   const tRep=rep.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
   const tRch=rch.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
-  const mSales=sales.filter(e=>e.date.startsWith(ym)&&(e.cash||e.upi||e.bank||e.swipe||e.exchange||e.udhari));
+  const mSales=sales.filter(e=>e.date.startsWith(ym)&&(e.cash||e.upi||e.bank||e.swipe||e.exchange||e.udhari||e.loan));
   const mSaleAmt=mSales.reduce((s,e)=>s+(e.total||0),0);
   const mQty=mSales.reduce((s,e)=>s+(e.qty||0),0);
+  const mLoan=mSales.reduce((s,e)=>s+(e.loan||0),0);
   const mExp=expenses.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+e.amount,0);
   const mAcc=acc.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
   const mRep=rep.filter(e=>e.date.startsWith(ym)).reduce((s,e)=>s+(e.total||0),0);
@@ -1507,7 +1571,7 @@ function renderDashboard(){
   <div style="font-size:11px;color:#888;margin-bottom:8px">📅 Today: ${fmtDate(today)} | ${shopDef.name}</div>
   <div class="sec-hdr">Today</div>
   <div class="metric-grid">
-    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">Rs.${fmt(tSaleAmt)}</div><div style="font-size:11px;color:#888">${tQty} phones</div></div>`:''}
+    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">Rs.${fmt(tSaleAmt)}</div><div style="font-size:11px;color:#888">${tQty} phones</div></div><div class="metric" style="background:#e8f4ff;border:1px solid #90caf9"><div class="metric-label" style="color:#1565c0">🏦 Loan Sales</div><div class="metric-value" style="color:#1565c0">Rs.${fmt(tLoan)}</div></div>`:''}
     <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">Rs.${fmt(tExp)}</div></div>
     <div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">Rs.${fmt(tAcc)}</div></div>
     <div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">Rs.${fmt(tRep)}</div></div>
@@ -1516,7 +1580,7 @@ function renderDashboard(){
   </div>
   <div class="sec-hdr">This Month</div>
   <div class="metric-grid">
-    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">Rs.${fmt(mSaleAmt)}</div><div style="font-size:11px;color:#888">${mQty} phones</div></div>`:''}
+    ${shopDef.hasSales?`<div class="metric"><div class="metric-label">📱 Phone Sales</div><div class="metric-value g">Rs.${fmt(mSaleAmt)}</div><div style="font-size:11px;color:#888">${mQty} phones</div></div><div class="metric" style="background:#e8f4ff;border:1px solid #90caf9"><div class="metric-label" style="color:#1565c0">🏦 Loan Sales</div><div class="metric-value" style="color:#1565c0">Rs.${fmt(mLoan)}</div></div>`:''}
     <div class="metric"><div class="metric-label">💸 Expenses</div><div class="metric-value r">Rs.${fmt(mExp)}</div></div>
     <div class="metric"><div class="metric-label">🔌 Accessories</div><div class="metric-value">Rs.${fmt(mAcc)}</div></div>
     <div class="metric"><div class="metric-label">🔧 Repairing</div><div class="metric-value">Rs.${fmt(mRep)}</div></div>
