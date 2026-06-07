@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_4.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_6.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -362,12 +362,12 @@ window.showReason=function(action,cb){
   modal.style.display='flex';
   setTimeout(()=>document.getElementById('reasonInput')?.focus(),100);
 };
-window.confirmReason=function(){
+window.confirmReason=async function(){
   const r=document.getElementById('reasonInput')?.value?.trim();
   if(!r){document.getElementById('reasonInput').style.border='1.5px solid #c0392b';return;}
   document.getElementById('reasonModal').style.display='none';
   const cb=_reasonCallback; _reasonCallback=null;
-  if(cb)cb(r);
+  if(cb) await cb(r);
   // Resume polling after action
   _resumePoll();
 };
@@ -614,10 +614,11 @@ function renderSalesHistory(shopId){
   const allEntries=(data.shops[shopId].sales||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
   const entries=filterDate?allEntries.filter(e=>e.date===filterDate):allEntries.filter(e=>e.date===todayISO());
   const filterBar=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
-    <span style="font-size:12px;color:#888;font-weight:600">📅 Showing:</span>
+    <span style="font-size:12px;color:#888;font-weight:600">📅</span>
     <input type="date" value="${filterDate||todayISO()}" onchange="_filterDate.sales=this.value;renderSalesHistory('${shopId}')" style="border:1.5px solid #e8e8e8;border-radius:8px;padding:5px 8px;font-size:12px;flex:1">
-    ${filterDate&&filterDate!==todayISO()?`<button onclick="_filterDate.sales=null;renderSalesHistory('${shopId}')" style="background:#f0ede8;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>`:''}
-    <span style="font-size:11px;color:#888">${entries.length} entries</span>
+    <span style="font-size:11px;color:#1a7a4a;font-weight:600">${fmtDate(filterDate||todayISO())}</span>
+    <button onclick="_filterDate.sales=null;renderSalesHistory('${shopId}')" style="background:${filterDate&&filterDate!==todayISO()?'#1a7a4a':'#f0ede8'};color:${filterDate&&filterDate!==todayISO()?'#fff':'#999'};border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>
+    <span style="font-size:11px;color:#888">${entries.length}</span>
   </div>`;
   const rows=entries.map((e,i)=>{
     const editKey='sale_'+i+'_'+shopId;
@@ -641,7 +642,7 @@ function renderSalesHistory(shopId){
     const byStr=e._by?(' <span style="font-size:10px;color:#bbb">'+e._by+'</span>'):''; return '<div class="entry-row" '+click+'><div><div class="entry-main g">Rs.'+fmt(e.total||0)+' x'+(e.qty||0)+(e.note?' <span style="font-size:11px;color:#aaa">'+e.note+'</span>':'')+byStr+'</div><div class="entry-sub">'+parts+'</div></div><span class="entry-date">'+fmtDate(e.date)+'</span></div>';
   }).join('');
   const hist=document.getElementById('salesHistory');
-  if(hist)hist.innerHTML='<div class="card"><div class="card-title">Sales History'+(isManager()?' -- tap to edit':'')+' </div>'+(rows||'<div class="empty">No sales</div>')+'</div>';
+  if(hist)hist.innerHTML=filterBar+'<div class="card"><div class="card-title">Sales History'+(isManager()?' -- tap to edit':'')+' </div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
 }
 window.calcST=function(){const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)+(+document.getElementById('s_exch')?.value||0)+(+document.getElementById('s_loan')?.value||0);const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));};
 window.addSale=function(shopId){
@@ -684,7 +685,7 @@ window.saveSaleEdit=function(shopId,entryId){
     udhAcct:document.getElementById('ed_udh_acct')?.value||'',
     note:document.getElementById('ed_note')?.value?.trim()||''
   };
-  showReason('Edit Phone Sale Entry',function(reason){
+  showReason('Edit Phone Sale Entry',async function(reason){
     const arr=data.shops[shopId].sales;
     const idx=arr.findIndex(e=>e.id===entryId);if(idx===-1)return;
     const old={...arr[idx]};
@@ -692,12 +693,12 @@ window.saveSaleEdit=function(shopId,entryId){
     const effects=applyPayments(shopId,fv.cash,fv.upi,fv.upiAcct,fv.bank,fv.bankAcct,0,'');
     arr[idx]={...arr[idx],date:fv.date||arr[idx].date,qty:fv.qty,cash:fv.cash,upi:fv.upi,upiAcct:fv.upiAcct,bank:fv.bank,bankAcct:fv.bankAcct,swipe:fv.swipe,swipeAcct:'',exchange:fv.exch,udhari:fv.udhari,udhAcct:fv.udhAcct,total:fv.cash+fv.upi+fv.bank+fv.swipe+fv.udhari+fv.exch,note:fv.note,_balEffects:effects,_by:arr[idx]._by};
     logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' -> Rs.'+fmt(arr[idx].total),shopId,reason);
-    save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);
+    await save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);
   });
 };
 window.delSale=function(shopId,entryId){
   if(!isManager())return;
-  showReason('Delete Phone Sale Entry',function(reason){
+  showReason('Delete Phone Sale Entry',async function(reason){
   (function(){
   const e=delById(data.shops[shopId].sales,entryId);
   if(!e)return;
@@ -771,9 +772,10 @@ function renderARHistory(shopId,arrKey,pfx){
   const allAR=(data.shops[shopId][arrKey]||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
   const entries=filterDate?allAR.filter(e=>e.date===filterDate):allAR.filter(e=>e.date===todayISO());
   const arFilterBar=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
-    <span style="font-size:12px;color:#888;font-weight:600">📅 Date:</span>
+    <span style="font-size:12px;color:#888;font-weight:600">📅</span>
     <input type="date" value="${filterDate||todayISO()}" onchange="_filterDate.accrep=this.value;renderARHistory('${shopId}','${arrKey}','${pfx}')" style="border:1.5px solid #e8e8e8;border-radius:8px;padding:5px 8px;font-size:12px;flex:1">
-    ${filterDate?`<button onclick="_filterDate.accrep=null;renderARHistory('${shopId}','${arrKey}','${pfx}')" style="background:#f0ede8;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>`:''}
+    <span style="font-size:11px;color:#1a7a4a;font-weight:600">${fmtDate(filterDate||todayISO())}</span>
+    <button onclick="_filterDate.accrep=null;renderARHistory('${shopId}','${arrKey}','${pfx}')" style="background:${filterDate&&filterDate!==todayISO()?'#1a7a4a':'#f0ede8'};color:${filterDate&&filterDate!==todayISO()?'#fff':'#999'};border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>
   </div>`;
   const label=arrKey==='accessories'?'Accessories':'Repairing';
   const rows=entries.map((e,i)=>{
@@ -832,12 +834,12 @@ window.saveAREdit=function(shopId,arrKey,entryId){
   const effects=applyPayments(shopId,cash,upi,old.upiAcct||'',bank,old.bankAcct||'',swipe,old.swipeAcct||'');
   arr[idx]={...arr[idx],date:document.getElementById('ar_date')?.value||arr[idx].date,cash,upi,bank,swipe,total:cash+upi+bank+swipe,note:document.getElementById('ar_note')?.value?.trim()||'',_balEffects:effects};
   logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' to Rs.'+fmt(arr[idx].total),shopId);
-  showReason('Edit '+arrKey+' Entry',function(reason){
+  showReason('Edit '+arrKey+' Entry',async function(reason){
     logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' → Rs.'+fmt(arr[idx].total),shopId,reason);
     save();window._editingAR=null;toast('Updated!');renderAccRep();if(activePage==='dashboard')renderDashboard();
   });
 };
-window.delAREntry=function(shopId,arrKey,entryId){showReason('Delete '+arrKey+' Entry',function(reason){const e=delById(data.shops[shopId][arrKey],entryId);if(!e)return;reverseEffects(shopId,e._balEffects);logChange('DELETE',arrKey,fmtDate(e.date)+' Rs.'+fmt(e.total),shopId,reason);save();window._editingAR=null;toast('Deleted!');renderAccRep();});}
+window.delAREntry=function(shopId,arrKey,entryId){showReason('Delete '+arrKey+' Entry',async function(reason){const e=delById(data.shops[shopId][arrKey],entryId);if(!e)return;reverseEffects(shopId,e._balEffects);logChange('DELETE',arrKey,fmtDate(e.date)+' Rs.'+fmt(e.total),shopId,reason);await save();window._editingAR=null;toast('Deleted!');renderAccRep();});}
 
 
 // ── RECHARGE ──────────────────────────────────────────────────────────────────
@@ -909,9 +911,10 @@ function renderRCHistory(shopId){
   const allRC=(data.shops[shopId].recharge||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
   const entries=filterDate?allRC.filter(e=>e.date===filterDate):allRC.filter(e=>e.date===todayISO());
   const rcFilterBar=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
-    <span style="font-size:12px;color:#888;font-weight:600">📅 Date:</span>
+    <span style="font-size:12px;color:#888;font-weight:600">📅</span>
     <input type="date" value="${filterDate||todayISO()}" onchange="_filterDate.recharge=this.value;renderRCHistory('${shopId}')" style="border:1.5px solid #e8e8e8;border-radius:8px;padding:5px 8px;font-size:12px;flex:1">
-    ${filterDate?`<button onclick="_filterDate.recharge=null;renderRCHistory('${shopId}')" style="background:#f0ede8;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>`:''}
+    <span style="font-size:11px;color:#1a7a4a;font-weight:600">${fmtDate(filterDate||todayISO())}</span>
+    <button onclick="_filterDate.recharge=null;renderRCHistory('${shopId}')" style="background:${filterDate&&filterDate!==todayISO()?'#1a7a4a':'#f0ede8'};color:${filterDate&&filterDate!==todayISO()?'#fff':'#999'};border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>
   </div>`;
   const rows=entries.map((e,i)=>{
     const parts=[e.cash?'Cash:'+fmt(e.cash):'',e.upi?'UPI:'+fmt(e.upi):'',e.bank?'Bank:'+fmt(e.bank):''].filter(Boolean).join(' | ');
@@ -922,12 +925,12 @@ function renderRCHistory(shopId){
   if(hist)hist.innerHTML=rcFilterBar+'<div class="card"><div class="card-title">📶 Recharge History</div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
 }
 window.delRCEntry=function(shopId,entryId){
-  showReason('Delete Recharge Entry',function(reason){
+  showReason('Delete Recharge Entry',async function(reason){
     const e=delById(data.shops[shopId].recharge,entryId);
     if(!e)return;
     reverseEffects(shopId,e._balEffects);
     logChange('DELETE','Recharge',fmtDate(e.date)+' Rs.'+fmt(e.total),shopId,reason);
-    save();toast('Deleted!');renderRCHistory(shopId);
+    await save();toast('Deleted!');renderRCHistory(shopId);
   });
 };
 
@@ -979,10 +982,10 @@ function renderExpHistory(shopId){
   const allExp=(data.shops[shopId].expenses||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
   const expenses=filterDate?allExp.filter(e=>e.date===filterDate):allExp.filter(e=>e.date===todayISO());
   const expFilterBar=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
-    <span style="font-size:12px;color:#888;font-weight:600">📅 Date:</span>
+    <span style="font-size:12px;color:#888;font-weight:600">📅</span>
     <input type="date" value="${filterDate||todayISO()}" onchange="_filterDate.expense=this.value;renderExpHistory('${shopId}')" style="border:1.5px solid #e8e8e8;border-radius:8px;padding:5px 8px;font-size:12px;flex:1">
-    ${filterDate?`<button onclick="_filterDate.expense=null;renderExpHistory('${shopId}')" style="background:#f0ede8;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>`:''}
-    <span style="font-size:11px;color:#888">${expenses.length} entries</span>
+    <span style="font-size:11px;color:#1a7a4a;font-weight:600">${fmtDate(filterDate||todayISO())}</span>
+    <button onclick="_filterDate.expense=null;renderExpHistory('${shopId}')" style="background:${filterDate&&filterDate!==todayISO()?'#1a7a4a':'#f0ede8'};color:${filterDate&&filterDate!==todayISO()?'#fff':'#999'};border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:700">Today</button>
   </div>`;
   const rows=expenses.map((e,i)=>`<div class="entry-row"><div><div class="entry-main r">Rs.${fmt(e.amount)}${e._by?`<span style='font-size:10px;color:#bbb'> · ${e._by}</span>`:''}</div><div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopId,e.paidFrom||'cash')}${e.accountId?' to '+acctName(e.accountId):''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delExpense('${shopId}','${e.id}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
   const hist=document.getElementById('expHistory');
@@ -1049,9 +1052,9 @@ window.delExpense=function(shopId,entryId){
       }
     }
   }
-  showReason('Delete Expense Entry',function(reason){
+  showReason('Delete Expense Entry',async function(reason){
     logChange('DELETE','Expense','Rs.'+fmt(e.amount)+' '+(e.note||''),shopId,reason);
-    save();toast('Deleted!');renderExpHistory(shopId);
+    await save();toast('Deleted!');renderExpHistory(shopId);
   });
 };
 window.addExpTag=function(shopId){const v=document.getElementById('expTagIn')?.value?.trim();if(!v)return;data.shops[shopId].expTags.push(v);save();document.getElementById('expContent').dataset.shopId='';renderExpense();};
@@ -1190,11 +1193,11 @@ window.addUpiE=function(si,i){const amt=+document.getElementById(`upi_a_${i}`)?.
 window.addBankE=function(si,i){const amt=+document.getElementById(`bank_a_${i}`)?.value||0;if(!amt){toast('Enter amount');return;}const bk=data.shops[si].balanceAccounts.bank[i];bk.balance=+(bk.balance||0)+ +amt;if(!bk.entries)bk.entries=[];bk.entries.push({date:todayISO(),amount:amt,note:document.getElementById(`bank_n_${i}`)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
 window.addUpiAcct=function(si){const name=document.getElementById('upi_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.upi.push({name,number:document.getElementById('upi_num')?.value?.trim()||'',balance:+document.getElementById('upi_bal')?.value||0,entries:[]});save();toast('Added! Refresh form to see new account in dropdowns.');clearFormCache();renderBalance();};
 window.addBankAcct=function(si){const name=document.getElementById('bank_name')?.value?.trim();if(!name){toast('Enter name');return;}data.shops[si].balanceAccounts.bank.push({name,accountNo:document.getElementById('bank_no')?.value?.trim()||'',balance:+document.getElementById('bank_bal')?.value||0,entries:[]});save();toast('Added! Refresh form to see new account in dropdowns.');clearFormCache();renderBalance();};
-window.delCashE=function(si,i){showReason('Delete Cash Entry',function(reason){const entries=data.shops[si].balanceAccounts.cash.entries;const a=entries[i];data.shops[si].balanceAccounts.cash.balance-=(a?.amount||0);entries.splice(i,1);logChange('DELETE','Cash Entry',fmt(a?.amount)+' '+(a?.note||''),si,reason);save();renderBalance();});};
-window.delUpiE=function(si,ai,i){showReason('Delete UPI Entry',function(reason){const u=data.shops[si].balanceAccounts.upi[ai];const a=u.entries[i];u.balance-=(a?.amount||0);u.entries.splice(i,1);logChange('DELETE','UPI Entry',u.name+' '+fmt(a?.amount),si,reason);save();renderBalance();});};
-window.delBankE=function(si,ai,i){showReason('Delete Bank Entry',function(reason){const bk=data.shops[si].balanceAccounts.bank[ai];const a=bk.entries[i];bk.balance-=(a?.amount||0);bk.entries.splice(i,1);logChange('DELETE','Bank Entry',bk.name+' '+fmt(a?.amount),si,reason);save();renderBalance();});};
+window.delCashE=function(si,i){showReason('Delete Cash Entry',async function(reason){const entries=data.shops[si].balanceAccounts.cash.entries;const a=entries[i];data.shops[si].balanceAccounts.cash.balance-=(a?.amount||0);entries.splice(i,1);logChange('DELETE','Cash Entry',fmt(a?.amount)+' '+(a?.note||''),si,reason);await save();renderBalance();});};
+window.delUpiE=function(si,ai,i){showReason('Delete UPI Entry',async function(reason){const u=data.shops[si].balanceAccounts.upi[ai];const a=u.entries[i];u.balance-=(a?.amount||0);u.entries.splice(i,1);logChange('DELETE','UPI Entry',u.name+' '+fmt(a?.amount),si,reason);await save();renderBalance();});};
+window.delBankE=function(si,ai,i){showReason('Delete Bank Entry',async function(reason){const bk=data.shops[si].balanceAccounts.bank[ai];const a=bk.entries[i];bk.balance-=(a?.amount||0);bk.entries.splice(i,1);logChange('DELETE','Bank Entry',bk.name+' '+fmt(a?.amount),si,reason);await save();renderBalance();});};
 window.addSwipeE=function(si,i){const amt=+document.getElementById('swipe_a_'+i)?.value||0;if(!amt){toast('Enter amount');return;}const sw=data.shops[si].balanceAccounts.swipe[i];sw.balance=+(sw.balance||0)+ +amt;if(!sw.entries)sw.entries=[];sw.entries.push({date:todayISO(),amount:amt,note:document.getElementById('swipe_n_'+i)?.value?.trim()||''});save();toast('Saved!');renderBalance();};
-window.delSwipeE=function(si,ai,i){showReason('Delete Swipe Entry',function(reason){const sw=data.shops[si].balanceAccounts.swipe[ai];const a=sw.entries[i];sw.balance-=(a?.amount||0);sw.entries.splice(i,1);logChange('DELETE','Swipe Entry',sw.name+' '+fmt(a?.amount),si,reason);save();renderBalance();});};
+window.delSwipeE=function(si,ai,i){showReason('Delete Swipe Entry',async function(reason){const sw=data.shops[si].balanceAccounts.swipe[ai];const a=sw.entries[i];sw.balance-=(a?.amount||0);sw.entries.splice(i,1);logChange('DELETE','Swipe Entry',sw.name+' '+fmt(a?.amount),si,reason);await save();renderBalance();});};
 window.addSwipeAcct=function(si){const name=document.getElementById('swipe_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.shops[si].balanceAccounts.swipe)data.shops[si].balanceAccounts.swipe=[];data.shops[si].balanceAccounts.swipe.push({name,bankName:document.getElementById('swipe_bank')?.value?.trim()||'',balance:+document.getElementById('swipe_bal')?.value||0,entries:[]});save();toast('Added!');clearFormCache();renderBalance();};
 
 function renderStaff(){
@@ -1289,7 +1292,7 @@ window.updateToOpts=function(){
 
 window.delTransfer=function(trId){
   if(!isManager())return;
-  showReason('Delete Inter-Branch Transfer',function(reason){
+  showReason('Delete Inter-Branch Transfer',async function(reason){
   const trIdx=data.transfers.findIndex(t=>t.id===trId);
   if(trIdx===-1){toast('Transfer not found');return;}
   const tr=data.transfers[trIdx];
@@ -1304,7 +1307,7 @@ window.delTransfer=function(trId){
   // (we don't remove those - they were separate payments made after the transfer)
   data.transfers.splice(trIdx,1);
   logChange('DELETE','Transfer','Rs.'+fmt(tr.amount)+' '+shopObj(tr.from).name+'→'+shopObj(tr.to).name,tr.from,reason);
-  save();toast('Transfer deleted. Both branch accounts updated.');renderTransfer();
+  await save();toast('Transfer deleted. Both branch accounts updated.');renderTransfer();
   });
 };
 window.addTransfer=function(){
@@ -1422,13 +1425,13 @@ window.delAccount=function(accountId,shopId){
   if(!isOwner())return;
   const acct=data.accounts.find(a=>a.id===accountId);
   if(!acct)return;
-  showReason('Delete Account: '+acct.name,function(reason){
+  showReason('Delete Account: '+acct.name,async function(reason){
     // Remove account
     data.accounts=data.accounts.filter(a=>a.id!==accountId);
     // Remove all ledger entries for this account
     data.ledger=data.ledger.filter(l=>l.accountId!==accountId);
     logChange('DELETE','Account',acct.name+' ('+acct.type+')',shopId,reason);
-    save();toast('Account deleted.');window._selAcct=null;renderAccounts();
+    await save();toast('Account deleted.');window._selAcct=null;renderAccounts();
   });
 };
 window.addAccount=function(si){const name=document.getElementById('acct_name')?.value?.trim();if(!name){toast('Enter name');return;}if(data.accounts.find(a=>a.name===name&&a.shopIdx===si)){toast('Already exists');return;}data.accounts.push({id:uid(),name,type:document.getElementById('acct_type')?.value||'Custom',phone:document.getElementById('acct_phone')?.value?.trim()||'',shopIdx:si,notes:document.getElementById('acct_notes')?.value?.trim()||''});save();toast('Added!');renderAccounts();};
@@ -1494,7 +1497,7 @@ window.addInterBranchPayment=function(accountId,shopId){
 };
 window.delLedger=function(txnId,shopId){
   if(!isManager())return;
-  showReason('Delete Account Transaction',function(reason){
+  showReason('Delete Account Transaction',async function(reason){
   const idx=data.ledger.findIndex(t=>t.id===txnId);if(idx===-1)return;
   const t=data.ledger[idx];
   // Reverse balance if this entry had a balance effect stored
@@ -1530,7 +1533,7 @@ window.delLedger=function(txnId,shopId){
   }
   logChange('DELETE','Ledger',(t.type==='dr'?'Purchase':'Payment Received')+' Rs.'+fmt(t.amount)+' '+(t.note||''),shopId,reason);
   data.ledger.splice(data.ledger.findIndex(l=>l.id===txnId),1);
-  save();toast('Deleted!');renderAccounts();
+  await save();toast('Deleted!');renderAccounts();
   });
 };
 
@@ -1626,21 +1629,21 @@ window.saveAdj=function(si){
   // Refresh whichever page called this
   if(activePage==='dashboard')renderDashboard();else renderBalance();
 };
-window.saveAdjEdit=function(si,i){
+window.saveAdjEdit=async function(si,i){
   const adjs=data.shops[si].adjustments||[];if(!adjs[i])return;
   adjs[i].amount=+document.getElementById('adj_edit_amt')?.value||0;
   adjs[i].note=document.getElementById('adj_edit_note')?.value?.trim()||'';
   data.shops[si].adjustment=adjs.reduce((s,a)=>s+a.amount,0);
-  save();window._editingAdj=null;toast('Updated!');renderBalance();
+  await save();window._editingAdj=null;toast('Updated!');renderBalance();
 };
 window.delAdjEntry=function(si,i){
-  showReason('Delete Adjustment Entry',function(reason){
+  showReason('Delete Adjustment Entry',async function(reason){
     const adjs=data.shops[si].adjustments||[];
     const a=adjs[i];
     adjs.splice(i,1);
     data.shops[si].adjustment=adjs.reduce((s,x)=>s+x.amount,0);
     logChange('DELETE','Adjustment',(a?.amount>=0?'+':'')+fmt(a?.amount)+' '+(a?.note||''),si,reason);
-    save();window._editingAdj=null;toast('Deleted!');renderBalance();
+    await save();window._editingAdj=null;toast('Deleted!');renderBalance();
   });
 };
 window.clearAll=function(){if(!isOwner())return;if(!confirm('Delete ALL data from all shops?'))return;if(!confirm('FINAL WARNING — cannot be undone. Continue?'))return;data={shops:Object.fromEntries(SHOPS.map(s=>[s.id,defShop()])),staff:Object.fromEntries(SHOPS.map(s=>[s.id,[]])),transfers:[],accounts:[],ledger:[],changes:[]};['shopapp_v9','shopapp_v8','shopapp_v7'].forEach(k=>localStorage.removeItem(k));save();toast('Cleared!');renderDashboard();};
