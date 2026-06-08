@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_7.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_8.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -159,6 +159,9 @@ let session = null, activePage = 'dashboard';
 let activeShops = {expense:'poojara',balance:'poojara',staff:'poojara',accounts:'poojara',dashboard:'poojara',recharge:'poojara',sales:'poojara',accrep:'pacc'};
 let fbDb = null, _lastSaved = null;
 let _filterDate = {sales:null,accrep:null,recharge:null,expense:null};
+let _isSaving = false;
+let _showTagChart = false;
+let _selExpTag = null;
 
 // ── DATA TEMPLATE ─────────────────────────────────────────────────────────────
 const defShop = () => ({
@@ -220,6 +223,7 @@ async function initFirebase(){
   }
 }
 async function save(){
+  _isSaving=true;
   showSaving();
   const d = JSON.parse(JSON.stringify(data));
   const month = new Date().toISOString().slice(0,7);
@@ -240,6 +244,7 @@ async function save(){
     saveLocal(d);
   }
   hideSaving();
+  _isSaving=false;
 }
 function saveLocal(d){ try{localStorage.setItem('shopapp_v9',JSON.stringify(d||data));}catch(e){} }
 function loadLocal(){
@@ -378,6 +383,7 @@ window.cancelReason=function(){
 };
 function _resumePoll(){
   if(_pollInterval)return;
+  // Delay 5s to let save() complete before next poll
   _pollInterval=setInterval(async()=>{
     try{
       const result=await cfFetch('GET');
@@ -645,6 +651,14 @@ function renderSalesHistory(shopId){
   if(hist)hist.innerHTML=filterBar+'<div class="card"><div class="card-title">Sales History'+(isManager()?' -- tap to edit':'')+' </div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
 }
 window.calcST=function(){const v=(+document.getElementById('s_cash')?.value||0)+(+document.getElementById('s_upi')?.value||0)+(+document.getElementById('s_bank')?.value||0)+(+document.getElementById('s_swipe')?.value||0)+(+document.getElementById('s_udhari')?.value||0)+(+document.getElementById('s_exch')?.value||0)+(+document.getElementById('s_loan')?.value||0);const el=document.getElementById('saleTot');if(el)el.textContent=fmt(Math.max(0,v));};
+function checkPastDate(dateVal){
+  if(!dateVal)return true;
+  const today=todayISO();
+  if(dateVal<today){
+    return confirm('Are you sure? You are adding an entry for '+fmtDate(dateVal)+', which is a past date. Tap OK only if this is correct.');
+  }
+  return true;
+}
 window.addSale=function(shopId){
   const cash=+document.getElementById('s_cash')?.value||0;const upi=+document.getElementById('s_upi')?.value||0;const bank=+document.getElementById('s_bank')?.value||0;const swipe=+document.getElementById('s_swipe')?.value||0;const exch=+document.getElementById('s_exch')?.value||0;const udhari=+document.getElementById('s_udhari')?.value||0;
   const upiAcct=document.getElementById('s_upi_acct')?.value||'';const bankAcct=document.getElementById('s_bank_acct')?.value||'';const swipeAcct=document.getElementById('s_swipe_acct')?.value||'';const udhAcct=document.getElementById('s_udh_acct')?.value||'';
@@ -809,6 +823,7 @@ window.addAREntry=function(shopId,arrKey,pfx){
   if(swipe>0&&!swipeAcct){toast('Please select a Swipe machine');return;}
   if(udhari>0&&!udhAcct){toast('Please select a Customer account for Udhari');return;}
   const date=document.getElementById(pfx+'_date')?.value||todayISO();
+  if(!checkPastDate(date))return;
   const effects=applyPayments(shopId,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct);
   if(udhari>0&&udhAcct)addLedger(udhAcct,date,'dr',udhari,'Udhari - '+arrKey,'sale',shopId);
   const e={id:uid(),date,cash,upi,upiAcct,bank,bankAcct,swipe,swipeAcct,udhari,udhAcct,total,note:document.getElementById(pfx+'_note')?.value?.trim()||'',_balEffects:effects,_by:byTag()};
@@ -948,7 +963,8 @@ function renderExpense(){
         <div class="field"><label>Amount (Rs.)</label><input type="number" id="exp_amt" placeholder="0" style="font-size:16px;padding:12px 14px"></div>
         <div class="field"><label>Date</label><input type="date" id="exp_date" value="${todayISO()}"></div>
       </div>
-      <div class="field"><label>Note / Description</label><input type="text" id="exp_note" placeholder="e.g. Light bill, Salary..."></div>
+      <div class="field"><label>Tag / Description</label><input type="text" id="exp_note" placeholder="e.g. Electricity, Salary..."></div>
+      <div class="field"><label>Extra Note (optional)</label><input type="text" id="exp_extra_note" placeholder="Additional details, invoice no..."></div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">${tagBtns}</div>
       <div class="field"><label>Paid From</label><select id="exp_from">${balOpts(shopId)}</select></div>
       <div class="field" style="background:#fef9f0;border-radius:12px;padding:12px">
@@ -957,22 +973,51 @@ function renderExpense(){
       </div>
       <button class="save-btn" onclick="addExpense('${shopId}')">💾 Save Expense</button>
     </div>
-    <div class="card"><div class="card-title">🏷 Quick Tags & Monthly Totals</div>
+    <div class="card"><div class="card-title">🏷 Quick Tags</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${tagBtns||'<span style="color:#bbb;font-size:12px">No tags yet</span>'}</div>
-      ${(()=>{
-        const ym=todayISO().slice(0,7);
-        const tagTotals={};
-        (data.shops[shopId].expenses||[]).filter(e=>e.date&&e.date.startsWith(ym)).forEach(e=>{
-          const tag=(data.shops[shopId].expTags||[]).find(t=>e.note&&e.note.includes(t));
-          if(tag){tagTotals[tag]=(tagTotals[tag]||0)+e.amount;}
-        });
-        const entries=Object.entries(tagTotals);
-        if(!entries.length)return '<div style="font-size:11px;color:#bbb;margin-bottom:10px">No tag expenses this month</div>';
-        return '<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#888;margin-bottom:6px">THIS MONTH BY TAG</div>'+
-          entries.map(([tag,amt])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0ede8"><span style="font-size:12px">${tag}</span><span style="font-size:12px;font-weight:700;color:#c0392b">Rs.${fmt(amt)}</span></div>`).join('')+'</div>';
-      })()}
       <div style="display:flex;gap:8px"><input type="text" id="expTagIn" placeholder="Add new tag" style="flex:1;padding:8px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"><button onclick="addExpTag('${shopId}')" style="padding:8px 14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700">Add</button></div>
     </div>
+    <div style="margin-bottom:10px">
+      <button onclick="window._showTagChart=!window._showTagChart;renderExpHistory('${shopId}')" style="width:100%;padding:10px 14px;background:${window._showTagChart?'#1a7a4a':'#f0faf5'};color:${window._showTagChart?'#fff':'#1a7a4a'};border:1.5px solid #1a7a4a;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+        <span>📊 View Expenses by Tag</span><span>${window._showTagChart?'▲ Close':'▼ Open'}</span>
+      </button>
+    </div>
+    ${(()=>{
+      if(!window._showTagChart)return '';
+      const ym=todayISO().slice(0,7);
+      const tags=data.shops[shopId].expTags||[];
+      if(!tags.length)return '<div style="padding:10px;font-size:12px;color:#888">No tags added yet.</div>';
+      const tagTotals={};const tagEnts={};
+      tags.forEach(t=>{tagTotals[t]=0;tagEnts[t]=[];});
+      (data.shops[shopId].expenses||[]).filter(e=>e.date&&e.date.startsWith(ym)).forEach(e=>{
+        const tag=tags.find(t=>e.note&&e.note.includes(t));
+        if(tag){tagTotals[tag]=(tagTotals[tag]||0)+e.amount;tagEnts[tag].push(e);}
+      });
+      const maxAmt=Math.max(...Object.values(tagTotals),1);
+      const selTag=window._selExpTag;
+      let html='<div class="card" style="border:1.5px solid #d4edda"><div class="card-title" style="color:#1a7a4a">📊 Tag Expenses — '+ym+'</div>';
+      tags.forEach(tag=>{
+        const amt=tagTotals[tag]||0;
+        const pct=Math.round((amt/maxAmt)*100);
+        const active=selTag===tag;
+        html+='<div onclick="window._selExpTag=window._selExpTag===\''+tag+'\' ? null : \''+tag+'\';renderExpHistory(\''+shopId+'\');" style="cursor:pointer;margin-bottom:8px;padding:8px;background:'+(active?'#f0faf5':'#fafafa')+';border-radius:10px;border:1px solid '+(active?'#1a7a4a':'#f0ede8')+'">';
+        html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;font-weight:700">'+tag+'</span><span style="font-size:12px;font-weight:700;color:#c0392b">Rs.'+fmt(amt)+'</span></div>';
+        html+='<div style="background:#e8e8e8;border-radius:4px;height:6px"><div style="background:#c0392b;width:'+pct+'%;height:6px;border-radius:4px"></div></div>';
+        html+='<div style="font-size:10px;color:#888;margin-top:3px">'+tagEnts[tag].length+' entries — tap to expand</div></div>';
+        if(active&&tagEnts[tag].length){
+          html+='<div style="margin:4px 0 12px 0;border-left:3px solid #1a7a4a;padding-left:10px">';
+          tagEnts[tag].sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{
+            html+='<div style="padding:6px 0;border-top:1px solid #f0f0f0">';
+            html+='<div style="display:flex;justify-content:space-between"><div style="font-size:12px;font-weight:700">Rs.'+fmt(e.amount)+'</div><span style="font-size:11px;color:#888">'+fmtDate(e.date)+'</span></div>';
+            if(e.extraNote)html+='<div style="font-size:10px;color:#6c3483;margin-top:2px">📝 '+e.extraNote+'</div>';
+            html+='</div>';
+          });
+          html+='</div>';
+        }
+      });
+      html+='</div>';
+      return html;
+    })()}
     <div id="expHistory"></div>`;
   }
   renderExpHistory(shopId);
@@ -994,9 +1039,11 @@ function renderExpHistory(shopId){
 window.addExpense=function(shopId){
   const amt=+document.getElementById('exp_amt')?.value||0;if(!amt){toast('Enter amount');return;}
   const note=document.getElementById('exp_note')?.value?.trim()||'';
+  const extraNote=document.getElementById('exp_extra_note')?.value?.trim()||'';
   const paidFrom=document.getElementById('exp_from')?.value||'cash';
   const accountId=document.getElementById('exp_acct')?.value||'';
   const date=document.getElementById('exp_date')?.value||todayISO();
+  if(!checkPastDate(date))return;
   const effects=[collectBalEffect(shopId,paidFrom,-amt)];
   data.shops[shopId].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId,_balEffects:effects,_by:byTag()});
   if(accountId){
