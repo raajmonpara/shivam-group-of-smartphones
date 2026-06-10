@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_13.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_14.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -96,7 +96,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="login-logo">🏪</div>
   <div class="login-title">Shivam Group</div>
   <div class="login-sub">of Smartphones</div>
-  <div id="syncStatus"><div class="sync-dot error" id="syncDot"></div><span id="syncTxt">Offline mode</span></div>
+  <div id="syncStatus"><div class="sync-dot connected" id="syncDot"></div><span id="syncTxt">Connected — Cloudflare D1</span></div>
   <div class="login-card">
     <div class="role-tabs" id="roleTabs"><button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button><button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button></div>
     <div id="shopFieldWrap" class="field" style="display:none">
@@ -112,7 +112,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="top-bar">
     <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
     <div class="top-bar-right">
-      <span class="sync-indicator" id="appSyncDot">🔄</span>
+      <span class="sync-indicator" id="appSyncDot">🟢</span>
       <div style="display:flex;gap:6px">
       <button onclick="refreshApp()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer" title="Refresh data">🔄</button>
       <button class="logout-btn" onclick="doLogout()">Logout</button>
@@ -187,40 +187,40 @@ async function cfFetch(method, body){
   return method==='GET' ? res.json() : null;
 }
 async function initFirebase(){
-  const dot = document.getElementById('syncDot');
-  const txt = document.getElementById('syncTxt');
+  const dot=document.getElementById('syncDot');
+  const txt=document.getElementById('syncTxt');
+  // Always load local first - guaranteed to work
+  loadLocal();
+  // Then try Cloudflare for latest data
   try{
-    const result = await cfFetch('GET');
+    const result=await cfFetch('GET');
     if(result){
-      if(result.shops) Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
-      if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;}
+      if(result.shops)Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
+      if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;if(g.passwords)data.passwords=g.passwords;}
       ensure();
-    } else { loadLocal(); }
-    if(!data.passwords||!data.passwords.owner){showFirstTimeSetup();return;}
+      saveLocal(data);
+    }
     dot.className='sync-dot connected';
     txt.textContent='Connected — Cloudflare D1';
-    // Check if first time setup needed
-    if(!data.passwords||!data.passwords.owner){showFirstTimeSetup();return;}
     document.getElementById('appSyncDot').textContent='🟢';
-    _pollInterval = setInterval(async ()=>{
+    _pollInterval=setInterval(async()=>{
+      if(_isSaving||Date.now()<_skipPollUntil)return;
       try{
-        const result = await cfFetch('GET');
+        const result=await cfFetch('GET');
         if(result){
           const remoteStr=JSON.stringify(result);
           if(remoteStr!==_lastSaved){
-            // Safety check: only overwrite if remote has equal or more data than local
-            // This prevents poll from wiping a save that hasn't reached Cloudflare yet
             let safeToMerge=true;
             if(result.shops){
               for(const [k,v] of Object.entries(result.shops)){
-                const localCount=(data.shops[k]?.sales?.length||0)+(data.shops[k]?.expenses?.length||0);
-                const remoteCount=(v?.sales?.length||0)+(v?.expenses?.length||0);
-                if(remoteCount < localCount){safeToMerge=false;break;}
+                const lc=(data.shops[k]?.sales?.length||0)+(data.shops[k]?.expenses?.length||0);
+                const rc=(v?.sales?.length||0)+(v?.expenses?.length||0);
+                if(rc<lc){safeToMerge=false;break;}
               }
             }
-            if(!safeToMerge){_skipPollUntil=Date.now()+15000;return;} // Remote is stale, skip
-            if(result.shops) Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
-            if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;}
+            if(!safeToMerge){_skipPollUntil=Date.now()+15000;return;}
+            if(result.shops)Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
+            if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;if(g.passwords)data.passwords=g.passwords;}
             ensure();
             if(session){
               if(activePage==='dashboard')renderDashboard();
@@ -231,12 +231,13 @@ async function initFirebase(){
           }
         }
       }catch(e){}
-    }, 10000);
+    },10000);
   }catch(e){
     dot.className='sync-dot error';
     txt.textContent='Offline mode';
-    loadLocal();
   }
+  // Unified password check - same for online and offline
+  if(!data.passwords?.owner){showFirstTimeSetup();}
 }
 async function save(){
   _isSaving=true;
@@ -253,7 +254,7 @@ async function save(){
     );
     const globalSave = cfFetch('POST', {global: {
       staff: d.staff, transfers: d.transfers,
-      accounts: d.accounts, ledger: d.ledger, changes: d.changes
+      accounts: d.accounts, ledger: d.ledger, changes: d.changes, passwords: d.passwords
     }});
     await Promise.all([...shopSaves, globalSave]);
     // Block poll for 30 seconds after successful save
@@ -267,7 +268,7 @@ async function save(){
         const month2=new Date().toISOString().slice(0,7);
         await Promise.all([
           ...Object.entries(d.shops).map(([sid,sd])=>cfFetch('POST',{shop_id:sid,month:month2,payload:sd})),
-          cfFetch('POST',{global:{staff:d.staff,transfers:d.transfers,accounts:d.accounts,ledger:d.ledger,changes:d.changes}})
+          cfFetch('POST',{global:{staff:d.staff,transfers:d.transfers,accounts:d.accounts,ledger:d.ledger,changes:d.changes,passwords:d.passwords}})
         ]);
         toast('✅ Sync recovered!');
         _skipPollUntil = Date.now() + 30000;
@@ -371,7 +372,10 @@ function ensure(){
   if(!data.ledger)data.ledger=[];
   if(!data.transfers)data.transfers=[];
   if(!data.changes)data.changes=[];
-  // No default passwords in source code - first run shows setup screen
+  // Clear stale placeholder passwords from localStorage if present
+  if(data.passwords?.owner==='__see_app__'||data.passwords?.owner===''){
+    data.passwords=null;
+  }
 }
 
 // ── CHANGE LOG ────────────────────────────────────────────────────────────────
