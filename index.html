@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_14.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_15.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -236,8 +236,7 @@ async function initFirebase(){
     dot.className='sync-dot error';
     txt.textContent='Offline mode';
   }
-  // Unified password check - same for online and offline
-  if(!data.passwords?.owner){showFirstTimeSetup();}
+  // Passwords are always seeded by ensure() if missing - no setup screen needed
 }
 async function save(){
   _isSaving=true;
