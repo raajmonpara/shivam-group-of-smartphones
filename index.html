@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_3.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_4.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1514,6 +1514,7 @@ function renderAccounts(){
   shopTabs('acctTabs','accounts');
   const shopId=isOwner()?activeShops.accounts:(session?.shopIdx||activeShops.accounts);
   const selId=window._selAcct;
+  const _doRestoreSearch=window._restoreSearch;window._restoreSearch=false;
   if(selId){
     const acct=data.accounts.find(a=>a.id===selId);
     if(!acct){window._selAcct=null;renderAccounts();return;}
@@ -1537,7 +1538,12 @@ function renderAccounts(){
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
         ${(isManager()&&(t.source==='manual'||t.source==='ibpayment'))?`<button onclick="delLedger('${t.id}','${shopId}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:(t.source&&t.source!=='manual'&&t.source!=='ibpayment')?`<span style="font-size:10px;color:#bbb;background:#f5f5f0;padding:2px 6px;border-radius:6px">${t.source}</span>`:''}
       </div></div>`).join('');
-    document.getElementById('acctContent').innerHTML=`    <div class="metric-grid">
+    document.getElementById('acctContent').innerHTML=`    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <button onclick="window._selAcct=null;renderAccounts()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a;padding:0">←</button>
+      <div style="font-size:15px;font-weight:800;flex:1">${acct.name} <span class="acct-type-badge type-${acct.type}">${acct.type}</span></div>
+      ${isOwner()?`<button onclick="delAccount('${selId}','${shopId}')" style="background:#fde8e8;border:1px solid #e8c4c4;color:#c0392b;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">Delete</button>`:''}
+    </div>
+    <div class="metric-grid">
       <div class="metric"><div class="metric-label">Total DR</div><div class="metric-value r">₹${fmt(dr)}</div></div>
       <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(cr)}</div></div>
       <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
@@ -1571,12 +1577,13 @@ function renderAccounts(){
     }).join('');
   }).join('');
   document.getElementById('acctContent').innerHTML=`
-  <div style="position:relative;margin-bottom:10px"><input type="text" placeholder="🔍 Search by name or phone..." value="${_acctSearch||''}" oninput="_acctSearch=this.value;renderAccounts()" style="width:100%;padding:10px 40px 10px 14px;border:2px solid #e8e8e8;border-radius:12px;font-size:14px;box-sizing:border-box">${_acctSearch?`<button onclick="_acctSearch='';renderAccounts()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#888">✕</button>`:''}</div>
+  <div style="position:relative;margin-bottom:10px"><input type="text" placeholder="🔍 Search by name or phone..." value="${_acctSearch||''}" oninput="_acctSearch=this.value;window._restoreSearch=true;renderAccounts()" style="width:100%;padding:10px 40px 10px 14px;border:2px solid #e8e8e8;border-radius:12px;font-size:14px;box-sizing:border-box">${_acctSearch?`<button onclick="_acctSearch='';renderAccounts()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#888">✕</button>`:''}</div>
   ${isManager()?`<div class="card"><div class="card-title">➕ Add Account</div>
     <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acct_name" placeholder="Name"></div><div class="field"><label>Type</label><select id="acct_type">${ACCT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
     <div class="two-col"><div class="field"><label>Phone</label><input type="text" id="acct_phone" placeholder="Optional"></div><div class="field"><label>Notes</label><input type="text" id="acct_notes" placeholder="Optional"></div></div>
     <button class="save-btn" onclick="addAccount('${shopId}')">Add</button></div>`:''}
   ${sections||'<div class="card"><div class="empty">No accounts yet</div></div>'}`;
+  if(_doRestoreSearch){const _si=document.getElementById('acctSearch');if(_si){_si.focus();const _l=_si.value.length;_si.setSelectionRange(_l,_l);}}
 }
 
 
