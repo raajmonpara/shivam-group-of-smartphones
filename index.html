@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_17.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_18.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -136,6 +136,19 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 <div class="toast" id="toast"></div>
 <div class="saving-indicator" id="savingInd">Saving...</div>
 <script>
+
+window.togglePwd=function(){
+  const el=document.getElementById('loginPass');
+  const eye=document.getElementById('pwdEye');
+  if(!el)return;
+  if(el.type==='password'){el.type='text';if(eye)eye.textContent='🙈';}
+  else{el.type='password';if(eye)eye.textContent='👁';}
+};
+window.checkCaps=function(e){
+  const warn=document.getElementById('capsWarn');
+  if(warn)warn.style.display=e.getModifierState&&e.getModifierState('CapsLock')?'block':'none';
+};
+
 // ── CLOUDFLARE WORKER CONFIG ──────────────────────────────────────────────────
 const CF_WORKER = 'https://shivam-worker.raajmonpara.workers.dev';
 const APP_KEY = 'shivam2026secure';
@@ -1004,9 +1017,9 @@ function renderExpense(){
     const tags=data.shops[shopId].expTags||[];
     const tagBtns=tags.map(t=>'<button onclick="document.getElementById(\'exp_note\').value=\''+t+'\'" style="padding:5px 10px;background:#f0ede8;border:none;border-radius:8px;font-size:12px;cursor:pointer">'+t+'</button>').join('');
     pg.innerHTML=`<div class="card"><div class="card-title">💸 Add Expense</div>
+      <div class="field"><label>📅 Date</label><input type="date" id="exp_date" value="${todayISO()}" style="width:100%;padding:10px 14px;border:2px solid #e8e8e8;border-radius:12px;font-size:15px"></div>
       <div class="two-col">
         <div class="field"><label>Amount (Rs.)</label><input type="number" id="exp_amt" placeholder="0" style="font-size:16px;padding:12px 14px"></div>
-        <div class="field"><label>Date</label><input type="date" id="exp_date" value="${todayISO()}"></div>
       </div>
       <div class="field"><label>Tag / Description</label><input type="text" id="exp_note" placeholder="e.g. Electricity, Salary..."></div>
       <div class="field"><label>Extra Note (optional)</label><input type="text" id="exp_extra_note" placeholder="Additional details, invoice no..."></div>
@@ -1514,7 +1527,7 @@ function renderAccounts(){
     <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
     return;
   }
-  const accts=data.accounts.filter(a=>a.shopIdx===shopId&&(!_acctSearch||a.name.toLowerCase().includes(_acctSearch.toLowerCase()||a.phone?.includes(_acctSearch))));
+  const accts=data.accounts.filter(a=>a.shopIdx===shopId&&(!_acctSearch||a.name.toLowerCase().includes(_acctSearch.toLowerCase())||( a.phone&&a.phone.includes(_acctSearch))));
   const sections=ACCT_TYPES.map(type=>{
     const list=accts.filter(a=>a.type===type);if(!list.length)return '';
     const icons={Dealer:'🏪',Franchise:'🤝',Staff:'👤',Owner:'👑',Customer:'🧑',Custom:'📂'};
