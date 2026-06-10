@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_20.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_3.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1047,8 +1047,8 @@ function renderExpense(){
     const tags=data.shops[shopId].expTags||[];
     const tagBtns=tags.map(t=>'<button onclick="document.getElementById(\'exp_note\').value=\''+t+'\'" style="padding:5px 10px;background:#f0ede8;border:none;border-radius:8px;font-size:12px;cursor:pointer">'+t+'</button>').join('');
     pg.innerHTML=`<div class="card"><div class="card-title">💸 Add Expense</div>
-      <div class="field"><label>📅 Date</label><input type="date" id="exp_date" value="${todayISO()}"></div>
       <div class="two-col">
+        <div class="field"><label>📅 Date</label><input type="date" id="exp_date" value="${todayISO()}"></div>
         <div class="field"><label>Amount (Rs.)</label><input type="number" id="exp_amt" placeholder="0" style="font-size:16px;padding:12px 14px"></div>
       </div>
       <div class="field"><label>Tag / Description</label><input type="text" id="exp_note" placeholder="e.g. Electricity, Salary..."></div>
@@ -1537,11 +1537,7 @@ function renderAccounts(){
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
         ${(isManager()&&(t.source==='manual'||t.source==='ibpayment'))?`<button onclick="delLedger('${t.id}','${shopId}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">✕</button>`:(t.source&&t.source!=='manual'&&t.source!=='ibpayment')?`<span style="font-size:10px;color:#bbb;background:#f5f5f0;padding:2px 6px;border-radius:6px">${t.source}</span>`:''}
       </div></div>`).join('');
-    document.getElementById('acctContent').innerHTML=`
-
-    <div style="position:relative;margin-bottom:10px"><input type="text" id="acctSearch" placeholder="🔍 Search accounts by name or phone..." value="${_acctSearch||''}" oninput="_acctSearch=this.value;renderAccounts()" style="width:100%;padding:10px 40px 10px 14px;border:2px solid #e8e8e8;border-radius:12px;font-size:14px;box-sizing:border-box">${_acctSearch?`<button onclick="_acctSearch='';renderAccounts()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#888">✕</button>`:''}</div>    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><button onclick="window._selAcct=null;renderAccounts()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a">←</button>
-    <div style="flex:1;margin:0 8px"><div style="font-size:16px;font-weight:800">${acct.name} <span class="acct-type-badge type-${acct.type}">${acct.type}</span></div>${acct.phone?`<div style="font-size:12px;color:#888">📞 ${acct.phone}</div>`:''} ${acct.notes&&acct.notes!=='Auto'?`<div style="font-size:11px;color:#6c3483;margin-top:2px">📝 ${acct.notes}</div>`:''}</div>${isOwner()?`<button onclick="delAccount('${selId}','${shopId}')" style="background:#fde8e8;border:1px solid #e8c4c4;color:#c0392b;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">Delete Account</button>`:''}</div>
-    <div class="metric-grid">
+    document.getElementById('acctContent').innerHTML=`    <div class="metric-grid">
       <div class="metric"><div class="metric-label">Total DR</div><div class="metric-value r">₹${fmt(dr)}</div></div>
       <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(cr)}</div></div>
       <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
@@ -1575,6 +1571,7 @@ function renderAccounts(){
     }).join('');
   }).join('');
   document.getElementById('acctContent').innerHTML=`
+  <div style="position:relative;margin-bottom:10px"><input type="text" placeholder="🔍 Search by name or phone..." value="${_acctSearch||''}" oninput="_acctSearch=this.value;renderAccounts()" style="width:100%;padding:10px 40px 10px 14px;border:2px solid #e8e8e8;border-radius:12px;font-size:14px;box-sizing:border-box">${_acctSearch?`<button onclick="_acctSearch='';renderAccounts()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#888">✕</button>`:''}</div>
   ${isManager()?`<div class="card"><div class="card-title">➕ Add Account</div>
     <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acct_name" placeholder="Name"></div><div class="field"><label>Type</label><select id="acct_type">${ACCT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
     <div class="two-col"><div class="field"><label>Phone</label><input type="text" id="acct_phone" placeholder="Optional"></div><div class="field"><label>Notes</label><input type="text" id="acct_notes" placeholder="Optional"></div></div>
