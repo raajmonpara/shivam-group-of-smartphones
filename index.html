@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_10.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_13.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -96,14 +96,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="login-logo">🏪</div>
   <div class="login-title">Shivam Group</div>
   <div class="login-sub">of Smartphones</div>
-  <div id="syncStatus"><div class="sync-dot connected" id="syncDot"></div><span id="syncTxt">Connected — Cloudflare D1</span></div>
+  <div id="syncStatus"><div class="sync-dot error" id="syncDot"></div><span id="syncTxt">Offline mode</span></div>
   <div class="login-card">
-    <div class="role-tabs" id="roleTabs"><button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button><button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button><button class="role-tab" onclick="setRole(&#39;staff&#39;)">🧑‍🏭 Staff</button></div>
+    <div class="role-tabs" id="roleTabs"><button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button><button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button></div>
     <div id="shopFieldWrap" class="field" style="display:none">
       <label>Branch</label>
       <select id="loginShop"><option value="poojara">POOJARA</option><option value="ramdev">RAMDEV</option><option value="kosad">SHIVAM (KOSAD)</option><option value="khodiyar">SHIVAM (KHODIYAR)</option><option value="pacc">P ACC</option><option value="rdacc">RD ACC</option></select>
     </div>
-    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()"></div>
+    <div class="field"><label>Password</label><div style="position:relative"><input type="password" id="loginPass" placeholder="Enter password" style="width:100%;padding:14px 48px 14px 16px;border:2px solid #e8e8e8;border-radius:16px;font-size:16px;outline:none;box-sizing:border-box" onkeydown="if(event.key===&#39;Enter&#39;)doLogin()" onkeyup="checkCaps(event)"><button onclick="togglePwd()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px" id="pwdEye">👁</button></div><div id="capsWarn" style="display:none;color:#856404;background:#fff3cd;border-radius:8px;padding:6px 10px;font-size:12px;margin-top:6px">⚠️ Caps Lock is ON</div></div>
     <button class="login-btn" onclick="doLogin()">Login →</button>
     <div class="err" id="loginErr"></div>
   </div>
@@ -112,7 +112,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="top-bar">
     <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
     <div class="top-bar-right">
-      <span class="sync-indicator" id="appSyncDot">🟢</span>
+      <span class="sync-indicator" id="appSyncDot">🔄</span>
       <div style="display:flex;gap:6px">
       <button onclick="refreshApp()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer" title="Refresh data">🔄</button>
       <button class="logout-btn" onclick="doLogout()">Logout</button>
@@ -143,15 +143,15 @@ let _pollInterval = null;
 
 // ── SHOPS CONFIG ──────────────────────────────────────────────────────────────
 const SHOPS = [
-  {id:'poojara',   name:'POOJARA',          pass:'poojara123',   manager:'NIKUNJ',  hasSales:true,  hasAccRep:false, hasRecharge:true},
-  {id:'ramdev',    name:'RAMDEV',            pass:'ramdev123',    manager:'PUNIT',   hasSales:true,  hasAccRep:false, hasRecharge:true},
-  {id:'kosad',     name:'SHIVAM (KOSAD)',    pass:'shivam1123',   manager:'KISHAN',  hasSales:true,  hasAccRep:true, hasRecharge:true},
-  {id:'khodiyar',  name:'SHIVAM (KHODIYAR)',pass:'shivam2123',   manager:'RAJVEER', hasSales:true,  hasAccRep:true, hasRecharge:true},
-  {id:'pacc',      name:'P ACC',             pass:'pacc123',      manager:'P-MGR',   hasSales:false, hasAccRep:true, hasRecharge:false},
-  {id:'rdacc',     name:'RD ACC',            pass:'rdacc123',     manager:'RD-MGR',  hasSales:false, hasAccRep:true, hasRecharge:true},
+  {id:'poojara',   name:'POOJARA',          pass:'__see_app__',  manager:'NIKUNJ',  hasSales:true,  hasAccRep:false, hasRecharge:true},
+  {id:'ramdev',    name:'RAMDEV',            pass:'__see_app__',  manager:'PUNIT',   hasSales:true,  hasAccRep:false, hasRecharge:true},
+  {id:'kosad',     name:'SHIVAM (KOSAD)',    pass:'__see_app__',  manager:'KISHAN',  hasSales:true,  hasAccRep:true, hasRecharge:true},
+  {id:'khodiyar',  name:'SHIVAM (KHODIYAR)',pass:'__see_app__',  manager:'RAJVEER', hasSales:true,  hasAccRep:true, hasRecharge:true},
+  {id:'pacc',      name:'P ACC',             pass:'__see_app__',  manager:'P-MGR',   hasSales:false, hasAccRep:true, hasRecharge:false},
+  {id:'rdacc',     name:'RD ACC',            pass:'__see_app__',  manager:'RD-MGR',  hasSales:false, hasAccRep:true, hasRecharge:true},
 ];
-const OWNER_PASS = 'owner@123';
-const STAFF_PASS = 'staff123';
+const OWNER_PASS = '__see_app__';
+const STAFF_PASS = '__see_app__';
 const ACCT_TYPES = ['Dealer','Franchise','Staff','Owner','Customer','Custom'];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
@@ -160,8 +160,10 @@ let activeShops = {expense:'poojara',balance:'poojara',staff:'poojara',accounts:
 let fbDb = null, _lastSaved = null;
 let _filterDate = {sales:null,accrep:null,recharge:null,expense:null};
 let _isSaving = false;
+let _skipPollUntil = 0; // timestamp - skip poll until this time
 let _showTagChart = false;
 let _selExpTag = null;
+let _acctSearch = '';
 
 // ── DATA TEMPLATE ─────────────────────────────────────────────────────────────
 const defShop = () => ({
@@ -194,8 +196,11 @@ async function initFirebase(){
       if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;}
       ensure();
     } else { loadLocal(); }
+    if(!data.passwords||!data.passwords.owner){showFirstTimeSetup();return;}
     dot.className='sync-dot connected';
     txt.textContent='Connected — Cloudflare D1';
+    // Check if first time setup needed
+    if(!data.passwords||!data.passwords.owner){showFirstTimeSetup();return;}
     document.getElementById('appSyncDot').textContent='🟢';
     _pollInterval = setInterval(async ()=>{
       try{
@@ -203,6 +208,17 @@ async function initFirebase(){
         if(result){
           const remoteStr=JSON.stringify(result);
           if(remoteStr!==_lastSaved){
+            // Safety check: only overwrite if remote has equal or more data than local
+            // This prevents poll from wiping a save that hasn't reached Cloudflare yet
+            let safeToMerge=true;
+            if(result.shops){
+              for(const [k,v] of Object.entries(result.shops)){
+                const localCount=(data.shops[k]?.sales?.length||0)+(data.shops[k]?.expenses?.length||0);
+                const remoteCount=(v?.sales?.length||0)+(v?.expenses?.length||0);
+                if(remoteCount < localCount){safeToMerge=false;break;}
+              }
+            }
+            if(!safeToMerge){_skipPollUntil=Date.now()+15000;return;} // Remote is stale, skip
             if(result.shops) Object.entries(result.shops).forEach(([k,v])=>{data.shops[k]=v;});
             if(result.global){const g=result.global;if(g.staff)data.staff=g.staff;if(g.transfers)data.transfers=g.transfers;if(g.accounts)data.accounts=g.accounts;if(g.ledger)data.ledger=g.ledger;if(g.changes)data.changes=g.changes;}
             ensure();
@@ -227,21 +243,36 @@ async function save(){
   showSaving();
   const d = JSON.parse(JSON.stringify(data));
   const month = new Date().toISOString().slice(0,7);
+  // Set _lastSaved BEFORE network call so poll knows what we intend to save
+  const saveStr = JSON.stringify({shops: d.shops, global: {staff:d.staff,transfers:d.transfers,accounts:d.accounts,ledger:d.ledger,changes:d.changes}});
+  _lastSaved = saveStr;
+  saveLocal(d); // Always save locally first
   try{
-    // Save each shop's current month data
     const shopSaves = Object.entries(d.shops).map(([shopId, shopData])=>
       cfFetch('POST', {shop_id: shopId, month, payload: shopData})
     );
-    // Save global data
     const globalSave = cfFetch('POST', {global: {
       staff: d.staff, transfers: d.transfers,
       accounts: d.accounts, ledger: d.ledger, changes: d.changes
     }});
     await Promise.all([...shopSaves, globalSave]);
-    _lastSaved = JSON.stringify({shops: d.shops, global: {staff:d.staff,transfers:d.transfers,accounts:d.accounts,ledger:d.ledger,changes:d.changes}});
-    saveLocal(d);
+    // Block poll for 30 seconds after successful save
+    _skipPollUntil = Date.now() + 30000;
   }catch(e){
-    saveLocal(d);
+    // Save failed - block poll for 60s and retry after 5s
+    _skipPollUntil = Date.now() + 60000;
+    toast('⚠️ Sync error - retrying...');
+    setTimeout(async()=>{
+      try{
+        const month2=new Date().toISOString().slice(0,7);
+        await Promise.all([
+          ...Object.entries(d.shops).map(([sid,sd])=>cfFetch('POST',{shop_id:sid,month:month2,payload:sd})),
+          cfFetch('POST',{global:{staff:d.staff,transfers:d.transfers,accounts:d.accounts,ledger:d.ledger,changes:d.changes}})
+        ]);
+        toast('✅ Sync recovered!');
+        _skipPollUntil = Date.now() + 30000;
+      }catch(e2){toast('❌ Sync failed - data saved locally');}
+    }, 5000);
   }
   hideSaving();
   _isSaving=false;
@@ -340,6 +371,7 @@ function ensure(){
   if(!data.ledger)data.ledger=[];
   if(!data.transfers)data.transfers=[];
   if(!data.changes)data.changes=[];
+  // No default passwords in source code - first run shows setup screen
 }
 
 // ── CHANGE LOG ────────────────────────────────────────────────────────────────
@@ -474,7 +506,7 @@ function addLedger(accountId,date,type,amount,note,source,shopId){
 let _role='owner';
 function buildLoginRoles(){
   const tabs=['owner','manager','staff'];
-  document.getElementById('roleTabs').innerHTML=tabs.map(r=>`<button class="role-tab${_role===r?' active':''}" onclick="setRole('${r}')">${{owner:'👑 Owner',manager:'🧑‍💼 Manager',staff:'🧑‍🏭 Staff'}[r]}</button>`).join('');
+  document.getElementById('roleTabs').innerHTML=['owner','manager'].map(r=>`<button class="role-tab${_role===r?' active':''}" onclick="setRole('${r}')">${{owner:'👑 Owner',manager:'🧑‍💼 Manager'}[r]}</button>`).join('');
   document.getElementById('loginShop').innerHTML=SHOPS.map((s,i)=>`<option value="${s.id}">${s.name}</option>`).join('');
 }
 function setRole(r){
@@ -486,7 +518,8 @@ function doLogin(){
   const pass=document.getElementById('loginPass').value.trim();
   const shopId=document.getElementById('loginShop').value;
   let ok=false, sess={};
-  if(_role==='owner'&&pass===OWNER_PASS){ok=true;sess={role:'owner',shopIdx:null,name:'Owner'};}
+  const ownerPwd=data.passwords?.owner||'';
+  if(_role==='owner'&&pass===ownerPwd){ok=true;sess={role:'owner',shopIdx:null,name:'Owner'};}
   else if(_role==='manager'){
     const s=SHOPS.find(x=>x.id===shopId);
     if(s&&pass===s.pass){ok=true;sess={role:'manager',shopIdx:shopId,name:s.manager};}
@@ -569,6 +602,7 @@ function renderSales(){
         <div class="field"><label>Qty Sold</label><input type="number" id="s_qty" placeholder="0"></div>
       </div>
       <div class="field"><label>💵 Cash Received (Rs.)</label><input type="number" id="s_cash" placeholder="0" oninput="calcST()" style="font-size:16px;padding:12px 14px"></div>
+      <div class="field"><label>🔁 Exchange (old phone value — adds to total)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div>
       <div class="field" style="background:#f0f8ff;border-radius:12px;padding:12px;margin-bottom:8px">
         <label style="font-size:11px;font-weight:800;color:#2980b9;margin-bottom:8px;display:block">📲 UPI Payment</label>
         <div class="two-col">
@@ -590,15 +624,6 @@ function renderSales(){
           <div><input type="number" id="s_swipe" placeholder="Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
         </div>
       </div>
-      <div class="field"><label>🔁 Exchange (old phone value — adds to total)</label><input type="number" id="s_exch" placeholder="0" oninput="calcST()"></div>
-      <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
-        <label style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px;display:block">📋 UDHARI — adds to sale value, customer pays later</label>
-        <div class="two-col">
-          <div><select id="s_udh_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff">${acctOpts(shopId,'-- Customer Account --',true)}</select></div>
-          <div><input type="number" id="s_udhari" placeholder="Udhari Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
-        </div>
-        <div class="field" style="margin-top:6px"><label style="font-size:10px;color:#856404">Udhari Note (visible in customer account)</label><input type="text" id="s_udh_note" placeholder="e.g. iPhone 15, pending payment..."></div>
-      </div>
       <div class="field" style="background:#e8f4ff;border-radius:12px;padding:12px;margin:8px 0">
         <label style="font-size:11px;font-weight:800;color:#1565c0;margin-bottom:8px;display:block">🏦 LOAN / FINANCE — adds to total, no balance effect</label>
         <div style="font-size:10px;color:#555;margin-bottom:8px">Down payment entered above. Enter remaining loan amount customer got from finance company.</div>
@@ -606,6 +631,14 @@ function renderSales(){
           <div><input type="number" id="s_loan" placeholder="Loan Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #c5d8f0;border-radius:10px;font-size:13px"></div>
           <div><input type="text" id="s_loan_note" placeholder="Finance co. / Note" style="width:100%;padding:9px 12px;border:1.5px solid #c5d8f0;border-radius:10px;font-size:13px"></div>
         </div>
+      </div>
+      <div style="background:#fef9f0;border-radius:12px;padding:12px;margin:8px 0">
+        <label style="font-size:11px;font-weight:800;color:#856404;margin-bottom:8px;display:block">📋 UDHARI — adds to sale value, customer pays later</label>
+        <div class="two-col">
+          <div><select id="s_udh_acct" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;background:#fff">${acctOpts(shopId,'-- Customer Account --',true)}</select></div>
+          <div><input type="number" id="s_udhari" placeholder="Udhari Amount" oninput="calcST()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px"></div>
+        </div>
+        <div class="field" style="margin-top:6px"><label style="font-size:10px;color:#856404">Udhari Note (visible in customer account)</label><input type="text" id="s_udh_note" placeholder="e.g. iPhone 15, pending payment..."></div>
       </div>
       <div class="field"><label>Note (optional)</label><input type="text" id="s_note" placeholder="Any note"></div>
       <button class="save-btn" onclick="addSale('${shopId}')">💾 Save Sale</button>
@@ -1269,6 +1302,30 @@ window.delBalAcct=function(shopId,type,idx,ev){
 };
 window.addSwipeAcct=function(si){const name=document.getElementById('swipe_name')?.value?.trim();if(!name){toast('Enter name');return;}if(!data.shops[si].balanceAccounts.swipe)data.shops[si].balanceAccounts.swipe=[];data.shops[si].balanceAccounts.swipe.push({name,bankName:document.getElementById('swipe_bank')?.value?.trim()||'',balance:+document.getElementById('swipe_bal')?.value||0,entries:[]});save();toast('Added!');clearFormCache();renderBalance();};
 
+
+function renderPasswords(){
+  const pg=document.getElementById('page_staff');
+  if(!pg||activePage!=='staff')return;
+  const pwdSection=`<div class="card" style="border:2px solid #f0c040;margin-top:12px"><div class="card-title" style="color:#856404">🔑 Password Management (Owner Only)</div>
+  <div style="font-size:11px;color:#888;margin-bottom:10px">Change any login password. Managers must be told their new password.</div>
+  ${[{id:'owner',label:'👑 Owner'},...SHOPS.map(s=>({id:s.id,label:s.name}))].map(p=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:12px;font-weight:700;flex:1">${p.label}</span>
+      <input type="text" id="pwd_${p.id}" value="${data.passwords?.[p.id]||''}" style="flex:2;padding:7px 10px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:12px">
+      <button onclick="savePass('${p.id}')" style="padding:7px 12px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:700">Save</button>
+    </div>`).join('')}
+  </div>`;
+  const existing=document.getElementById('pwdMgmt');
+  if(existing)existing.outerHTML=pwdSection;
+  else pg.insertAdjacentHTML('beforeend',pwdSection.replace('<div class="card"','<div class="card" id="pwdMgmt"'));
+}
+window.savePass=function(id){
+  const val=document.getElementById('pwd_'+id)?.value?.trim();
+  if(!val||val.length<4){toast('Password must be at least 4 characters');return;}
+  if(!data.passwords)data.passwords={};
+  data.passwords[id]=val;
+  save();toast('Password updated!');
+};
 function renderStaff(){
   shopTabs('staffTabs','staff');
   const shopId=isOwner()?activeShops.staff:(session?.shopIdx||activeShops.staff);
@@ -1423,8 +1480,8 @@ function renderAccounts(){
       <div style="flex:1"><div class="entry-main">${(()=>{
   const isBranch=data.accounts.find(a=>a.id===t.accountId)?.name?.startsWith('Branch:');
   if(isBranch){
-    if(t.note?.startsWith('Receivable'))return '<span class="badge" style="background:#e2d9f3;color:#4a235a">Receivable</span>';
-    if(t.note?.startsWith('Outstanding'))return '<span class="badge badge-dr">Outstanding</span>';
+    if(t.note?.startsWith('Goods Sent'))return '<span class="badge" style="background:#e2d9f3;color:#4a235a">Goods Sent</span>';
+    if(t.note?.startsWith('Goods Received'))return '<span class="badge badge-dr">Goods Received</span>';
     if(t.note?.startsWith('Payment Given'))return '<span class="badge badge-dr">Payment Given</span>';
     if(t.note?.startsWith('Payment Received'))return '<span class="badge badge-cr">Payment Rcvd</span>';
   }
@@ -1454,7 +1511,7 @@ function renderAccounts(){
     <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
     return;
   }
-  const accts=data.accounts.filter(a=>a.shopIdx===shopId);
+  const accts=data.accounts.filter(a=>a.shopIdx===shopId&&(!_acctSearch||a.name.toLowerCase().includes(_acctSearch.toLowerCase()||a.phone?.includes(_acctSearch))));
   const sections=ACCT_TYPES.map(type=>{
     const list=accts.filter(a=>a.type===type);if(!list.length)return '';
     const icons={Dealer:'🏪',Franchise:'🤝',Staff:'👤',Owner:'👑',Customer:'🧑',Custom:'📂'};
