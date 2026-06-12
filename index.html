@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_5.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_7.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -552,6 +552,21 @@ window.showPwdMgmt=function(){
   </div>`;
 };
 
+
+window.filterAccounts=function(){
+  const q=(_acctSearch||'').toLowerCase().trim();
+  // Filter account cards already in DOM without re-rendering
+  document.querySelectorAll('.acct-card-item').forEach(el=>{
+    const name=(el.dataset.name||'').toLowerCase();
+    const phone=(el.dataset.phone||'').toLowerCase();
+    el.style.display=(!q||name.includes(q)||phone.includes(q))?'':'none';
+  });
+  // Hide section headers if all cards in section are hidden
+  document.querySelectorAll('.acct-section').forEach(sec=>{
+    const cards=[...sec.querySelectorAll('.acct-card-item')];
+    sec.style.display=cards.some(c=>c.style.display!=='none')?'':'none';
+  });
+};
 window.downloadBackup=function(){
   const now=new Date();
   const month=now.toISOString().slice(0,7);
@@ -1543,7 +1558,7 @@ function renderAccounts(){
   shopTabs('acctTabs','accounts');
   const shopId=isOwner()?activeShops.accounts:(session?.shopIdx||activeShops.accounts);
   const selId=window._selAcct;
-  const _doRestoreSearch=window._restoreSearch;window._restoreSearch=false;
+
   if(selId){
     const acct=data.accounts.find(a=>a.id===selId);
     if(!acct){window._selAcct=null;renderAccounts();return;}
@@ -1598,7 +1613,7 @@ function renderAccounts(){
       const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
       const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
       const bal=dr-cr;
-      return `<div class="dealer-card" onclick="window._selAcct='${a.id}';renderAccounts()" style="cursor:pointer">
+      return `<div class="dealer-card acct-card-item" data-name="${a.name.toLowerCase()}" data-phone="${(a.phone||'').toLowerCase()}" onclick="window._selAcct='${a.id}';renderAccounts()" style="cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div><div style="font-size:14px;font-weight:700">${a.name}</div>${a.phone?`<div style="font-size:11px;color:#888">${a.phone}</div>`:''} ${a.notes&&a.notes!=='Auto'?`<div style="font-size:11px;color:#6c3483;font-style:italic">${a.notes}</div>`:''}</div>
           <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${bal>0?'#c0392b':'#1a7a4a'}">₹${fmt(Math.abs(bal))}</div><div style="font-size:10px;color:#888">${bal>0?'Outstanding':'Clear'}</div></div>
@@ -1606,13 +1621,12 @@ function renderAccounts(){
     }).join('');
   }).join('');
   document.getElementById('acctContent').innerHTML=`
-  <div style="position:relative;margin-bottom:10px"><input type="text" placeholder="🔍 Search by name or phone..." value="${_acctSearch||''}" oninput="_acctSearch=this.value;window._restoreSearch=true;renderAccounts()" style="width:100%;padding:10px 40px 10px 14px;border:2px solid #e8e8e8;border-radius:12px;font-size:14px;box-sizing:border-box">${_acctSearch?`<button onclick="_acctSearch='';renderAccounts()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#888">✕</button>`:''}</div>
+  <div style="position:relative;margin-bottom:10px"><input type="text" placeholder="🔍 Search by name or phone..." value="${_acctSearch||''}" oninput="_acctSearch=this.value;filterAccounts()" style="width:100%;padding:10px 40px 10px 14px;border:2px solid #e8e8e8;border-radius:12px;font-size:14px;box-sizing:border-box">${_acctSearch?`<button onclick="_acctSearch='';renderAccounts()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#888">✕</button>`:''}</div>
   ${isManager()?`<div class="card"><div class="card-title">➕ Add Account</div>
     <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acct_name" placeholder="Name"></div><div class="field"><label>Type</label><select id="acct_type">${ACCT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
     <div class="two-col"><div class="field"><label>Phone</label><input type="text" id="acct_phone" placeholder="Optional"></div><div class="field"><label>Notes</label><input type="text" id="acct_notes" placeholder="Optional"></div></div>
     <button class="save-btn" onclick="addAccount('${shopId}')">Add</button></div>`:''}
   ${sections||'<div class="card"><div class="empty">No accounts yet</div></div>'}`;
-  if(_doRestoreSearch){const _si=document.getElementById('acctSearch');if(_si){_si.focus();const _l=_si.value.length;_si.setSelectionRange(_l,_l);}}
 }
 
 
