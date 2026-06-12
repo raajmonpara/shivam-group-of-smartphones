@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_4.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_5.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -550,6 +550,35 @@ window.showPwdMgmt=function(){
     </div>`).join('')}
     <p style="font-size:10px;color:#888;margin-top:8px;text-align:center">Changes save to Cloudflare immediately</p>
   </div>`;
+};
+
+window.downloadBackup=function(){
+  const now=new Date();
+  const month=now.toISOString().slice(0,7);
+  const dateStr=now.toISOString().slice(0,10);
+  const backup={
+    _version:'ShivamGroup_v1',
+    _exportedAt:now.toISOString(),
+    _month:month,
+    shops:data.shops,
+    staff:data.staff,
+    transfers:data.transfers,
+    accounts:data.accounts,
+    ledger:data.ledger,
+    changes:data.changes
+    // passwords excluded for security
+  };
+  const json=JSON.stringify(backup,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='ShivamData_'+month+'_'+dateStr+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('✅ Backup downloaded: ShivamData_'+month+'_'+dateStr+'.json');
 };
 window.savePwd=async function(id){
   const val=document.getElementById('pm_'+id)?.value?.trim();
@@ -1789,7 +1818,10 @@ function renderDashboard(){
     </div>
     </div>
   </div>
-  ${isOwner()?`<div class="card" style="border:2px solid #c0392b;margin-top:4px"><div class="card-title" style="color:#c0392b">🗑️ Clear All Data</div><div style="font-size:12px;color:#888;margin-bottom:10px">Wipes everything. Cannot be undone.</div><button class="save-btn red" onclick="clearAll()">Clear All Data</button></div>`:''}`;
+  ${isOwner()?`<div style="display:flex;gap:8px;margin-top:4px">
+  <div class="card" style="flex:1;border:2px solid #1a7a4a;cursor:pointer" onclick="downloadBackup()"><div style="font-size:13px;font-weight:800;color:#1a7a4a;margin-bottom:4px">💾 Download Backup</div><div style="font-size:11px;color:#888">Save all data as JSON file</div></div>
+</div>
+<div class="card" style="border:2px solid #c0392b;margin-top:4px"><div class="card-title" style="color:#c0392b">🗑️ Clear All Data</div><div style="font-size:12px;color:#888;margin-bottom:10px">Wipes everything. Cannot be undone.</div><button class="save-btn red" onclick="clearAll()">Clear All Data</button></div>`:''}`;
 }
 
 window.saveAdj=function(si){
