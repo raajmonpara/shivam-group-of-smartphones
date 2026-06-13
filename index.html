@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_7.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_8.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -832,6 +832,18 @@ window.saveSaleEdit=function(shopId,entryId){
     reverseEffects(shopId,old._balEffects);
     const effects=applyPayments(shopId,fv.cash,fv.upi,fv.upiAcct,fv.bank,fv.bankAcct,0,'');
     arr[idx]={...arr[idx],date:fv.date||arr[idx].date,qty:fv.qty,cash:fv.cash,upi:fv.upi,upiAcct:fv.upiAcct,bank:fv.bank,bankAcct:fv.bankAcct,swipe:fv.swipe,swipeAcct:'',exchange:fv.exch,udhari:fv.udhari,udhAcct:fv.udhAcct,total:fv.cash+fv.upi+fv.bank+fv.swipe+fv.udhari+fv.exch,note:fv.note,_balEffects:effects,_by:arr[idx]._by};
+    // Update udhari ledger entry if udhari amount or account changed
+    if(old.udhAcct||fv.udhAcct){
+      // Remove old udhari ledger entry
+      if(old.udhAcct){
+        const oldIdx=data.ledger.findIndex(l=>l.accountId===old.udhAcct&&l.source==='sale'&&l.shopId===shopId&&Math.abs(l.amount-(old.udhari||0))<0.01&&l.date===old.date);
+        if(oldIdx>-1)data.ledger.splice(oldIdx,1);
+      }
+      // Add new udhari ledger entry if udhari > 0
+      if(fv.udhari>0&&fv.udhAcct){
+        addLedger(fv.udhAcct,fv.date||old.date,'dr',fv.udhari,fv.udhNote||'Udhari - phone sale (edited)','sale',shopId);
+      }
+    }
     logChange('EDIT','Phone Sale',fmtDate(old.date)+' Rs.'+fmt(old.total)+' -> Rs.'+fmt(arr[idx].total),shopId,reason);
     await save();window._editing=null;toast('Updated!');renderSalesHistory(shopId);
   });
@@ -982,6 +994,9 @@ window.saveAREdit=function(shopId,arrKey,entryId){
     reverseEffects(shopId,old._balEffects);
     const effects=applyPayments(shopId,fv.cash,fv.upi,old.upiAcct||'',fv.bank,old.bankAcct||'',fv.swipe,old.swipeAcct||'');
     arr[idx]={...arr[idx],date:fv.date||arr[idx].date,cash:fv.cash,upi:fv.upi,bank:fv.bank,swipe:fv.swipe,total:fv.cash+fv.upi+fv.bank+fv.swipe,note:fv.note,_balEffects:effects};
+    // Update udhari ledger entry for AccRep edit
+    if(old.udhAcct){const oi=data.ledger.findIndex(l=>l.accountId===old.udhAcct&&l.source==='sale'&&l.shopId===shopId&&l.date===old.date);if(oi>-1)data.ledger.splice(oi,1);}
+    if(fv.udhari>0&&fv.udhAcct){addLedger(fv.udhAcct,fv.date||old.date,'dr',fv.udhari,'Udhari - '+arrKey+' (edited)','sale',shopId);}
     logChange('EDIT',arrKey,fmtDate(old.date)+' Rs.'+fmt(old.total)+' -> Rs.'+fmt(arr[idx].total),shopId,reason);
     await save();window._editingAR=null;toast('Updated!');renderAccRep();if(activePage==='dashboard')renderDashboard();
   });
