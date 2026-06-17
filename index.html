@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_1.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_2.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -493,7 +493,7 @@ function acctOpts(shopId,ph='— Select Account —',excludeBranch=false){
   return `<option value="">${ph}</option>`+
     data.accounts.filter(a=>a.shopIdx===shopId&&(!excludeBranch||!a.name.startsWith('Branch:'))).map(a=>`<option value="${a.id}">[${a.type}] ${a.name}</option>`).join('');
 }
-function acctName(id){return data.accounts.find(a=>a.id===id)?.name||'';}
+function acctName(id){const a=data.accounts.find(a=>a.id===id);if(!a)return'';return (a.type==='Staff'||a.type==='Owner')?'Advance → '+a.name:a.name;}
 // ── BALANCE EFFECTS TRACKING ──────────────────────────────────────────────────
 function collectBalEffect(shopId, key, amount){
   // returns an effect object for later reversal
@@ -1180,7 +1180,7 @@ function renderExpHistory(shopId){
   })();
 
   const hist=document.getElementById('expHistory');
-  if(hist)hist.innerHTML=expFilterBar+tagSection+'<div class="card"><div class="card-title">Expenses</div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
+  if(hist)hist.innerHTML=tagSection+expFilterBar+'<div class="card"><div class="card-title">Expenses</div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
 }
 window.addExpense=function(shopId){
   const amt=+document.getElementById('exp_amt')?.value||0;if(!amt){toast('Enter amount');return;}
@@ -1194,25 +1194,31 @@ window.addExpense=function(shopId){
   data.shops[shopId].expenses.push({id:uid(),date,amount:amt,note,paidFrom,accountId,_balEffects:effects,_by:byTag()});
   if(accountId){
     const acct=data.accounts.find(a=>a.id===accountId);
-    const ledgerNote=(acct&&acct.name.startsWith('Branch:')?'Payment Given to '+acct.name.replace('Branch:',''):note)||'Payment';
-    addLedger(accountId,date,'cr',amt,ledgerNote,'expense',shopId);
-    // If paying a branch account, also credit THEIR cash balance
     if(acct&&acct.name.startsWith('Branch:')){
+      // Inter-branch payment (unchanged logic)
+      const ledgerNote='Payment Given to '+acct.name.replace('Branch:','');
+      addLedger(accountId,date,'cr',amt,ledgerNote,'expense',shopId);
       const branchName=acct.name.replace('Branch:','');
       const receivingShop=SHOPS.find(s=>s.name===branchName);
       if(receivingShop){
         credit(receivingShop.id,'cash',amt);
-        // Also add CR ledger entry in receiving branch for their "Branch:sender" account
         const senderName=shopObj(shopId).name;
         let senderAcct=data.accounts.find(a=>a.name==='Branch:'+senderName&&a.shopIdx===receivingShop.id);
         if(!senderAcct){senderAcct={id:uid(),name:'Branch:'+senderName,type:'Custom',phone:'',shopIdx:receivingShop.id,notes:'Inter-branch'};data.accounts.push(senderAcct);}
         addLedger(senderAcct.id,date,'dr',amt,'Payment Received from '+senderName+(note?' - '+note:''),'expense',receivingShop.id);
       }
+    } else if(acct&&(acct.type==='Staff'||acct.type==='Owner')){
+      // Advance/Salary given to Staff or Owner = DR (red) — they owe this back to the shop
+      addLedger(accountId,date,'dr',amt,note||'Advance',  'expense',shopId);
+    } else {
+      // Dealer/Customer/Franchise/Custom — payment given reduces what we owe them = CR (green)
+      addLedger(accountId,date,'cr',amt,note||'Payment','expense',shopId);
     }
   }
   save();toast('Saved!');
   document.getElementById('exp_amt').value='';
   document.getElementById('exp_note').value='';
+  const expExtra=document.getElementById('exp_extra_note');if(expExtra)expExtra.value='';
   const expAcct=document.getElementById('exp_acct');if(expAcct)expAcct.value='';
   const expDate=document.getElementById('exp_date');if(expDate)expDate.value=todayISO();
   renderExpHistory(shopId);
@@ -1592,7 +1598,7 @@ function renderAccounts(){
     if(t.note?.startsWith('Payment Given'))return '<span class="badge badge-dr">Payment Given</span>';
     if(t.note?.startsWith('Payment Received'))return '<span class="badge badge-cr">Payment Rcvd</span>';
   }
-  return t.type==='dr'?'<span class="badge badge-dr">Purchase</span>':'<span class="badge badge-cr">Payment Rcvd</span>';
+  return t.type==='dr'?'<span class="badge badge-dr">'+(t.source==='expense'?'Advance':(t.source==='sale'?'Udhari':'Purchase'))+'</span>':'<span class="badge badge-cr">'+(t.source==='manual'?'Repayment':'Payment Rcvd')+'</span>';
 })()} ₹${fmt(t.amount)} <span style="font-size:10px;background:#f0ede8;padding:1px 5px;border-radius:6px;color:#666">${t.source||''}</span></div>
       <div class="entry-sub">${t.note||''} | ${fmtDate(t.date)}${t._by?' · '+t._by:''}</div></div>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -1610,8 +1616,8 @@ function renderAccounts(){
     </div>
     ${acct.name.startsWith('Branch:')?`<div class="card" style="background:#fef9f0;border:1px solid #f0c040"><div style="font-size:12px;color:#856404;font-weight:600">⚠️ Inter-branch account — view only. Record payments via Expense section (pay to Branch:X) or Inter-branch Transfer section.</div></div>`:`<div class="card"><div class="card-title">➕ Add Transaction</div>
       <div class="two-col"><div class="field"><label>Type</label><select id="lt_type" onchange="toggleLedgerBalField()">
-        <option value="purchase">📦 Purchase on Credit (I owe them — no balance change)</option>
-        <option value="payment_received">💰 Payment Received / Baki Jama (adds to balance)</option>
+        <option value="purchase">📦 ${(acct.type==='Staff'||acct.type==='Owner')?'Advance Given (manual, no balance change — use Expense section instead)':'Purchase on Credit (I owe them — no balance change)'}</option>
+        <option value="payment_received">💰 ${(acct.type==='Staff'||acct.type==='Owner')?'Repayment / Paid Back (adds to balance)':'Payment Received / Baki Jama (adds to balance)'}</option>
       </select></div><div class="field"><label>Amount (Rs.)</label><input type="number" id="lt_amt" placeholder="0"></div></div>
       <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div></div>
       <div class="field" id="lt_bal_wrap"><label>Payment received in (which account)</label><select id="lt_bal"><option value="">-- Select Balance Account --</option>${balOpts(shopId)}</select></div>
