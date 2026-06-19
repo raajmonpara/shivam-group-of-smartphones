@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_5.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_6.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -101,7 +101,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="login-logo">🏪</div>
   <div class="login-title">Shivam Group</div>
   <div class="login-sub">of Smartphones</div>
-  <div id="syncStatus"><div class="sync-dot error" id="syncDot"></div><span id="syncTxt">Offline mode</span></div>
+  <div id="syncStatus"><div class="sync-dot connected" id="syncDot"></div><span id="syncTxt">Connected — Cloudflare D1</span></div>
   <div class="login-card">
     <div class="role-tabs" id="roleTabs"><button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button><button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button></div>
     <div id="shopFieldWrap" class="field" style="display:none">
@@ -117,7 +117,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="top-bar">
     <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
     <div class="top-bar-right">
-      <span class="sync-indicator" id="appSyncDot">🔄</span>
+      <span class="sync-indicator" id="appSyncDot">🟢</span>
       <div style="display:flex;gap:6px">
       <button onclick="showPwdMgmt()" id="pwdBtn" style="display:none;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:14px">🔑</button>
       <button onclick="refreshApp()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer" title="Refresh data">🔄</button>
@@ -693,6 +693,114 @@ window.renderTagPanel=function(shopId){
   html+=`</div>`;
   panel.innerHTML=html;
 };
+
+// ── LEDGER EXPORT FUNCTIONS ──────────────────────────────────────────────────
+function downloadCSV(filename, rows){
+  const csv=rows.map(r=>r.map(cell=>{
+    const s=String(cell===null||cell===undefined?'':cell);
+    return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;
+  }).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('✅ Downloaded: '+filename);
+}
+
+window.exportAccountLedger=function(accountId,shopId){
+  const acct=data.accounts.find(a=>a.id===accountId);
+  if(!acct)return;
+  const txns=data.ledger.filter(t=>t.accountId===accountId).sort((a,b)=>a.date.localeCompare(b.date));
+  const rows=[
+    ['Shivam Group of Smartphones — Account Ledger'],
+    ['Account:',acct.name,'Type:',acct.type,'Branch:',shopObj(shopId||acct.shopIdx)?.name||''],
+    ['Exported:',new Date().toLocaleDateString('en-IN')],
+    [],
+    ['Date','Type','Amount (Rs.)','Note','Source','Balance'],
+  ];
+  let running=0;
+  txns.forEach(t=>{
+    const amt=t.type==='dr'?t.amount:-t.amount;
+    running+=amt;
+    rows.push([
+      fmtDate(t.date),
+      t.type==='dr'?'DR (Debit)':'CR (Credit)',
+      t.amount,
+      t.note||'',
+      t.source||'manual',
+      running
+    ]);
+  });
+  rows.push([]);
+  const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
+  const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
+  rows.push(['','TOTAL DR',dr,'TOTAL CR','',cr]);
+  rows.push(['','BALANCE (DR-CR)',dr-cr]);
+  const date=new Date().toISOString().slice(0,10);
+  downloadCSV(acct.name.replace(/[^a-zA-Z0-9]/g,'_')+'_Ledger_'+date+'.csv', rows);
+};
+
+window.exportAllAccounts=function(shopId){
+  const accts=data.accounts.filter(a=>a.shopIdx===shopId);
+  if(!accts.length){toast('No accounts in this branch');return;}
+  const rows=[
+    ['Shivam Group of Smartphones — All Accounts Ledger'],
+    ['Branch:',shopObj(shopId)?.name||shopId,'Exported:',new Date().toLocaleDateString('en-IN')],
+    [],
+  ];
+  accts.forEach(acct=>{
+    const txns=data.ledger.filter(t=>t.accountId===acct.id).sort((a,b)=>a.date.localeCompare(b.date));
+    if(!txns.length)return;
+    const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
+    const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
+    rows.push(['── '+acct.name+' ('+acct.type+') ──']);
+    rows.push(['Date','Type','Amount (Rs.)','Note','Balance']);
+    let running=0;
+    txns.forEach(t=>{
+      const amt=t.type==='dr'?t.amount:-t.amount;
+      running+=amt;
+      rows.push([fmtDate(t.date),t.type==='dr'?'DR':'CR',t.amount,t.note||'',running]);
+    });
+    rows.push(['','Total DR',dr,'Total CR',cr,'Balance',dr-cr]);
+    rows.push([]);
+  });
+  const date=new Date().toISOString().slice(0,10);
+  downloadCSV(shopObj(shopId)?.name+'_AllAccounts_'+date+'.csv', rows);
+};
+
+window.exportAllBranchesAccounts=function(){
+  const rows=[
+    ['Shivam Group of Smartphones — Complete Accounts Ledger (All Branches)'],
+    ['Exported:',new Date().toLocaleDateString('en-IN')],
+    [],
+  ];
+  SHOPS.forEach(shop=>{
+    const accts=data.accounts.filter(a=>a.shopIdx===shop.id);
+    if(!accts.length)return;
+    rows.push(['════ '+shop.name+' ════']);
+    accts.forEach(acct=>{
+      const txns=data.ledger.filter(t=>t.accountId===acct.id).sort((a,b)=>a.date.localeCompare(b.date));
+      if(!txns.length)return;
+      const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
+      const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
+      rows.push(['  ── '+acct.name+' ('+acct.type+') ──']);
+      rows.push(['  Date','Type','Amount','Note','Balance']);
+      let running=0;
+      txns.forEach(t=>{
+        const amt=t.type==='dr'?t.amount:-t.amount;
+        running+=amt;
+        rows.push(['  '+fmtDate(t.date),t.type==='dr'?'DR':'CR',t.amount,t.note||'',running]);
+      });
+      rows.push(['  Balance (DR-CR)',dr-cr]);
+      rows.push([]);
+    });
+    rows.push([]);
+  });
+  const date=new Date().toISOString().slice(0,10);
+  downloadCSV('ShivamGroup_ALL_Accounts_'+date+'.csv', rows);
+};
+// ─────────────────────────────────────────────────────────────────────────────
 function doLogin(){
   const pass=document.getElementById('loginPass').value.trim();
   const shopId=document.getElementById('loginShop').value;
@@ -1710,7 +1818,8 @@ function renderAccounts(){
     document.getElementById('acctContent').innerHTML=`    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <button onclick="window._selAcct=null;renderAccounts()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a7a4a;padding:0">←</button>
       <div style="font-size:15px;font-weight:800;flex:1">${acct.name} <span class="acct-type-badge type-${acct.type}">${acct.type}</span></div>
-      ${isOwner()?`<button onclick="delAccount('${selId}','${shopId}')" style="background:#fde8e8;border:1px solid #e8c4c4;color:#c0392b;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">Delete</button>`:''}
+      <button onclick="exportAccountLedger('${selId}','${shopId}')" style="background:#e8f4ff;border:1px solid #90caf9;color:#1565c0;padding:6px 10px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer">⬇ CSV</button>
+      ${isOwner()?`<button onclick="delAccount('${selId}','${shopId}')" style="background:#fde8e8;border:1px solid #e8c4c4;color:#c0392b;padding:6px 10px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">Delete</button>`:''}
     </div>
     <div class="metric-grid">
       <div class="metric"><div class="metric-label">Total DR</div><div class="metric-value r">₹${fmt(dr)}</div></div>
