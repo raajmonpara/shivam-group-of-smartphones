@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_3.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_4.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1312,7 +1312,7 @@ function renderBalance(){
       return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${u.name} ${isOwner()?`<button onclick="delBalAcct('${shopId}','upi',${i},event)" style="font-size:10px;padding:2px 6px;background:#fde8e8;border:1px solid #e8c4c4;color:#c0392b;border-radius:6px;cursor:pointer;margin-left:4px">✕ Delete</button>`:''}</div><div style="font-size:11px;color:#888">${u.number||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">Rs.${fmt(u.balance)}</div></div>
       <div style="display:flex;gap:6px;margin-bottom:4px"><input type="number" id="upi_a_${i}" placeholder="Amount" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"><input type="text" id="upi_n_${i}" placeholder="Note" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px"></div><div style="display:flex;gap:6px;margin-bottom:8px"><input type="date" id="upi_d_${i}" value="${todayISO()}" style="flex:1;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:12px"><button onclick="addUpiE('${shopId}',${i})" style="padding:8px 20px;background:#1a7a4a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700">Add</button></div>${rows}</div>`;
     }).join('');
-    body=`${cards||'<div class="card"><div class="empty">No UPI accounts</div></div>'}
+    body=(allUpiAccts.length>1?consToggle:'')+`${cards||'<div class="card"><div class="empty">No UPI accounts</div></div>'}
     <div class="card"><div class="card-title">Add UPI Account</div>
       <div class="two-col"><div class="field"><label>Name</label><input type="text" id="upi_name" placeholder="GPay/PhonePe"></div><div class="field"><label>Number</label><input type="text" id="upi_num" placeholder="Mobile no."></div></div>
       <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="upi_bal" placeholder="0"></div>
@@ -1343,6 +1343,7 @@ function renderBalance(){
       <div class="two-col"><div class="field"><label>Bank Name</label><input type="text" id="bank_name" placeholder="SBI/HDFC"></div><div class="field"><label>Acct No.</label><input type="text" id="bank_no" placeholder="Last 4 digits"></div></div>
       <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="bank_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addBankAcct('${shopId}')">Add</button></div>`;
+    body=(allBankAccts.length>1?bankToggle:'')+body;
     } // close else
   } else if(sub==='swipe'){
     const allSwipeAccts = data.shops[shopId].balanceAccounts?.swipe||[];
