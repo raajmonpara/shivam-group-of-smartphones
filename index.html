@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_4.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_5.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -89,6 +89,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+#tagPanel{position:fixed;top:0;right:-100%;width:100%;max-width:480px;height:100%;background:#f5f0eb;z-index:9998;overflow-y:auto;transition:right 0.3s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.15);}
+#tagPanel.open{right:0;}
+#tagPanelOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:9997;display:none;}
+#tagPanelOverlay.open{display:block;}
 </style>
 </head>
 <body>
@@ -96,7 +101,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="login-logo">🏪</div>
   <div class="login-title">Shivam Group</div>
   <div class="login-sub">of Smartphones</div>
-  <div id="syncStatus"><div class="sync-dot connected" id="syncDot"></div><span id="syncTxt">Connected — Cloudflare D1</span></div>
+  <div id="syncStatus"><div class="sync-dot error" id="syncDot"></div><span id="syncTxt">Offline mode</span></div>
   <div class="login-card">
     <div class="role-tabs" id="roleTabs"><button class="role-tab active" onclick="setRole(&#39;owner&#39;)">👑 Owner</button><button class="role-tab" onclick="setRole(&#39;manager&#39;)">🧑‍💼 Manager</button></div>
     <div id="shopFieldWrap" class="field" style="display:none">
@@ -112,7 +117,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="top-bar">
     <div><div class="top-bar-title" id="barTitle">Shop Manager</div><div class="top-bar-sub" id="barSub"></div></div>
     <div class="top-bar-right">
-      <span class="sync-indicator" id="appSyncDot">🟢</span>
+      <span class="sync-indicator" id="appSyncDot">🔄</span>
       <div style="display:flex;gap:6px">
       <button onclick="showPwdMgmt()" id="pwdBtn" style="display:none;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:14px">🔑</button>
       <button onclick="refreshApp()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer" title="Refresh data">🔄</button>
@@ -135,6 +140,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   <div class="bottom-nav" id="bottomNav"></div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="tagPanelOverlay" onclick="closeTagPanel()"></div>
+<div id="tagPanel"><div id="tagPanelContent"></div></div>
 <div class="saving-indicator" id="savingInd">Saving...</div>
 <script>
 
@@ -603,6 +610,88 @@ window.savePwd=async function(id){
   data.passwords[id]=val;
   await save();
   toast('✅ Password updated!');
+};
+
+window.openTagPanel=function(shopId){
+  renderTagPanel(shopId);
+  document.getElementById('tagPanel').classList.add('open');
+  document.getElementById('tagPanelOverlay').classList.add('open');
+};
+window.closeTagPanel=function(){
+  document.getElementById('tagPanel').classList.remove('open');
+  document.getElementById('tagPanelOverlay').classList.remove('open');
+};
+window.renderTagPanel=function(shopId){
+  const tags=data.shops[shopId].expTags||[];
+  const panel=document.getElementById('tagPanelContent');
+  if(!panel)return;
+  if(!tags.length){panel.innerHTML='<div style="padding:24px;text-align:center;color:#888">No tags added yet.</div>';return;}
+  
+  // Build month selector
+  const allExps=data.shops[shopId].expenses||[];
+  const months=[...new Set(allExps.map(e=>e.date?.slice(0,7)).filter(Boolean))].sort().reverse();
+  if(!window._tagPanelMonth)window._tagPanelMonth=new Date().toISOString().slice(0,7);
+  const ym=window._tagPanelMonth;
+  
+  const tagTotals={};const tagEnts={};
+  tags.forEach(t=>{tagTotals[t]=0;tagEnts[t]=[];});
+  allExps.filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+    const tag=tags.find(t=>e.note&&e.note.includes(t));
+    if(tag){tagTotals[tag]=(tagTotals[tag]||0)+e.amount;tagEnts[tag].push(e);}
+  });
+  const maxAmt=Math.max(...Object.values(tagTotals),1);
+  const grandTotal=Object.values(tagTotals).reduce((s,v)=>s+v,0);
+
+  let html=`<div style="padding:16px 16px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:17px;font-weight:800">📊 Expenses by Tag</div>
+      <button onclick="closeTagPanel()" style="background:#e8e8e8;border:none;border-radius:10px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:14px">✕ Close</button>
+    </div>
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px">
+      ${months.map(m=>`<button onclick="window._tagPanelMonth='${m}';renderTagPanel('${shopId}')" style="padding:6px 12px;background:${m===ym?'#1a7a4a':'#fff'};color:${m===ym?'#fff':'#333'};border:1.5px solid ${m===ym?'#1a7a4a':'#e8e8e8'};border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">${m}</button>`).join('')}
+    </div>
+    <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="font-size:11px;color:#888;font-weight:700;margin-bottom:8px">TOTAL EXPENSES — ${ym}</div>
+      <div style="font-size:22px;font-weight:800;color:#c0392b">Rs.${fmt(grandTotal)}</div>
+    </div>
+  </div>
+  <div style="padding:0 16px 80px">`;
+
+  // Tag bars + expandable entries
+  tags.forEach(tag=>{
+    const amt=tagTotals[tag]||0;
+    const pct=Math.round((amt/maxAmt)*100);
+    const ents=tagEnts[tag]||[];
+    const selTag=window._selExpTag;
+    const active=selTag===tag;
+    html+=`<div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+      <div onclick="window._selExpTag=window._selExpTag==='${tag}'?null:'${tag}';renderTagPanel('${shopId}')" style="cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:14px;font-weight:700">${tag}</div>
+          <div style="font-size:14px;font-weight:800;color:#c0392b">Rs.${fmt(amt)}</div>
+        </div>
+        <div style="background:#f0ede8;border-radius:6px;height:8px;margin-bottom:6px">
+          <div style="background:#c0392b;width:${pct}%;height:8px;border-radius:6px;transition:width 0.3s"></div>
+        </div>
+        <div style="font-size:11px;color:#888">${ents.length} entries · ${grandTotal?Math.round(amt/grandTotal*100):0}% of total · tap to ${active?'collapse':'expand'}</div>
+      </div>`;
+    if(active&&ents.length){
+      html+=`<div style="margin-top:10px;border-top:1px solid #f0ede8;padding-top:8px">`;
+      ents.sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{
+        html+=`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f8f5f0">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#c0392b">Rs.${fmt(e.amount)}</div>
+            <div style="font-size:11px;color:#555;margin-top:2px">${e.note||''}${e.extraNote?` · <span style="color:#6c3483">${e.extraNote}</span>`:''}</div>
+          </div>
+          <span style="font-size:11px;color:#aaa;white-space:nowrap;margin-left:8px">${fmtDate(e.date)}</span>
+        </div>`;
+      });
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+  panel.innerHTML=html;
 };
 function doLogin(){
   const pass=document.getElementById('loginPass').value.trim();
@@ -1142,43 +1231,7 @@ function renderExpHistory(shopId){
   </div>`;
   const rows=expenses.map((e,i)=>`<div class="entry-row"><div><div class="entry-main r">Rs.${fmt(e.amount)}${e._by?`<span style='font-size:10px;color:#bbb'> · ${e._by}</span>`:''}</div><div class="entry-sub">${e.note||'Expense'} | ${balLabel(shopId,e.paidFrom||'cash')}${e.accountId?' to '+acctName(e.accountId):''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delExpense('${shopId}','${e.id}')" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`).join('');
   // Build tag chart section
-  const tagSection=(()=>{
-    const ym=todayISO().slice(0,7);
-    const tags=data.shops[shopId].expTags||[];
-    const btnStyle='width:100%;padding:10px 14px;background:'+(window._showTagChart?'#1a7a4a':'#f0faf5')+';color:'+(window._showTagChart?'#fff':'#1a7a4a')+';border:1.5px solid #1a7a4a;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px';
-    let html='<div style="margin-bottom:8px"><button onclick="window._showTagChart=!window._showTagChart;renderExpHistory(\''+shopId+'\')" style="'+btnStyle+'"><span>📊 Expenses by Tag</span><span>'+(window._showTagChart?'▲ Close':'▼ Open')+'</span></button></div>';
-    if(!window._showTagChart||!tags.length)return html;
-    const tagTotals={};const tagEnts={};
-    tags.forEach(t=>{tagTotals[t]=0;tagEnts[t]=[];});
-    (data.shops[shopId].expenses||[]).filter(e=>e.date&&e.date.startsWith(ym)).forEach(e=>{
-      const tag=tags.find(t=>e.note&&e.note.includes(t));
-      if(tag){tagTotals[tag]=(tagTotals[tag]||0)+e.amount;tagEnts[tag].push(e);}
-    });
-    const maxAmt=Math.max(...Object.values(tagTotals),1);
-    const selTag=window._selExpTag;
-    html+='<div class="card" style="border:1.5px solid #d4edda"><div class="card-title" style="color:#1a7a4a">📊 Tag Totals — '+ym+'</div>';
-    tags.forEach(tag=>{
-      const amt=tagTotals[tag]||0;
-      const pct=Math.round((amt/maxAmt)*100);
-      const active=selTag===tag;
-      html+='<div onclick="window._selExpTag=window._selExpTag===\''+tag+'\' ? null : \''+tag+'\';renderExpHistory(\''+shopId+'\')" style="cursor:pointer;margin-bottom:8px;padding:8px;background:'+(active?'#f0faf5':'#fafafa')+';border-radius:10px;border:1px solid '+(active?'#1a7a4a':'#f0ede8')+'">';
-      html+='<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;font-weight:700">'+tag+'</span><span style="font-size:12px;font-weight:700;color:#c0392b">Rs.'+fmt(amt)+'</span></div>';
-      html+='<div style="background:#e8e8e8;border-radius:4px;height:6px"><div style="background:#c0392b;width:'+pct+'%;height:6px;border-radius:4px"></div></div>';
-      html+='<div style="font-size:10px;color:#888;margin-top:3px">'+tagEnts[tag].length+' entries'+(active?' — tap to collapse':' — tap to expand')+'</div></div>';
-      if(active&&tagEnts[tag].length){
-        html+='<div style="margin:4px 0 12px 0;border-left:3px solid #1a7a4a;padding-left:10px">';
-        tagEnts[tag].sort((a,b)=>b.date.localeCompare(a.date)).forEach(e=>{
-          html+='<div style="padding:6px 0;border-top:1px solid #f0f0f0">';
-          html+='<div style="display:flex;justify-content:space-between"><span style="font-size:12px;font-weight:700">Rs.'+fmt(e.amount)+'</span><span style="font-size:11px;color:#888">'+fmtDate(e.date)+'</span></div>';
-          if(e.extraNote)html+='<div style="font-size:10px;color:#6c3483;margin-top:2px">📝 '+e.extraNote+'</div>';
-          html+='</div>';
-        });
-        html+='</div>';
-      }
-    });
-    html+='</div>';
-    return html;
-  })();
+  const tagSection=`<button onclick="openTagPanel('${shopId}')" style="width:100%;padding:10px 14px;background:#f0faf5;color:#1a7a4a;border:1.5px solid #1a7a4a;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span>📊 Expenses by Tag</span><span>→ Open</span></button>`;
 
   const hist=document.getElementById('expHistory');
   if(hist)hist.innerHTML=tagSection+expFilterBar+'<div class="card"><div class="card-title">Expenses</div>'+(rows||'<div class="empty">No entries for this date</div>')+'</div>';
