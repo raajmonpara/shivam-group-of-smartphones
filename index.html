@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_6.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_7.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -711,32 +711,36 @@ function downloadCSV(filename, rows){
 window.exportAccountLedger=function(accountId,shopId){
   const acct=data.accounts.find(a=>a.id===accountId);
   if(!acct)return;
+  const sid=shopId||acct.shopIdx;
   const txns=data.ledger.filter(t=>t.accountId===accountId).sort((a,b)=>a.date.localeCompare(b.date));
+  const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
+  const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
   const rows=[
-    ['Shivam Group of Smartphones — Account Ledger'],
-    ['Account:',acct.name,'Type:',acct.type,'Branch:',shopObj(shopId||acct.shopIdx)?.name||''],
-    ['Exported:',new Date().toLocaleDateString('en-IN')],
-    [],
-    ['Date','Type','Amount (Rs.)','Note','Source','Balance'],
+    ['SHIVAM GROUP OF SMARTPHONES','','','','',''],
+    ['Account Ledger Statement','','','','',''],
+    ['','','','','',''],
+    ['Account Name','Account Type','Branch','Outstanding Balance','Exported On',''],
+    [acct.name, acct.type, shopObj(sid)?.name||'', dr-cr, new Date().toLocaleDateString('en-IN'),''],
+    ['','','','','',''],
+    ['Sr.','Date','Particulars / Note','Debit (Dr.)','Credit (Cr.)','Balance'],
+    ['','','','','',''],
   ];
   let running=0;
-  txns.forEach(t=>{
-    const amt=t.type==='dr'?t.amount:-t.amount;
-    running+=amt;
+  txns.forEach((t,i)=>{
+    const isdr=t.type==='dr';
+    running+=isdr?t.amount:-t.amount;
     rows.push([
+      i+1,
       fmtDate(t.date),
-      t.type==='dr'?'DR (Debit)':'CR (Credit)',
-      t.amount,
-      t.note||'',
-      t.source||'manual',
+      t.note||'-',
+      isdr?t.amount:'',
+      !isdr?t.amount:'',
       running
     ]);
   });
-  rows.push([]);
-  const dr=txns.filter(t=>t.type==='dr').reduce((s,t)=>s+t.amount,0);
-  const cr=txns.filter(t=>t.type==='cr').reduce((s,t)=>s+t.amount,0);
-  rows.push(['','TOTAL DR',dr,'TOTAL CR','',cr]);
-  rows.push(['','BALANCE (DR-CR)',dr-cr]);
+  rows.push(['','','','','','']);
+  rows.push(['','','TOTAL',dr,cr,'']);
+  rows.push(['','','NET OUTSTANDING (Dr - Cr)',dr-cr,'','']);
   const date=new Date().toISOString().slice(0,10);
   downloadCSV(acct.name.replace(/[^a-zA-Z0-9]/g,'_')+'_Ledger_'+date+'.csv', rows);
 };
@@ -745,7 +749,7 @@ window.exportAllAccounts=function(shopId){
   const accts=data.accounts.filter(a=>a.shopIdx===shopId);
   if(!accts.length){toast('No accounts in this branch');return;}
   const rows=[
-    ['Shivam Group of Smartphones — All Accounts Ledger'],
+    ['Shivam Group of Smartphones - All Accounts Ledger'],
     ['Branch:',shopObj(shopId)?.name||shopId,'Exported:',new Date().toLocaleDateString('en-IN')],
     [],
   ];
@@ -771,7 +775,7 @@ window.exportAllAccounts=function(shopId){
 
 window.exportAllBranchesAccounts=function(){
   const rows=[
-    ['Shivam Group of Smartphones — Complete Accounts Ledger (All Branches)'],
+    ['Shivam Group of Smartphones - Complete Accounts Ledger - All Branches'],
     ['Exported:',new Date().toLocaleDateString('en-IN')],
     [],
   ];
@@ -1855,6 +1859,10 @@ function renderAccounts(){
     }).join('');
   }).join('');
   document.getElementById('acctContent').innerHTML=`
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <button onclick="exportAllAccounts('${shopId}')" style="flex:1;padding:9px;background:#e8f4ff;border:1.5px solid #90caf9;color:#1565c0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">⬇ This Branch CSV</button>
+    ${isOwner()?`<button onclick="exportAllBranchesAccounts()" style="flex:1;padding:9px;background:#f3e5f5;border:1.5px solid #ce93d8;color:#6a1b9a;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">⬇ All Branches CSV</button>`:''}
+  </div>
   <div style="position:relative;margin-bottom:10px"><input type="text" placeholder="🔍 Search by name or phone..." value="${_acctSearch||''}" oninput="_acctSearch=this.value;filterAccounts()" style="width:100%;padding:10px 40px 10px 14px;border:2px solid #e8e8e8;border-radius:12px;font-size:14px;box-sizing:border-box">${_acctSearch?`<button onclick="_acctSearch='';renderAccounts()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#888">✕</button>`:''}</div>
   ${isManager()?`<div class="card"><div class="card-title">➕ Add Account</div>
     <div class="two-col"><div class="field"><label>Name</label><input type="text" id="acct_name" placeholder="Name"></div><div class="field"><label>Type</label><select id="acct_type">${ACCT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
