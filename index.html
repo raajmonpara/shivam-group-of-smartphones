@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_2.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_3.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -176,6 +176,7 @@ let _filterDate = {sales:null,accrep:null,recharge:null,expense:null};
 let _isSaving = false;
 let _skipPollUntil = 0; // timestamp - skip poll until this time
 let _showTagChart = false;
+let _balAllEntries = false; // show consolidated date-wise view
 let _selExpTag = null;
 let _acctSearch = '';
 
@@ -1274,6 +1275,7 @@ function renderBalance(){
   // Always rebuild balance — it's read-only display with simple inline inputs
   // But update balances without rebuilding UPI/bank input fields
   const b=data.shops[shopId].balanceAccounts;
+  if(!['upi','bank','swipe'].includes(sub))window._balAllEntries=false;
   const subTabs=['cash','upi','bank','swipe','loan','adj'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank',swipe:'💳 Swipe',loan:'🏦 Loan',adj:'⚖️ Adjustment'}[t]}</button>`).join('');
   let body='';
   if(sub==='cash'){
@@ -1289,6 +1291,22 @@ function renderBalance(){
       <button class="save-btn" onclick="addCash('${shopId}')">Save</button></div>
     <div class="card"><div class="card-title">Cash Entries</div>${rows||'<div class="empty">No entries</div>'}</div>`;
   } else if(sub==='upi'){
+    const allUpiAccts = data.shops[shopId].balanceAccounts?.upi||[];
+    // Consolidated toggle button
+    const consToggle=`<button onclick="window._balAllEntries=!window._balAllEntries;renderBalance()" style="width:100%;padding:9px 14px;background:${window._balAllEntries?'#1a7a4a':'#f0faf5'};color:${window._balAllEntries?'#fff':'#1a7a4a'};border:1.5px solid #1a7a4a;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;justify-content:space-between"><span>📅 View All UPI Entries Date-wise</span><span>${window._balAllEntries?'▲ Close':'▼ Open'}</span></button>`;
+    if(window._balAllEntries && allUpiAccts.length>0){
+      // Merge all entries from all UPI accounts, sorted by date desc
+      let allEntries=[];
+      allUpiAccts.forEach((u,ai)=>{
+        (u.entries||[]).forEach((e,ei)=>{
+          allEntries.push({...e,_acctName:u.name,_ai:ai,_oi:(u.entries||[]).indexOf(e)});
+        });
+      });
+      allEntries.sort((a,b)=>b.date.localeCompare(a.date));
+      const totalBal=allUpiAccts.reduce((s,u)=>s+(u.balance||0),0);
+      const consolidated=allEntries.map(e=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e._acctName} | ${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delUpiE('${shopId}',${e._ai},${e._oi})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`).join('');
+      body=consToggle+`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Total UPI Balance (All Accounts)</div><div class="metric-value g">Rs.${fmt(totalBal)}</div></div></div><div class="card"><div class="card-title">📅 All UPI Entries — Date-wise</div>${consolidated||'<div class="empty">No entries</div>'}</div>`;
+    } else {
     const cards=(b.upi||[]).map((u,i)=>{
       const upiOrig=u.entries||[];const rows=upiOrig.slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e)=>{const oi=upiOrig.indexOf(e);return `<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delUpiE('${shopId}',${i},${oi})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`;}).join('');
       return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${u.name} ${isOwner()?`<button onclick="delBalAcct('${shopId}','upi',${i},event)" style="font-size:10px;padding:2px 6px;background:#fde8e8;border:1px solid #e8c4c4;color:#c0392b;border-radius:6px;cursor:pointer;margin-left:4px">✕ Delete</button>`:''}</div><div style="font-size:11px;color:#888">${u.number||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">Rs.${fmt(u.balance)}</div></div>
@@ -1299,7 +1317,22 @@ function renderBalance(){
       <div class="two-col"><div class="field"><label>Name</label><input type="text" id="upi_name" placeholder="GPay/PhonePe"></div><div class="field"><label>Number</label><input type="text" id="upi_num" placeholder="Mobile no."></div></div>
       <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="upi_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addUpiAcct('${shopId}')">Add</button></div>`;
+    } // close upi else
   } else if(sub==='bank'){
+    const allBankAccts = data.shops[shopId].balanceAccounts?.bank||[];
+    const bankToggle=`<button onclick="window._balAllEntries=!window._balAllEntries;renderBalance()" style="width:100%;padding:9px 14px;background:${window._balAllEntries?'#2980b9':'#e8f4ff'};color:${window._balAllEntries?'#fff':'#2980b9'};border:1.5px solid #2980b9;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;justify-content:space-between"><span>📅 View All Bank Entries Date-wise</span><span>${window._balAllEntries?'▲ Close':'▼ Open'}</span></button>`;
+    if(window._balAllEntries && allBankAccts.length>0){
+      let allEntries=[];
+      allBankAccts.forEach((bk,ai)=>{
+        (bk.entries||[]).forEach((e,ei)=>{
+          allEntries.push({...e,_acctName:bk.name,_ai:ai,_oi:(bk.entries||[]).indexOf(e)});
+        });
+      });
+      allEntries.sort((a,b)=>b.date.localeCompare(a.date));
+      const totalBal=allBankAccts.reduce((s,bk)=>s+(bk.balance||0),0);
+      const consolidated=allEntries.map(e=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e._acctName} | ${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delBankE('${shopId}',${e._ai},${e._oi})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`).join('');
+      body=bankToggle+`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Total Bank Balance (All Accounts)</div><div class="metric-value g">Rs.${fmt(totalBal)}</div></div></div><div class="card"><div class="card-title">📅 All Bank Entries — Date-wise</div>${consolidated||'<div class="empty">No entries</div>'}</div>`;
+    } else {
     const cards=(b.bank||[]).map((bk,i)=>{
       const bankOrig=bk.entries||[];const rows=bankOrig.slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e)=>{const oi=bankOrig.indexOf(e);return `<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delBankE('${shopId}',${i},${oi})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`;}).join('');
       return `<div class="dealer-card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><div style="font-weight:700">${bk.name}</div><div style="font-size:11px;color:#888">${bk.accountNo||''}</div></div><div style="font-size:18px;font-weight:800;color:#1a7a4a">Rs.${fmt(bk.balance)}</div></div>
@@ -1310,7 +1343,22 @@ function renderBalance(){
       <div class="two-col"><div class="field"><label>Bank Name</label><input type="text" id="bank_name" placeholder="SBI/HDFC"></div><div class="field"><label>Acct No.</label><input type="text" id="bank_no" placeholder="Last 4 digits"></div></div>
       <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="bank_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addBankAcct('${shopId}')">Add</button></div>`;
+    } // close else
   } else if(sub==='swipe'){
+    const allSwipeAccts = data.shops[shopId].balanceAccounts?.swipe||[];
+    const swipeToggle=`<button onclick="window._balAllEntries=!window._balAllEntries;renderBalance()" style="width:100%;padding:9px 14px;background:${window._balAllEntries?'#e67e22':'#fef6ed'};color:${window._balAllEntries?'#fff':'#e67e22'};border:1.5px solid #e67e22;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;justify-content:space-between"><span>📅 View All Swipe Entries Date-wise</span><span>${window._balAllEntries?'▲ Close':'▼ Open'}</span></button>`;
+    if(window._balAllEntries && allSwipeAccts.length>0){
+      let allEntries=[];
+      allSwipeAccts.forEach((sw,ai)=>{
+        (sw.entries||[]).forEach((e,ei)=>{
+          allEntries.push({...e,_acctName:sw.name,_ai:ai,_oi:(sw.entries||[]).indexOf(e)});
+        });
+      });
+      allEntries.sort((a,b)=>b.date.localeCompare(a.date));
+      const totalBal=allSwipeAccts.reduce((s,sw)=>s+(sw.balance||0),0);
+      const consolidated=allEntries.map(e=>`<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e._acctName} | ${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delSwipeE('${shopId}',${e._ai},${e._oi})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`).join('');
+      body=swipeToggle+`<div class="metric-grid"><div class="metric" style="grid-column:1/-1"><div class="metric-label">Total Swipe Balance (All Machines)</div><div class="metric-value g">Rs.${fmt(totalBal)}</div></div></div><div class="card"><div class="card-title">📅 All Swipe Entries — Date-wise</div>${consolidated||'<div class="empty">No entries</div>'}</div>`;
+    } else {
     const swipeAccts=(b.swipe||[]);
     const swipeCards=swipeAccts.map((sw,i)=>{
       const swipeOrig=sw.entries||[];const rows=swipeOrig.slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,8).map((e)=>{const oi=swipeOrig.indexOf(e);return `<div class="txn-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:4px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delSwipeE('${shopId}',${i},${oi})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:16px">x</button>`:''}</div></div>`;}).join('');
@@ -1322,6 +1370,7 @@ function renderBalance(){
       <div class="two-col"><div class="field"><label>Machine Name</label><input type="text" id="swipe_name" placeholder="SBI/HDFC Machine"></div><div class="field"><label>Bank Name</label><input type="text" id="swipe_bank" placeholder="SBI/HDFC"></div></div>
       <div class="field"><label>Opening Balance (Rs.)</label><input type="number" id="swipe_bal" placeholder="0"></div>
       <button class="save-btn" onclick="addSwipeAcct('${shopId}')" style="background:#e67e22">Add Machine</button></div>`;
+    } // close else
   } else if(sub==='loan'){
     // Show loan sales by month - browse history
     const allSales=data.shops[shopId].sales||[];
@@ -1616,7 +1665,7 @@ function renderAccounts(){
     </div>
     ${acct.name.startsWith('Branch:')?`<div class="card" style="background:#fef9f0;border:1px solid #f0c040"><div style="font-size:12px;color:#856404;font-weight:600">⚠️ Inter-branch account — view only. Record payments via Expense section (pay to Branch:X) or Inter-branch Transfer section.</div></div>`:`<div class="card"><div class="card-title">➕ Add Transaction</div>
       <div class="two-col"><div class="field"><label>Type</label><select id="lt_type" onchange="toggleLedgerBalField()">
-        <option value="purchase">📦 ${(acct.type==='Staff'||acct.type==='Owner')?'Advance Given (manual, no balance change — use Expense section instead)':'Purchase on Credit (I owe them — no balance change)'}</option>
+        ${(acct.type==='Staff'||acct.type==='Owner')?'':`<option value="purchase">📦 Purchase on Credit (I owe them — no balance change)</option>`}
         <option value="payment_received">💰 ${(acct.type==='Staff'||acct.type==='Owner')?'Repayment / Paid Back (adds to balance)':'Payment Received / Baki Jama (adds to balance)'}</option>
       </select></div><div class="field"><label>Amount (Rs.)</label><input type="number" id="lt_amt" placeholder="0"></div></div>
       <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div></div>
