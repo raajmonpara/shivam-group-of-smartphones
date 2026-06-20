@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_10.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_11.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2066,7 +2066,7 @@ function renderAccounts(){
       <div class="metric"><div class="metric-label">Total CR</div><div class="metric-value g">₹${fmt(cr)}</div></div>
       <div class="metric" style="grid-column:1/-1"><div class="metric-label">Balance (DR−CR)</div><div class="metric-value ${bal>0?'r':'g'}">₹${fmt(Math.abs(bal))} ${bal>0?'(Outstanding)':'(Clear/Advance)'}</div></div>
     </div>
-    ${acct.name.startsWith('Branch:')?`<div class="card" style="background:#fef9f0;border:1px solid #f0c040"><div style="font-size:12px;color:#856404;font-weight:600">⚠️ Inter-branch account — view only. Record payments via Expense section (pay to Branch:X) or Inter-branch Transfer section.</div></div>`:`<div class="card"><div class="card-title">➕ Add Transaction</div>
+    <div class="card"><div class="card-title">➕ Add Transaction</div>
       <div class="two-col"><div class="field"><label>Type</label><select id="lt_type" onchange="toggleLedgerBalField()">
         ${(acct.type==='Staff'||acct.type==='Owner')?'':`<option value="purchase">📦 Purchase on Credit (I owe them — no balance change)</option>`}
         <option value="payment_received">💰 ${(acct.type==='Staff'||acct.type==='Owner')?'Repayment / Paid Back (adds to balance)':'Payment Received / Baki Jama (adds to balance)'}</option>
@@ -2074,7 +2074,7 @@ function renderAccounts(){
       <div class="two-col"><div class="field"><label>Date</label><input type="date" id="lt_date" value="${todayISO()}"></div><div class="field"><label>Note</label><input type="text" id="lt_note" placeholder="Details"></div></div>
       <div class="field" id="lt_bal_wrap"><label>Payment received in (which account)</label><select id="lt_bal"><option value="">-- Select Balance Account --</option>${balOpts(shopId)}</select></div>
       <button class="save-btn" onclick="addManualLedger('${selId}','${shopId}')">Save</button>
-    </div>`}
+    </div>
     <div class="card"><div class="card-title">📋 Transactions</div>${rows||'<div class="empty">No transactions</div>'}</div>`;
     return;
   }
