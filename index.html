@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_11.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_13.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -962,7 +962,7 @@ function getNav(){
   nav.push({id:'expense',icon:'💸',label:'Expense'});
   nav.push({id:'balance',icon:'💰',label:'Balance'});
   nav.push({id:'staff',icon:'👤',label:'Staff'});
-  nav.push({id:'transfer',icon:'🔄',label:'Transfer'});
+  // Transfer section removed
   nav.push({id:'accounts',icon:'📒',label:'Accounts'});
   if(isOwner()){const unread=(data.changes||[]).filter(c=>!c._read).length;nav.push({id:'changes',icon:'🔔',label:'Changes'+(unread>0?` (${unread})`:'')});}
   return nav;
