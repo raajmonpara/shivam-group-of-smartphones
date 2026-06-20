@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_9.html -->
+<!-- saved from url=(0046)file:///C:/Users/Admin/Downloads/index_10.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -631,25 +631,41 @@ window.renderTagPanel=function(shopId){
   const allExps=data.shops[shopId].expenses||[];
   const months=[...new Set(allExps.map(e=>e.date?.slice(0,7)).filter(Boolean))].sort().reverse();
   if(!window._tagPanelMonth)window._tagPanelMonth=new Date().toISOString().slice(0,7);
+  if(!window._tagPanelFilter)window._tagPanelFilter='month';
+  if(!window._tagPanelFrom)window._tagPanelFrom='';
+  if(!window._tagPanelTo)window._tagPanelTo='';
+  const tpf=window._tagPanelFilter;
+  const today2=new Date().toISOString().slice(0,10);
+  let tpFrom='',tpTo=today2;
+  if(tpf==='month'){tpFrom=window._tagPanelMonth+'-01';const d=new Date(window._tagPanelMonth);d.setMonth(d.getMonth()+1);d.setDate(0);tpTo=d.toISOString().slice(0,10);}
+  else if(tpf==='custom'){tpFrom=window._tagPanelFrom||today2;tpTo=window._tagPanelTo||today2;}
+  const inTpRange=(date)=>date>=tpFrom&&date<=tpTo;
   const ym=window._tagPanelMonth;
   
   const tagTotals={};const tagEnts={};
   tags.forEach(t=>{tagTotals[t]=0;tagEnts[t]=[];});
-  allExps.filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+  allExps.filter(e=>e.date&&inTpRange(e.date)).forEach(e=>{
     const tag=tags.find(t=>e.note&&e.note.includes(t));
     if(tag){tagTotals[tag]=(tagTotals[tag]||0)+e.amount;tagEnts[tag].push(e);}
   });
   const maxAmt=Math.max(...Object.values(tagTotals),1);
   const grandTotal=Object.values(tagTotals).reduce((s,v)=>s+v,0);
 
+  // Month list for selector (last 13 months)
+  const tpMonthOpts=(()=>{const o=[];const d=new Date();for(let i=0;i<13;i++){o.push(d.toISOString().slice(0,7));d.setMonth(d.getMonth()-1);}return o;})();
+  const periodLabel2=tpf==='month'?ym:tpf==='custom'?(window._tagPanelFrom||'')+' to '+(window._tagPanelTo||''):'All';
+  // Sort tags highest to lowest
+  const sortedTags=[...tags].sort((a,b)=>(tagTotals[b]||0)-(tagTotals[a]||0));
   let html=`<div style="padding:16px 16px 0">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <div style="font-size:17px;font-weight:800">📊 Expenses by Tag</div>
       <button onclick="closeTagPanel()" style="background:#e8e8e8;border:none;border-radius:10px;padding:7px 14px;font-weight:700;cursor:pointer;font-size:14px">✕ Close</button>
     </div>
-    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px">
-      ${months.map(m=>`<button onclick="window._tagPanelMonth='${m}';renderTagPanel('${shopId}')" style="padding:6px 12px;background:${m===ym?'#1a7a4a':'#fff'};color:${m===ym?'#fff':'#333'};border:1.5px solid ${m===ym?'#1a7a4a':'#e8e8e8'};border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">${m}</button>`).join('')}
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      ${['month','custom'].map(v=>`<button onclick="window._tagPanelFilter='${v}';renderTagPanel('${shopId}')" style="flex:1;padding:6px;background:${tpf===v?'#1a7a4a':'#fff'};color:${tpf===v?'#fff':'#555'};border:1.5px solid ${tpf===v?'#1a7a4a':'#e8e8e8'};border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">${{month:'By Month',custom:'Custom Range'}[v]}</button>`).join('')}
     </div>
+    ${tpf==='month'?`<select onchange="window._tagPanelMonth=this.value;renderTagPanel('${shopId}')" style="width:100%;padding:8px 10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;margin-bottom:10px">${tpMonthOpts.map(m=>`<option value="${m}"${m===ym?' selected':''}>${m}</option>`).join('')}</select>`:''}
+    ${tpf==='custom'?`<div style="display:flex;gap:6px;margin-bottom:10px"><input type="date" value="${window._tagPanelFrom||today2}" onchange="window._tagPanelFrom=this.value;renderTagPanel('${shopId}')" style="flex:1;padding:7px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:12px"><input type="date" value="${window._tagPanelTo||today2}" onchange="window._tagPanelTo=this.value;renderTagPanel('${shopId}')" style="flex:1;padding:7px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:12px"></div>`:''}
     <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:12px">
       <div style="font-size:11px;color:#888;font-weight:700;margin-bottom:8px">TOTAL EXPENSES — ${ym}</div>
       <div style="font-size:22px;font-weight:800;color:#c0392b">Rs.${fmt(grandTotal)}</div>
@@ -658,7 +674,7 @@ window.renderTagPanel=function(shopId){
   <div style="padding:0 16px 80px">`;
 
   // Tag bars + expandable entries
-  tags.forEach(tag=>{
+  sortedTags.forEach(tag=>{
     const amt=tagTotals[tag]||0;
     const pct=Math.round((amt/maxAmt)*100);
     const ents=tagEnts[tag]||[];
@@ -805,6 +821,101 @@ window.exportAllBranchesAccounts=function(){
   downloadCSV('ShivamGroup_ALL_Accounts_'+date+'.csv', rows);
 };
 // ─────────────────────────────────────────────────────────────────────────────
+
+window.downloadStatement=function(shopId){
+  const sd=data.shops[shopId];const bal=sd.balanceAccounts||{};
+  const upiA=bal.upi||[];const bankA=bal.bank||[];const swipeA=bal.swipe||[];
+  const sf=window._stmtFilter||'7days';const acctF=window._stmtAcct||'all';
+  const today=todayISO();
+  let fromDate='',toDate=today;
+  if(sf==='7days'){const d=new Date();d.setDate(d.getDate()-6);fromDate=d.toISOString().slice(0,10);}
+  else if(sf==='month'){fromDate=(window._stmtMonth2||today.slice(0,7))+'-01';const d=new Date(window._stmtMonth2||today.slice(0,7));d.setMonth(d.getMonth()+1);d.setDate(0);toDate=d.toISOString().slice(0,10);}
+  else if(sf==='custom'){fromDate=window._stmtFrom||today;toDate=window._stmtTo||today;}
+  const inRange=(date)=>date>=fromDate&&date<=toDate;
+  const matchAcct=(key)=>acctF==='all'||acctF===key;
+  let entries=[];
+  const addE=(date,type,key,note,amount)=>{if(inRange(date)&&matchAcct(key))entries.push({date,type,acct:balLabel(shopId,key),note,amount});};
+  (sd.sales||[]).forEach(e=>{if(!inRange(e.date))return;if(e.cash>0)addE(e.date,'Phone Sale','cash',e.note||'',e.cash);if(e.exchange>0)addE(e.date,'Phone Sale','cash','Exchange: '+(e.note||''),e.exchange);if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Phone Sale',e.upiAcct,e.note||'',e.upi);if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Phone Sale',e.bankAcct,e.note||'',e.bank);if(e.swipe>0&&e.swipeAcct!=null)addE(e.date,'Phone Sale',e.swipeAcct,e.note||'',e.swipe);});
+  (sd.accessories||[]).forEach(e=>{if(!inRange(e.date))return;if(e.cash>0)addE(e.date,'Accessories','cash',e.note||'',e.cash);if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Accessories',e.upiAcct,e.note||'',e.upi);if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Accessories',e.bankAcct,e.note||'',e.bank);if(e.swipe>0&&e.swipeAcct!=null)addE(e.date,'Accessories',e.swipeAcct,e.note||'',e.swipe);});
+  (sd.repairing||[]).forEach(e=>{if(!inRange(e.date))return;if(e.cash>0)addE(e.date,'Repairing','cash',e.note||'',e.cash);if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Repairing',e.upiAcct,e.note||'',e.upi);if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Repairing',e.bankAcct,e.note||'',e.bank);if(e.swipe>0&&e.swipeAcct!=null)addE(e.date,'Repairing',e.swipeAcct,e.note||'',e.swipe);});
+  (sd.recharge||[]).forEach(e=>{if(!inRange(e.date))return;if(e.cash>0)addE(e.date,'Recharge','cash',e.note||'',e.cash);if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Recharge',e.upiAcct,e.note||'',e.upi);if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Recharge',e.bankAcct,e.note||'',e.bank);});
+  (sd.expenses||[]).forEach(e=>{if(!inRange(e.date))return;const pf=e.paidFrom||'cash';if(matchAcct(pf))entries.push({date:e.date,type:'Expense',acct:balLabel(shopId,pf),note:e.note||'',amount:-e.amount});});
+  (bal.cash?.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('cash'))entries.push({date:e.date,type:'Cash Entry',acct:'Cash',note:e.note||'',amount:e.amount});});
+  upiA.forEach((u,i)=>{(u.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('upi_'+i))entries.push({date:e.date,type:'UPI Entry',acct:u.name,note:e.note||'',amount:e.amount});});});
+  bankA.forEach((b,i)=>{(b.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('bank_'+i))entries.push({date:e.date,type:'Bank Entry',acct:b.name,note:e.note||'',amount:e.amount});});});
+  swipeA.forEach((s,i)=>{(s.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('swipe_'+i))entries.push({date:e.date,type:'Swipe Entry',acct:s.name,note:e.note||'',amount:e.amount});});});
+  entries.sort((a,b)=>b.date.localeCompare(a.date));
+  const totalIn=entries.filter(e=>e.amount>0).reduce((s,e)=>s+e.amount,0);
+  const totalOut=entries.filter(e=>e.amount<0).reduce((s,e)=>s+Math.abs(e.amount),0);
+  const rows=[
+    ['SHIVAM GROUP OF SMARTPHONES - Balance Statement'],
+    ['Branch:',shopObj(shopId)?.name||shopId,'Account Filter:',acctF==='all'?'All Accounts':acctF],
+    ['Period:',fromDate+' to '+toDate,'Exported:',new Date().toLocaleDateString('en-IN')],
+    [],
+    ['Sr.','Date','Transaction Type','Account','Details / Note','In (Rs.)','Out (Rs.)'],
+    [],
+  ];
+  let sr=1;
+  entries.forEach(e=>{
+    rows.push([sr++,fmtDate(e.date),e.type,e.acct,e.note,e.amount>=0?e.amount:'',e.amount<0?Math.abs(e.amount):'']);
+  });
+  rows.push([]);
+  rows.push(['','','','','TOTAL IN',totalIn,'']);
+  rows.push(['','','','','TOTAL OUT','',totalOut]);
+  rows.push(['','','','','NET (In - Out)',totalIn-totalOut,'']);
+  const fname='Statement_'+shopObj(shopId)?.name+'_'+fromDate+'_to_'+toDate+'.csv';
+  downloadCSV(fname,rows);
+};
+
+window.printStatement=function(shopId){
+  const sd=data.shops[shopId];const bal=sd.balanceAccounts||{};
+  const upiA=bal.upi||[];const bankA=bal.bank||[];const swipeA=bal.swipe||[];
+  const sf=window._stmtFilter||'7days';const acctF=window._stmtAcct||'all';
+  const today=todayISO();
+  let fromDate='',toDate=today,periodLabel='';
+  if(sf==='7days'){const d=new Date();d.setDate(d.getDate()-6);fromDate=d.toISOString().slice(0,10);periodLabel='Last 7 Days';}
+  else if(sf==='month'){fromDate=(window._stmtMonth2||today.slice(0,7))+'-01';const d=new Date(window._stmtMonth2||today.slice(0,7));d.setMonth(d.getMonth()+1);d.setDate(0);toDate=d.toISOString().slice(0,10);periodLabel=window._stmtMonth2||'';}
+  else if(sf==='custom'){fromDate=window._stmtFrom||today;toDate=window._stmtTo||today;periodLabel=fromDate+' to '+toDate;}
+  const inRange=(date)=>date>=fromDate&&date<=toDate;
+  const matchAcct=(key)=>acctF==='all'||acctF===key;
+  let entries=[];
+  const addE=(date,type,key,note,amount)=>{if(inRange(date)&&matchAcct(key))entries.push({date,type,acct:balLabel(shopId,key),note,amount});};
+  (sd.sales||[]).forEach(e=>{if(!inRange(e.date))return;if(e.cash>0)addE(e.date,'Phone Sale','cash',e.note||'',e.cash);if(e.exchange>0)addE(e.date,'Phone Sale','cash','Exchange: '+(e.note||''),e.exchange);if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Phone Sale',e.upiAcct,e.note||'',e.upi);if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Phone Sale',e.bankAcct,e.note||'',e.bank);if(e.swipe>0&&e.swipeAcct!=null)addE(e.date,'Phone Sale',e.swipeAcct,e.note||'',e.swipe);});
+  (sd.accessories||[]).forEach(e=>{if(!inRange(e.date))return;if(e.cash>0)addE(e.date,'Accessories','cash',e.note||'',e.cash);if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Accessories',e.upiAcct,e.note||'',e.upi);if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Accessories',e.bankAcct,e.note||'',e.bank);});
+  (sd.repairing||[]).forEach(e=>{if(!inRange(e.date))return;if(e.cash>0)addE(e.date,'Repairing','cash',e.note||'',e.cash);});
+  (sd.recharge||[]).forEach(e=>{if(!inRange(e.date))return;if(e.cash>0)addE(e.date,'Recharge','cash',e.note||'',e.cash);if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Recharge',e.upiAcct,e.note||'',e.upi);});
+  (sd.expenses||[]).forEach(e=>{if(!inRange(e.date))return;const pf=e.paidFrom||'cash';if(matchAcct(pf))entries.push({date:e.date,type:'Expense',acct:balLabel(shopId,pf),note:e.note||'',amount:-e.amount});});
+  (bal.cash?.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('cash'))entries.push({date:e.date,type:'Cash Entry',acct:'Cash',note:e.note||'',amount:e.amount});});
+  upiA.forEach((u,i)=>{(u.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('upi_'+i))entries.push({date:e.date,type:'UPI Entry',acct:u.name,note:e.note||'',amount:e.amount});});});
+  bankA.forEach((b,i)=>{(b.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('bank_'+i))entries.push({date:e.date,type:'Bank Entry',acct:b.name,note:e.note||'',amount:e.amount});});});
+  swipeA.forEach((s,i)=>{(s.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('swipe_'+i))entries.push({date:e.date,type:'Swipe Entry',acct:s.name,note:e.note||'',amount:e.amount});});});
+  entries.sort((a,b)=>b.date.localeCompare(a.date));
+  const totalIn=entries.filter(e=>e.amount>0).reduce((s,e)=>s+e.amount,0);
+  const totalOut=entries.filter(e=>e.amount<0).reduce((s,e)=>s+Math.abs(e.amount),0);
+  const grouped={};entries.forEach(e=>{if(!grouped[e.date])grouped[e.date]=[];grouped[e.date].push(e);});
+  const tableRows=Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,es])=>{
+    const dayRows=es.map((e,i)=>`<tr><td>${i===0?fmtDate(date):''}</td><td>${e.type}</td><td>${e.acct}</td><td>${e.note||''}</td><td style="color:${e.amount>=0?'#1a7a4a':'#c0392b'};text-align:right;font-weight:600">${e.amount>=0?'+':''}${e.amount.toLocaleString('en-IN')}</td></tr>`).join('');
+    return dayRows;
+  }).join('');
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Statement - ${shopObj(shopId)?.name}</title>
+  <style>body{font-family:Arial,sans-serif;margin:20px;color:#222}h1{font-size:18px;margin:0}h2{font-size:14px;color:#555;font-weight:normal;margin:4px 0 16px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#1a7a4a;color:#fff;padding:8px 10px;text-align:left}td{padding:6px 10px;border-bottom:1px solid #eee}tr:nth-child(even){background:#f9f9f9}.summary{display:flex;gap:20px;margin:16px 0;padding:12px;background:#f5f5f5;border-radius:6px}.sum-box{flex:1}.sum-label{font-size:11px;color:#888;font-weight:600}.sum-val{font-size:16px;font-weight:700}@media print{button{display:none}}</style>
+  </head><body>
+  <h1>Shivam Group of Smartphones</h1>
+  <h2>${shopObj(shopId)?.name||shopId} &nbsp;|&nbsp; Balance Statement &nbsp;|&nbsp; ${periodLabel} &nbsp;|&nbsp; ${acctF==='all'?'All Accounts':acctF}</h2>
+  <div class="summary">
+    <div class="sum-box"><div class="sum-label">TOTAL IN</div><div class="sum-val" style="color:#1a7a4a">+Rs.${totalIn.toLocaleString('en-IN')}</div></div>
+    <div class="sum-box"><div class="sum-label">TOTAL OUT</div><div class="sum-val" style="color:#c0392b">-Rs.${totalOut.toLocaleString('en-IN')}</div></div>
+    <div class="sum-box"><div class="sum-label">NET</div><div class="sum-val" style="color:${(totalIn-totalOut)>=0?'#1a7a4a':'#c0392b'}">${(totalIn-totalOut)>=0?'+':''}Rs.${Math.abs(totalIn-totalOut).toLocaleString('en-IN')}</div></div>
+    <div class="sum-box"><div class="sum-label">ENTRIES</div><div class="sum-val">${entries.length}</div></div>
+  </div>
+  <table><thead><tr><th>Date</th><th>Type</th><th>Account</th><th>Note</th><th style="text-align:right">Amount</th></tr></thead>
+  <tbody>${tableRows}</tbody></table>
+  <div style="margin-top:16px;font-size:11px;color:#aaa">Exported: ${new Date().toLocaleString('en-IN')} &nbsp;|&nbsp; Shivam Group of Smartphones</div>
+  <button onclick="window.print()" style="margin-top:16px;padding:10px 24px;background:#6a1b9a;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer">🖨 Print / Save as PDF</button>
+  </body></html>`);
+  w.document.close();
+};
 function doLogin(){
   const pass=document.getElementById('loginPass').value.trim();
   const shopId=document.getElementById('loginShop').value;
@@ -1558,124 +1669,131 @@ function renderBalance(){
     </div>
     <div class="card"><div class="card-title">🏦 Loan Sales — ${selMonth}</div>${rows||'<div class="empty">No loan sales this month</div>'}</div>`;
   } else if(sub==='statement'){
-    const sd=data.shops[shopId]; const bal=sd.balanceAccounts||{};
-    const upiA=bal.upi||[]; const bankA=bal.bank||[]; const swipeA=bal.swipe||[];
-    // Month list
-    const allDates=[
-      ...(sd.sales||[]).map(e=>e.date),
-      ...(sd.expenses||[]).map(e=>e.date),
-      ...(sd.accessories||[]).map(e=>e.date),
-      ...(sd.repairing||[]).map(e=>e.date),
-      ...(sd.recharge||[]).map(e=>e.date),
-      ...(bal.cash?.entries||[]).map(e=>e.date),
-      ...upiA.flatMap(u=>(u.entries||[]).map(e=>e.date)),
-      ...bankA.flatMap(b=>(b.entries||[]).map(e=>e.date)),
-      ...swipeA.flatMap(s=>(s.entries||[]).map(e=>e.date))
-    ].filter(Boolean).map(d=>d.slice(0,7));
-    const months=[...new Set(allDates)].sort().reverse();
-    if(!window._stmtMonth||!months.includes(window._stmtMonth))window._stmtMonth=months[0]||new Date().toISOString().slice(0,7);
+    const sd=data.shops[shopId];const bal=sd.balanceAccounts||{};
+    const upiA=bal.upi||[];const bankA=bal.bank||[];const swipeA=bal.swipe||[];
+
+    // Init filter state
+    if(!window._stmtFilter)window._stmtFilter='7days';
     if(!window._stmtAcct)window._stmtAcct='all';
-    const ym=window._stmtMonth; const sf=window._stmtAcct;
+    if(!window._stmtFrom)window._stmtFrom='';
+    if(!window._stmtTo)window._stmtTo='';
+    if(!window._stmtMonth2)window._stmtMonth2=new Date().toISOString().slice(0,7);
+    const sf=window._stmtFilter;const acctF=window._stmtAcct;
+
+    // Compute date range
+    const today=todayISO();
+    let fromDate='',toDate=today;
+    if(sf==='7days'){const d=new Date();d.setDate(d.getDate()-6);fromDate=d.toISOString().slice(0,10);}
+    else if(sf==='month'){fromDate=window._stmtMonth2+'-01';const d=new Date(window._stmtMonth2);d.setMonth(d.getMonth()+1);d.setDate(0);toDate=d.toISOString().slice(0,10);}
+    else if(sf==='custom'){fromDate=window._stmtFrom||today;toDate=window._stmtTo||today;}
+
     // Account filter options
-    const acctOps=[{v:'all',l:'All Accounts'},{v:'cash',l:'Cash'},
-      ...upiA.map((u,i)=>({v:'upi_'+i,l:u.name})),
-      ...bankA.map((b,i)=>({v:'bank_'+i,l:b.name})),
-      ...swipeA.map((s,i)=>({v:'swipe_'+i,l:s.name}))
+    const acctOps=[{v:'all',l:'All Accounts'},{v:'cash',l:'💵 Cash'},
+      ...upiA.map((u,i)=>({v:'upi_'+i,l:'📲 '+u.name})),
+      ...bankA.map((b,i)=>({v:'bank_'+i,l:'🏦 '+b.name})),
+      ...swipeA.map((s,i)=>({v:'swipe_'+i,l:'💳 '+s.name}))
     ];
-    // Collect all entries for selected month
+
+    // Collect entries
     let entries=[];
-    const addE=(date,type,key,note,amount)=>{
-      if(sf==='all'||sf===key) entries.push({date,type,acct:balLabel(shopId,key),note,amount});
-    };
-    // Phone sales
-    (sd.sales||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+    const inRange=(date)=>date>=fromDate&&date<=toDate;
+    const matchAcct=(key)=>acctF==='all'||acctF===key;
+    const addE=(date,type,key,note,amount)=>{if(inRange(date)&&matchAcct(key))entries.push({date,type,acct:balLabel(shopId,key),note,amount});};
+
+    (sd.sales||[]).forEach(e=>{
+      if(!inRange(e.date))return;
       if(e.cash>0)addE(e.date,'Phone Sale','cash',e.note||'',e.cash);
       if(e.exchange>0)addE(e.date,'Phone Sale','cash','Exchange: '+(e.note||''),e.exchange);
-      if(e.upi>0&&e.upiAcct)addE(e.date,'Phone Sale',e.upiAcct,e.note||'',e.upi);
-      if(e.bank>0&&e.bankAcct)addE(e.date,'Phone Sale',e.bankAcct,e.note||'',e.bank);
-      if(e.swipe>0&&e.swipeAcct)addE(e.date,'Phone Sale',e.swipeAcct,e.note||'',e.swipe);
+      if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Phone Sale',e.upiAcct,e.note||'',e.upi);
+      if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Phone Sale',e.bankAcct,e.note||'',e.bank);
+      if(e.swipe>0&&e.swipeAcct!=null)addE(e.date,'Phone Sale',e.swipeAcct,e.note||'',e.swipe);
     });
-    // Accessories
-    (sd.accessories||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+    (sd.accessories||[]).forEach(e=>{
+      if(!inRange(e.date))return;
       if(e.cash>0)addE(e.date,'Accessories','cash',e.note||'',e.cash);
-      if(e.upi>0&&e.upiAcct)addE(e.date,'Accessories',e.upiAcct,e.note||'',e.upi);
-      if(e.bank>0&&e.bankAcct)addE(e.date,'Accessories',e.bankAcct,e.note||'',e.bank);
-      if(e.swipe>0&&e.swipeAcct)addE(e.date,'Accessories',e.swipeAcct,e.note||'',e.swipe);
+      if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Accessories',e.upiAcct,e.note||'',e.upi);
+      if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Accessories',e.bankAcct,e.note||'',e.bank);
+      if(e.swipe>0&&e.swipeAcct!=null)addE(e.date,'Accessories',e.swipeAcct,e.note||'',e.swipe);
     });
-    // Repairing
-    (sd.repairing||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+    (sd.repairing||[]).forEach(e=>{
+      if(!inRange(e.date))return;
       if(e.cash>0)addE(e.date,'Repairing','cash',e.note||'',e.cash);
-      if(e.upi>0&&e.upiAcct)addE(e.date,'Repairing',e.upiAcct,e.note||'',e.upi);
-      if(e.bank>0&&e.bankAcct)addE(e.date,'Repairing',e.bankAcct,e.note||'',e.bank);
-      if(e.swipe>0&&e.swipeAcct)addE(e.date,'Repairing',e.swipeAcct,e.note||'',e.swipe);
+      if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Repairing',e.upiAcct,e.note||'',e.upi);
+      if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Repairing',e.bankAcct,e.note||'',e.bank);
+      if(e.swipe>0&&e.swipeAcct!=null)addE(e.date,'Repairing',e.swipeAcct,e.note||'',e.swipe);
     });
-    // Recharge
-    (sd.recharge||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+    (sd.recharge||[]).forEach(e=>{
+      if(!inRange(e.date))return;
       if(e.cash>0)addE(e.date,'Recharge','cash',e.note||'',e.cash);
-      if(e.upi>0&&e.upiAcct)addE(e.date,'Recharge',e.upiAcct,e.note||'',e.upi);
-      if(e.bank>0&&e.bankAcct)addE(e.date,'Recharge',e.bankAcct,e.note||'',e.bank);
+      if(e.upi>0&&e.upiAcct!=null)addE(e.date,'Recharge',e.upiAcct,e.note||'',e.upi);
+      if(e.bank>0&&e.bankAcct!=null)addE(e.date,'Recharge',e.bankAcct,e.note||'',e.bank);
     });
-    // Expenses (negative)
-    (sd.expenses||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+    (sd.expenses||[]).forEach(e=>{
+      if(!inRange(e.date))return;
       const pf=e.paidFrom||'cash';
-      if(sf==='all'||sf===pf) entries.push({date:e.date,type:'Expense',acct:balLabel(shopId,pf),note:e.note||'',amount:-e.amount});
+      if(matchAcct(pf))entries.push({date:e.date,type:'Expense',acct:balLabel(shopId,pf),note:e.note||'',amount:-e.amount});
     });
-    // Manual cash entries
-    (bal.cash?.entries||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
-      if(sf==='all'||sf==='cash') entries.push({date:e.date,type:'Manual (Cash)',acct:'Cash',note:e.note||'',amount:e.amount});
-    });
-    // Manual UPI entries
-    upiA.forEach((u,i)=>{
-      (u.entries||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
-        if(sf==='all'||sf==='upi_'+i) entries.push({date:e.date,type:'Manual (UPI)',acct:u.name,note:e.note||'',amount:e.amount});
-      });
-    });
-    // Manual bank entries
-    bankA.forEach((b,i)=>{
-      (b.entries||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
-        if(sf==='all'||sf==='bank_'+i) entries.push({date:e.date,type:'Manual (Bank)',acct:b.name,note:e.note||'',amount:e.amount});
-      });
-    });
-    // Manual swipe entries
-    swipeA.forEach((s,i)=>{
-      (s.entries||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
-        if(sf==='all'||sf==='swipe_'+i) entries.push({date:e.date,type:'Manual (Swipe)',acct:s.name,note:e.note||'',amount:e.amount});
-      });
-    });
-    // Sort by date descending
+    (bal.cash?.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('cash'))entries.push({date:e.date,type:'Cash Entry',acct:'Cash',note:e.note||'',amount:e.amount});});
+    upiA.forEach((u,i)=>{(u.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('upi_'+i))entries.push({date:e.date,type:'UPI Entry',acct:u.name,note:e.note||'',amount:e.amount});});});
+    bankA.forEach((b,i)=>{(b.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('bank_'+i))entries.push({date:e.date,type:'Bank Entry',acct:b.name,note:e.note||'',amount:e.amount});});});
+    swipeA.forEach((s,i)=>{(s.entries||[]).forEach(e=>{if(inRange(e.date)&&matchAcct('swipe_'+i))entries.push({date:e.date,type:'Swipe Entry',acct:s.name,note:e.note||'',amount:e.amount});});});
+
     entries.sort((a,b)=>b.date.localeCompare(a.date));
     const totalIn=entries.filter(e=>e.amount>0).reduce((s,e)=>s+e.amount,0);
     const totalOut=entries.filter(e=>e.amount<0).reduce((s,e)=>s+Math.abs(e.amount),0);
+
     // Group by date
-    const grouped={};
-    entries.forEach(e=>{if(!grouped[e.date])grouped[e.date]=[];grouped[e.date].push(e);});
+    const grouped={};entries.forEach(e=>{if(!grouped[e.date])grouped[e.date]=[];grouped[e.date].push(e);});
     const rows=Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,es])=>{
-      const dayRows=es.map(e=>`<div style="padding:10px 14px;border-bottom:0.5px solid #f0ede8;display:flex;justify-content:space-between;align-items:center;gap:8px">
+      const dayTotal=es.reduce((s,e)=>s+e.amount,0);
+      const dayRows=es.map(e=>`<div style="padding:10px 14px;border-bottom:0.5px solid #f5f2ef;display:flex;justify-content:space-between;align-items:center;gap:8px">
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:#222">${e.type}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px">${e.acct}${e.note?' · '+e.note:''}</div>
+          <div style="font-size:13px;font-weight:700">${e.type}</div>
+          <div style="font-size:11px;color:#888;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.acct}${e.note?' · '+e.note:''}</div>
         </div>
-        <div style="font-size:14px;font-weight:800;color:${e.amount>=0?'#1a7a4a':'#c0392b'};white-space:nowrap">${e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div>
+        <div style="font-size:13px;font-weight:800;color:${e.amount>=0?'#1a7a4a':'#c0392b'};white-space:nowrap">${e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div>
       </div>`).join('');
-      return `<div style="background:#f0ede8;padding:6px 14px;font-size:11px;font-weight:800;color:#555;letter-spacing:0.5px">${fmtDate(date).toUpperCase()}</div>${dayRows}`;
+      return `<div style="background:#f0ede8;padding:6px 14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;font-weight:800;color:#555;letter-spacing:0.5px">${fmtDate(date).toUpperCase()}</span>
+        <span style="font-size:11px;font-weight:700;color:${dayTotal>=0?'#1a7a4a':'#c0392b'}">${dayTotal>=0?'+':''}Rs.${fmt(Math.abs(dayTotal))}</span>
+      </div>${dayRows}`;
     }).join('');
-    body=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-      <div style="background:#e8f4ed;border-radius:12px;padding:12px"><div style="font-size:11px;color:#1a7a4a;font-weight:700">Total In</div><div style="font-size:18px;font-weight:800;color:#1a7a4a">+Rs.${fmt(totalIn)}</div></div>
-      <div style="background:#fdecea;border-radius:12px;padding:12px"><div style="font-size:11px;color:#c0392b;font-weight:700">Total Out</div><div style="font-size:18px;font-weight:800;color:#c0392b">-Rs.${fmt(totalOut)}</div></div>
+
+    // Month list for month filter (last 13 months)
+    const monthOpts=(()=>{const opts=[];const d=new Date();for(let i=0;i<13;i++){opts.push(d.toISOString().slice(0,7));d.setMonth(d.getMonth()-1);}return opts;})();
+
+    body=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="background:#e8f4ed;border-radius:12px;padding:10px 12px">
+        <div style="font-size:10px;color:#1a7a4a;font-weight:700;margin-bottom:2px">TOTAL IN</div>
+        <div style="font-size:18px;font-weight:800;color:#1a7a4a">+Rs.${fmt(totalIn)}</div>
+      </div>
+      <div style="background:#fdecea;border-radius:12px;padding:10px 12px">
+        <div style="font-size:10px;color:#c0392b;font-weight:700;margin-bottom:2px">TOTAL OUT</div>
+        <div style="font-size:18px;font-weight:800;color:#c0392b">-Rs.${fmt(totalOut)}</div>
+      </div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <select onchange="window._stmtMonth=this.value;renderBalance()" style="flex:1;padding:9px 10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px">
-        ${months.map(m=>`<option value="${m}"${m===ym?' selected':''}>${m}</option>`).join('')}
-      </select>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      ${['7days','month','custom'].map(v=>`<button onclick="window._stmtFilter='${v}';renderBalance()" style="flex:1;padding:7px 4px;background:${sf===v?'#1a7a4a':'#fff'};color:${sf===v?'#fff':'#555'};border:1.5px solid ${sf===v?'#1a7a4a':'#e8e8e8'};border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">${{7:'Last 7 Days','m':'Month','c':'Custom Range'}[v[0]]}</button>`).join('')}
+    </div>
+    ${sf==='month'?`<select onchange="window._stmtMonth2=this.value;renderBalance()" style="width:100%;padding:9px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;margin-bottom:10px">${monthOpts.map(m=>`<option value="${m}"${m===window._stmtMonth2?' selected':''}>${m}</option>`).join('')}</select>`:''}
+    ${sf==='custom'?`<div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1"><div style="font-size:10px;font-weight:700;color:#888;margin-bottom:3px">FROM</div><input type="date" value="${window._stmtFrom||today}" onchange="window._stmtFrom=this.value;renderBalance()" style="width:100%;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px;box-sizing:border-box"></div>
+      <div style="flex:1"><div style="font-size:10px;font-weight:700;color:#888;margin-bottom:3px">TO</div><input type="date" value="${window._stmtTo||today}" onchange="window._stmtTo=this.value;renderBalance()" style="width:100%;padding:8px;border:1.5px solid #e8e8e8;border-radius:8px;font-size:13px;box-sizing:border-box"></div>
+    </div>`:''}
+    <div style="display:flex;gap:8px;margin-bottom:10px">
       <select onchange="window._stmtAcct=this.value;renderBalance()" style="flex:1;padding:9px 10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px">
-        ${acctOps.map(o=>`<option value="${o.v}"${o.v===sf?' selected':''}>${o.l}</option>`).join('')}
+        ${acctOps.map(o=>`<option value="${o.v}"${o.v===acctF?' selected':''}>${o.l}</option>`).join('')}
       </select>
+      <button onclick="downloadStatement('${shopId}')" style="padding:9px 12px;background:#1565c0;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">⬇ CSV</button>
+      <button onclick="printStatement('${shopId}')" style="padding:9px 12px;background:#6a1b9a;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer">🖨 PDF</button>
     </div>
     <div style="background:#fff;border-radius:14px;overflow:hidden;border:1px solid #f0ede8">
       ${rows||'<div style="padding:24px;text-align:center;color:#bbb;font-size:13px">No entries for this period</div>'}
     </div>
-    <div style="text-align:center;padding:10px 0;font-size:11px;color:#bbb">${entries.length} entries · ${ym}</div>`;
-  } else if(sub==='adj'){
+    <div style="text-align:center;padding:8px 0;font-size:11px;color:#bbb">${entries.length} entries · Net: <b style="color:${(totalIn-totalOut)>=0?'#1a7a4a':'#c0392b'}">Rs.${fmt(Math.abs(totalIn-totalOut))}</b></div>`;
+
+  } else if(sub==='adj'){  } else if(sub==='adj'){
     const adjs=(data.shops[shopId].adjustments||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
     const total=(data.shops[shopId].adjustments||[]).reduce((s,a)=>s+a.amount,0);
     const adjRows=adjs.map((a,i)=>{
