@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_7.html -->
+<!-- saved from url=(0045)file:///C:/Users/Admin/Downloads/index_9.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1441,7 +1441,7 @@ function renderBalance(){
   // But update balances without rebuilding UPI/bank input fields
   const b=data.shops[shopId].balanceAccounts;
   if(!['upi','bank','swipe'].includes(sub))window._balAllEntries=false;
-  const subTabs=['cash','upi','bank','swipe','loan','adj'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank',swipe:'💳 Swipe',loan:'🏦 Loan',adj:'⚖️ Adjustment'}[t]}</button>`).join('');
+  const subTabs=['cash','upi','bank','swipe','loan','adj','statement'].map(t=>`<button class="sub-tab${sub===t?' active':''}" onclick="window._balTab='${t}';window._balAllEntries=false;renderBalance()">${{cash:'💵 Cash',upi:'📲 UPI',bank:'🏦 Bank',swipe:'💳 Swipe',loan:'🏦 Loan',adj:'⚖️ Adj',statement:'📋 Statement'}[t]}</button>`).join('');
   let body='';
   if(sub==='cash'){
     const cashOrig=b.cash.entries||[];const rows=cashOrig.slice().sort((a,c)=>c.date.localeCompare(a.date)).slice(0,20).map((e)=>{const oi=cashOrig.indexOf(e);return `<div class="entry-row"><div><div class="entry-main ${+e.amount>=0?'g':'r'}">${+e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div><div class="entry-sub">${e.note||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="entry-date">${fmtDate(e.date)}</span>${isManager()?`<button onclick="delCashE('${shopId}',${oi})" style="color:#c0392b;background:none;border:none;cursor:pointer;font-size:17px">x</button>`:''}</div></div>`;}).join('');
@@ -1557,6 +1557,124 @@ function renderBalance(){
       ${months.map(m=>`<button onclick="window._loanMonth='${m}';renderBalance()" class="shop-tab${m===selMonth?' active':''}">${m}</button>`).join('')}
     </div>
     <div class="card"><div class="card-title">🏦 Loan Sales — ${selMonth}</div>${rows||'<div class="empty">No loan sales this month</div>'}</div>`;
+  } else if(sub==='statement'){
+    const sd=data.shops[shopId]; const bal=sd.balanceAccounts||{};
+    const upiA=bal.upi||[]; const bankA=bal.bank||[]; const swipeA=bal.swipe||[];
+    // Month list
+    const allDates=[
+      ...(sd.sales||[]).map(e=>e.date),
+      ...(sd.expenses||[]).map(e=>e.date),
+      ...(sd.accessories||[]).map(e=>e.date),
+      ...(sd.repairing||[]).map(e=>e.date),
+      ...(sd.recharge||[]).map(e=>e.date),
+      ...(bal.cash?.entries||[]).map(e=>e.date),
+      ...upiA.flatMap(u=>(u.entries||[]).map(e=>e.date)),
+      ...bankA.flatMap(b=>(b.entries||[]).map(e=>e.date)),
+      ...swipeA.flatMap(s=>(s.entries||[]).map(e=>e.date))
+    ].filter(Boolean).map(d=>d.slice(0,7));
+    const months=[...new Set(allDates)].sort().reverse();
+    if(!window._stmtMonth||!months.includes(window._stmtMonth))window._stmtMonth=months[0]||new Date().toISOString().slice(0,7);
+    if(!window._stmtAcct)window._stmtAcct='all';
+    const ym=window._stmtMonth; const sf=window._stmtAcct;
+    // Account filter options
+    const acctOps=[{v:'all',l:'All Accounts'},{v:'cash',l:'Cash'},
+      ...upiA.map((u,i)=>({v:'upi_'+i,l:u.name})),
+      ...bankA.map((b,i)=>({v:'bank_'+i,l:b.name})),
+      ...swipeA.map((s,i)=>({v:'swipe_'+i,l:s.name}))
+    ];
+    // Collect all entries for selected month
+    let entries=[];
+    const addE=(date,type,key,note,amount)=>{
+      if(sf==='all'||sf===key) entries.push({date,type,acct:balLabel(shopId,key),note,amount});
+    };
+    // Phone sales
+    (sd.sales||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+      if(e.cash>0)addE(e.date,'Phone Sale','cash',e.note||'',e.cash);
+      if(e.exchange>0)addE(e.date,'Phone Sale','cash','Exchange: '+(e.note||''),e.exchange);
+      if(e.upi>0&&e.upiAcct)addE(e.date,'Phone Sale',e.upiAcct,e.note||'',e.upi);
+      if(e.bank>0&&e.bankAcct)addE(e.date,'Phone Sale',e.bankAcct,e.note||'',e.bank);
+      if(e.swipe>0&&e.swipeAcct)addE(e.date,'Phone Sale',e.swipeAcct,e.note||'',e.swipe);
+    });
+    // Accessories
+    (sd.accessories||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+      if(e.cash>0)addE(e.date,'Accessories','cash',e.note||'',e.cash);
+      if(e.upi>0&&e.upiAcct)addE(e.date,'Accessories',e.upiAcct,e.note||'',e.upi);
+      if(e.bank>0&&e.bankAcct)addE(e.date,'Accessories',e.bankAcct,e.note||'',e.bank);
+      if(e.swipe>0&&e.swipeAcct)addE(e.date,'Accessories',e.swipeAcct,e.note||'',e.swipe);
+    });
+    // Repairing
+    (sd.repairing||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+      if(e.cash>0)addE(e.date,'Repairing','cash',e.note||'',e.cash);
+      if(e.upi>0&&e.upiAcct)addE(e.date,'Repairing',e.upiAcct,e.note||'',e.upi);
+      if(e.bank>0&&e.bankAcct)addE(e.date,'Repairing',e.bankAcct,e.note||'',e.bank);
+      if(e.swipe>0&&e.swipeAcct)addE(e.date,'Repairing',e.swipeAcct,e.note||'',e.swipe);
+    });
+    // Recharge
+    (sd.recharge||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+      if(e.cash>0)addE(e.date,'Recharge','cash',e.note||'',e.cash);
+      if(e.upi>0&&e.upiAcct)addE(e.date,'Recharge',e.upiAcct,e.note||'',e.upi);
+      if(e.bank>0&&e.bankAcct)addE(e.date,'Recharge',e.bankAcct,e.note||'',e.bank);
+    });
+    // Expenses (negative)
+    (sd.expenses||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+      const pf=e.paidFrom||'cash';
+      if(sf==='all'||sf===pf) entries.push({date:e.date,type:'Expense',acct:balLabel(shopId,pf),note:e.note||'',amount:-e.amount});
+    });
+    // Manual cash entries
+    (bal.cash?.entries||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+      if(sf==='all'||sf==='cash') entries.push({date:e.date,type:'Manual (Cash)',acct:'Cash',note:e.note||'',amount:e.amount});
+    });
+    // Manual UPI entries
+    upiA.forEach((u,i)=>{
+      (u.entries||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+        if(sf==='all'||sf==='upi_'+i) entries.push({date:e.date,type:'Manual (UPI)',acct:u.name,note:e.note||'',amount:e.amount});
+      });
+    });
+    // Manual bank entries
+    bankA.forEach((b,i)=>{
+      (b.entries||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+        if(sf==='all'||sf==='bank_'+i) entries.push({date:e.date,type:'Manual (Bank)',acct:b.name,note:e.note||'',amount:e.amount});
+      });
+    });
+    // Manual swipe entries
+    swipeA.forEach((s,i)=>{
+      (s.entries||[]).filter(e=>e.date?.startsWith(ym)).forEach(e=>{
+        if(sf==='all'||sf==='swipe_'+i) entries.push({date:e.date,type:'Manual (Swipe)',acct:s.name,note:e.note||'',amount:e.amount});
+      });
+    });
+    // Sort by date descending
+    entries.sort((a,b)=>b.date.localeCompare(a.date));
+    const totalIn=entries.filter(e=>e.amount>0).reduce((s,e)=>s+e.amount,0);
+    const totalOut=entries.filter(e=>e.amount<0).reduce((s,e)=>s+Math.abs(e.amount),0);
+    // Group by date
+    const grouped={};
+    entries.forEach(e=>{if(!grouped[e.date])grouped[e.date]=[];grouped[e.date].push(e);});
+    const rows=Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([date,es])=>{
+      const dayRows=es.map(e=>`<div style="padding:10px 14px;border-bottom:0.5px solid #f0ede8;display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:#222">${e.type}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">${e.acct}${e.note?' · '+e.note:''}</div>
+        </div>
+        <div style="font-size:14px;font-weight:800;color:${e.amount>=0?'#1a7a4a':'#c0392b'};white-space:nowrap">${e.amount>=0?'+':''}Rs.${fmt(Math.abs(e.amount))}</div>
+      </div>`).join('');
+      return `<div style="background:#f0ede8;padding:6px 14px;font-size:11px;font-weight:800;color:#555;letter-spacing:0.5px">${fmtDate(date).toUpperCase()}</div>${dayRows}`;
+    }).join('');
+    body=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:#e8f4ed;border-radius:12px;padding:12px"><div style="font-size:11px;color:#1a7a4a;font-weight:700">Total In</div><div style="font-size:18px;font-weight:800;color:#1a7a4a">+Rs.${fmt(totalIn)}</div></div>
+      <div style="background:#fdecea;border-radius:12px;padding:12px"><div style="font-size:11px;color:#c0392b;font-weight:700">Total Out</div><div style="font-size:18px;font-weight:800;color:#c0392b">-Rs.${fmt(totalOut)}</div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <select onchange="window._stmtMonth=this.value;renderBalance()" style="flex:1;padding:9px 10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px">
+        ${months.map(m=>`<option value="${m}"${m===ym?' selected':''}>${m}</option>`).join('')}
+      </select>
+      <select onchange="window._stmtAcct=this.value;renderBalance()" style="flex:1;padding:9px 10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px">
+        ${acctOps.map(o=>`<option value="${o.v}"${o.v===sf?' selected':''}>${o.l}</option>`).join('')}
+      </select>
+    </div>
+    <div style="background:#fff;border-radius:14px;overflow:hidden;border:1px solid #f0ede8">
+      ${rows||'<div style="padding:24px;text-align:center;color:#bbb;font-size:13px">No entries for this period</div>'}
+    </div>
+    <div style="text-align:center;padding:10px 0;font-size:11px;color:#bbb">${entries.length} entries · ${ym}</div>`;
   } else if(sub==='adj'){
     const adjs=(data.shops[shopId].adjustments||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
     const total=(data.shops[shopId].adjustments||[]).reduce((s,a)=>s+a.amount,0);
